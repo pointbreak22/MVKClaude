@@ -49,6 +49,9 @@ namespace GoldenGen
             if (seeds.Count == 0) seeds.AddRange(new long[] { 1, 2, 20241004, -987654321 });
 
             Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+            // В оригинале таблицу синусов заполняет WinGL.Window при старте.
+            // Без этого Glm.Sin/Cos возвращают 0, а генерация руд (FeatureMinable) их использует.
+            Glm.Initialized();
 
             using (StreamWriter file = new StreamWriter(output))
             {
