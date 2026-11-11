@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Утилита снятия эталонных хэшей генерации со СТАРОГО кода (original/, коммит dfbd814).
+    Старый код собирается как есть в Original/*.csproj (три сборки, как в оригинале).
+    Не входит в MvkClaude.slnx: original/ не хранится в git.
+    Запуск: см. tools/GoldenGen/README.md
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <None Include="..\..\original\res\Assets\**\*" LinkBase="Assets" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Original\Mvk2\Mvk2.csproj" />
+  </ItemGroup>
+</Project>

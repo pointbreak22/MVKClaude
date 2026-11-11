@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Исходники original/src/Mvk2 как есть, без Program.cs (только для GoldenGen) -->
+  <Import Project="..\Original.props" />
+  <PropertyGroup>
+    <AssemblyName>Mvk2</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(Src)\Mvk2\**\*.cs" Exclude="$(Src)\Mvk2\Program.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WinGL\WinGL.csproj" />
+    <ProjectReference Include="..\Vge\Vge.csproj" />
+  </ItemGroup>
+</Project>

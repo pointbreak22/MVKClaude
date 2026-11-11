@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Исходники original/src/WinGL как есть (только для GoldenGen) -->
+  <Import Project="..\Original.props" />
+  <PropertyGroup>
+    <AssemblyName>WinGL</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(Src)\WinGL\**\*.cs" />
+  </ItemGroup>
+</Project>
