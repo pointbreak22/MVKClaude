@@ -17,6 +17,20 @@
 | M5 | `Mth` был обычным классом со статическими методами. | `static class`. | сделано |
 | M6 | `throw new Exception(Sr.OutOfRange)` в индексаторах (зависимость математики от глобальных строк игры). | `ArgumentOutOfRangeException(nameof(index))`. | сделано |
 
+## Утилиты (`Vge/Util`, `Json`, `NBT` → `Mvk.Core`)
+
+| # | Что было | Что сделано / предлагается | Статус |
+|---|----------|----------------------------|--------|
+| U1 | `NBTStream.WriteShort/Int/Long/Float` создавали новый массив на каждое число, `ReadFloat` тоже. При сохранении чанка это тысячи мелких аллокаций. | `stackalloc` + `BinaryPrimitives` big-endian, float через `SingleToInt32Bits`. Байты те же (`core.csv`). | сделано |
+| U2 | `NBTStream.ReadUTF` и `TagByteArray.Read` вызывали `Read` без проверки прочитанного (CA2022): при обрезанном файле молча получались нули. | `ReadExactly`: на целых данных то же самое, на обрезанных `EndOfStreamException`, как уже было у чисел. | сделано |
+| U3 | `ListFast<T>.Contains/Remove`, `ListMessy<T>` сравнивали через `_buffer[i].Equals(item)`: для структур (векторы, позиции) это боксинг на каждый элемент. | `EqualityComparer<T>.Default.Equals` без боксинга. | сделано |
+| U4 | `Sundry.ChekComment` делал `TrimStart()` и `Substring(0,1)`: две строки на каждую строку Json. | `ReadOnlySpan<char>`, без аллокаций. | сделано |
+| U5 | `JsonRead` собирает тело через `_body += line + " "` в цикле: квадратичное время на больших файлах моделей. | Заменить на `StringBuilder` (или разбор по `ReadOnlySpan<char>`). | предложено |
+| U6 | `CreateNewByType` возвращал `null` на неизвестный тип тега, дальше было `NullReferenceException`. | Явное `InvalidDataException` с номером типа. | сделано |
+| U7 | `Equals` у `TagList` и `TagByteArray` сравнивает списки и массивы по ссылке, то есть два одинаковых тега не равны. | Сравнивать содержимое. Проверить, где используется `Equals` тегов. | предложено [ПОВЕДЕНИЕ] |
+| U8 | `Ticker` и `Sundry` читали глобальные `Ce.Tps` и `Ce.MinDesiredBatchSize`: Core зависел от констант движка. | `Ticker(int tps = 20)`, `Sundry.MinDesiredBatchSize`. | сделано |
+| U9 | `Rand` хранит seed в отдельном объекте `AtomicLong` с CAS, хотя экземпляр используется из одного потока. | Хранить `long` в поле (минус аллокация и косвенность на каждый вызов). Только после проверки, что `Rand` не делят между потоками. | предложено |
+
 ## Генерация (из наблюдений GoldenGen)
 
 | # | Что было | Что предлагается | Статус |

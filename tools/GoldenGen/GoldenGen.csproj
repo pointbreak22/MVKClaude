@@ -10,10 +10,12 @@
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <Nullable>disable</Nullable>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefineConstants>$(DefineConstants);GOLDEN_ORIGINAL</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="MathGolden.cs" />
+    <Compile Include="CoreGolden.cs" />
     <Using Include="WinGL.Util" />
     <None Include="..\..\original\res\Assets\**\*" LinkBase="Assets" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

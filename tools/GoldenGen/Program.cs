@@ -59,6 +59,13 @@ namespace GoldenGen
                 Console.WriteLine("Готово: " + mathOutput);
                 return 0;
             }
+            if (args.Length > 0 && args[0] == "core")
+            {
+                string coreOutput = Path.GetFullPath(args.Length > 1 ? args[1] : "core.csv", _startDirectory);
+                CoreGolden.Write(coreOutput);
+                Console.WriteLine("Готово: " + coreOutput);
+                return 0;
+            }
 
             string output = Path.GetFullPath(args.Length > 0 ? args[0] : "island.csv");
             int radius = args.Length > 1 ? int.Parse(args[1], CultureInfo.InvariantCulture) : 3;

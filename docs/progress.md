@@ -2,6 +2,20 @@
 
 Новые записи сверху. Изменения поведения относительно оригинала помечаются `[ПОВЕДЕНИЕ]`.
 
+## 2026-11-12: этап 1, Json, NBT, утилиты Core
+Сделано:
+- В `Mvk.Core` перенесены Json (без Bbmodel), NBT (без NBTTools) и самодостаточные утилиты `Vge/Util`
+  (списки, Rand, Pole, RegTable, Sundry, Ticker и др., полный список в `docs/migration-map.md`).
+- Тексты ошибок, нужные Core, вынесены в `CoreStrings` (текст как в `Vge/SR.cs`).
+- Новый эталон `tests/Mvk.Core.Tests/Golden/core.csv` (GoldenGen, режим `core`): последовательности Rand
+  для 7 сидов, байты записи и чтения NBT, разбор Json. `CoreParityTests`: новый код совпадает побайтно.
+- Улучшения (U1–U7 в `docs/improvements.md`): NBT без аллокаций на каждое число, `ReadExactly`,
+  сравнение в `ListFast`/`ListMessy` без боксинга, `ChekComment` без `Substring`, nullable без предупреждений.
+- Сборка без предупреждений. `dotnet test`: 41 из 41.
+
+Дальше:
+- Этап 2 (Engine): `Ce`, Logger/Profiler, AxisAlignedBB/Frustum, мир, чанки, блоки, сущности, сеть.
+
 ## 2026-11-12: этап 1, математика Core
 Сделано:
 - `tools/GoldenGen` собирает оригинал (WinGL, Vge, Mvk2) под net10 без правок и снимает эталоны:
