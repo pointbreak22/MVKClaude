@@ -10,6 +10,10 @@
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />
+    <!-- Общий с tools/GoldenGen код эталона: здесь он считает на новой математике -->
+    <Using Include="Mvk.Core.Maths" />
+    <Compile Include="..\..\tools\GoldenGen\MathGolden.cs" Link="Golden\MathGolden.cs" />
+    <None Include="Golden\**\*.csv" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mvk.Core\Mvk.Core.csproj" />

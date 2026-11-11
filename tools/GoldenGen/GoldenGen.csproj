@@ -13,6 +13,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="MathGolden.cs" />
+    <Using Include="WinGL.Util" />
     <None Include="..\..\original\res\Assets\**\*" LinkBase="Assets" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>

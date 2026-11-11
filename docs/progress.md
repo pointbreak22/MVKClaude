@@ -2,6 +2,22 @@
 
 Новые записи сверху. Изменения поведения относительно оригинала помечаются `[ПОВЕДЕНИЕ]`.
 
+## 2026-11-12: этап 1, математика Core
+Сделано:
+- `tools/GoldenGen` собирает оригинал (WinGL, Vge, Mvk2) под net10 без правок и снимает эталоны:
+  `tests/Mvk.Game.Tests/Golden/island.csv` (4 сида × 8 областей, 800 чанков, 55 разных биомов)
+  и `tests/Mvk.Core.Tests/Golden/math.csv` (Sin/Cos/Tan/WrapAngleToPi/Floor/Ceiling/Round/Sqrt/
+  Normalize/Ray/Mat4).
+- `WinGL/Util` (Glm, векторы, Mat*) и `Mth` перенесены в `Mvk.Core.Maths`.
+  `MathParityTests` подтверждают: результаты побитно совпадают со старым кодом.
+- Найден скрытый порядок инициализации: в оригинале таблицу синусов заполняет `WinGL.Window`,
+  без окна `Glm.Sin` возвращает 0. В новом Core таблица заполняется статическим инициализатором.
+- Улучшения записаны в `docs/improvements.md`.
+- `dotnet test`: 24 из 24.
+
+Дальше:
+- Json, NBT, самодостаточные части `Vge/Util` → `Mvk.Core` с тестами.
+
 ## 2026-11-12: этап 0, каркас
 Сделано:
 - Решение `MvkClaude.slnx` на .NET 10.0.302 (`global.json`), общие настройки в `Directory.Build.props`,

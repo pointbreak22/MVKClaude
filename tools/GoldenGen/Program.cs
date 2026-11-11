@@ -40,8 +40,26 @@ namespace GoldenGen
             new Vector2i(-40, 40), new Vector2i(40, -40), new Vector2i(0, -30), new Vector2i(25, 0)
         };
 
+        /// <summary>
+        /// Папка, из которой запущена утилита (для относительных путей вывода)
+        /// </summary>
+        private static string _startDirectory = "";
+
         private static int Main(string[] args)
         {
+            _startDirectory = Environment.CurrentDirectory;
+            // В оригинале таблицу синусов заполняет WinGL.Window при старте.
+            // Без этого Glm.Sin/Cos возвращают 0, а генерация руд (FeatureMinable) их использует.
+            Glm.Initialized();
+
+            if (args.Length > 0 && args[0] == "math")
+            {
+                string mathOutput = Path.GetFullPath(args.Length > 1 ? args[1] : "math.csv", _startDirectory);
+                MathGolden.Write(mathOutput);
+                Console.WriteLine("Готово: " + mathOutput);
+                return 0;
+            }
+
             string output = Path.GetFullPath(args.Length > 0 ? args[0] : "island.csv");
             int radius = args.Length > 1 ? int.Parse(args[1], CultureInfo.InvariantCulture) : 3;
             List<long> seeds = new List<long>();
@@ -49,9 +67,6 @@ namespace GoldenGen
             if (seeds.Count == 0) seeds.AddRange(new long[] { 1, 2, 20241004, -987654321 });
 
             Directory.SetCurrentDirectory(AppContext.BaseDirectory);
-            // В оригинале таблицу синусов заполняет WinGL.Window при старте.
-            // Без этого Glm.Sin/Cos возвращают 0, а генерация руд (FeatureMinable) их использует.
-            Glm.Initialized();
 
             using (StreamWriter file = new StreamWriter(output))
             {
