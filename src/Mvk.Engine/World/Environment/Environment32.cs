@@ -1,0 +1,758 @@
+﻿using System.Runtime.CompilerServices;
+using Mvk.Engine.Entity.Player;
+using Mvk.Core.Nbt;
+using Mvk.Engine.Nbt;
+using Mvk.Engine.Network.Packets.Server;
+using Mvk.Core.Util;
+using Mvk.Engine.Util;
+using Mvk.Core.Maths;
+
+namespace Mvk.Engine.World.Environment
+{
+    /// <summary>
+    /// Мировой календарь на 32 дня в году и погоды дождя и грома
+    /// </summary>
+    public class Environment32 : IEnvironment
+    {
+        /// <summary>
+        /// Скорость года в днях
+        /// </summary>
+        private const byte _speedYear = 32;
+        /// <summary>
+        /// Яркость луны по фазам
+        /// </summary>
+        private readonly static float[] _lightMoonPhase = new float[] { 0, .16f, .32f, .48f, .8f, .48f, .32f, .16f };
+
+        /// <summary>
+        /// Угол солнца, от пары года
+        /// </summary>
+        public readonly static float[] AngleSunTimeYear = new float[] { Glm.Pi45, Glm.Pi20, Glm.Pi45, Glm.Pi60 };
+
+        /// <summary>
+        /// Увеличивается каждый игровой тик
+        /// </summary>
+        public uint TickCounter { get; private set; }
+
+        /// <summary>
+        /// Игровой год
+        /// </summary>
+        public int Year { get; private set; }
+        /// <summary>
+        /// Порядковый номер дня в году, 0-31
+        /// </summary>
+        public byte Day { get; private set; }
+        /// <summary>
+        /// Пара года
+        /// </summary>
+        public EnumTimeYear TimeYear { get; private set; }
+        /// <summary>
+        /// Пара года
+        /// </summary>
+        public int TimeYearIndex { get; private set; }
+        /// <summary>
+        /// Фаза луны тип
+        /// </summary>
+        public EnumMoonPhase MoonPhase { get; private set; }
+        /// <summary>
+        /// Фаза луны индекс
+        /// </summary>
+        public int MoonPhaseIndex { get; private set; }
+        /// <summary>
+        /// Яркость звёзд 0.0 - 0.75
+        /// </summary>
+        public float StarLight { get; private set; }
+        /// <summary>
+        /// Цвет облаков
+        /// </summary>
+        public Vector3 ColorClouds = new Vector3(.9f);
+        /// <summary>
+        /// Коэффициент количество облаков
+        /// Ливень = .31f
+        /// Дождь = .41f
+        /// Пасмурно = .51f
+        /// Облачно = .61f
+        /// Мало облачно = .76f
+        /// Ясно = .91f
+        /// </summary>
+        public float FewClouds { get; private set; } = .91f;
+        /// <summary>
+        /// Скорость облаков по X
+        /// </summary>
+        public float SpeedCloudX { get; private set; } = .0625f; // 0.0625f; // .125f;
+        /// <summary>
+        /// Скорость облаков по Z
+        /// </summary>
+        public float SpeedCloudZ { get; private set; } = .03125f;
+        /// <summary>
+        /// Осадки
+        /// </summary>
+        public EnumPrecipitation Precipitation { get; private set; } = EnumPrecipitation.None;
+        /// <summary>
+        /// Гром
+        /// </summary>
+        public bool IsThunder { get; private set; } = false;
+
+        /// <summary>
+        /// Грохочущий, период вероятности грома
+        /// </summary>
+        private bool _isThundering = false;
+        /// <summary>
+        /// Следующая смена погоды
+        /// </summary>
+        private uint _nextShift = 0;
+        /// <summary>
+        /// Осадки для след тика
+        /// </summary>
+        private EnumPrecipitation _nextPrecipitation = EnumPrecipitation.None;
+        /// <summary>
+        /// Состояние облаков
+        /// </summary>
+        public EnumClouds CloudConditions { get; private set; } = EnumClouds.Clear;
+        /// <summary>
+        /// Состояние облаков следующего такта
+        /// </summary>
+        private EnumClouds _cloudConditionsNext = EnumClouds.Clear;
+
+        /// <summary>
+        /// Сколько времени ярко горит небо от молнии
+        /// </summary>
+        private int _thunder = 0;
+
+        /// <summary>
+        /// Скорость суток в тактах
+        /// </summary>
+        private readonly int _speedDay;
+        /// <summary>
+        /// Время конкретного дня, в тактах. 
+        /// 0 это полдень, 
+        /// </summary>
+        private int _time;
+        /// <summary>
+        /// Яркость солнца
+        /// </summary>
+        private float _sunLight;
+        /// <summary>
+        /// Небесный угол
+        /// </summary>
+        private float _celestialAngle;
+        /// <summary>
+        /// Нормализованный вектор источника света
+        /// </summary>
+        private Vector3 _vectorLight;
+        /// <summary>
+        /// Цвет неба
+        /// </summary>
+        private Vector3 _colorSky = new Vector3(.6f);
+        /// <summary>
+        /// Цвет тумана
+        /// </summary>
+        private Vector3 _colorFog = new Vector3(.2f);
+        
+        /// <summary>
+        /// Угол солнца и луны прошлого кадра
+        /// </summary>
+        private float _angleSunPrev;
+        /// <summary>
+        /// Небесный свет ночь 0..3 в зависимости от фазы луны, день 15
+        /// Showers 5, Rain 9, HeavilyCloudy 13
+        /// </summary>
+        private int _skylightSubtracted;
+        /// <summary>
+        /// Значение ветра
+        /// </summary>
+        private float _wind;
+        /// <summary>
+        /// Цветовой коэффицент умножения неба, тумана, облаков
+        /// </summary>
+        private float _colorKf = 1.0f;
+
+        /// <summary>
+        /// Частота погодных изменений, 100 это стартовое, дастаточно часто на день меняется.
+        /// </summary>
+        private int _frequencyWeatherChanges = 400;
+
+        private readonly Rand _rand;
+
+        public Environment32(int speedDay)
+        {
+            _rand = new Rand();
+            _speedDay = speedDay;
+            SetTickCounter((uint)(speedDay * 3 / 4));
+        }
+
+        /// <summary>
+        /// Сколько игровых тактов длится день
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetSpeedDay() => _speedDay;
+
+        /// <summary>
+        /// Проиграли звук грома
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ThunderSound() => IsThunder = false;
+
+        /// <summary>
+        /// Обновление раз в тик на клиенте
+        /// </summary>
+        public void UpdateClient()
+        {
+            TickCounter++;
+
+            // Плавность смены облаков
+            if (_cloudConditionsNext != CloudConditions)
+            {
+                float fewClouds = CloudConditionsConvert.FewClouds(_cloudConditionsNext);
+
+                if (fewClouds == FewClouds) CloudConditions = _cloudConditionsNext;
+                else
+                { 
+                    if (fewClouds < FewClouds)
+                    {
+                        FewClouds -= .005f;
+                        if (fewClouds >= FewClouds)
+                        {
+                            FewClouds = fewClouds;
+                            CloudConditions = _cloudConditionsNext;
+                        }
+                    }
+                    else
+                    {
+                        FewClouds += .005f;
+                        if (fewClouds <= FewClouds)
+                        {
+                            FewClouds = fewClouds;
+                            CloudConditions = _cloudConditionsNext;
+                        }
+                    }
+                    _colorKf = FewClouds * .25f + FewClouds * FewClouds * 3f;
+                    if (_colorKf > 1f) _colorKf = 1f;
+                }
+            }
+
+            _CalculateInitialYear();
+
+            // Находим угол солнца и луны в небе относительно заданного времени (0.0 - 1.0)
+            float angleSun = _celestialAngle * Glm.Pi360;
+            //Console.WriteLine(angleSun);
+
+            if (_angleSunPrev != angleSun)
+            {
+                _angleSunPrev = angleSun;
+
+                // Углы амплитуд косинуса и синуса
+                float lightCos = Glm.Cos(angleSun) * 2f;
+                //float lightSin = Glm.Sin(angleSun) * 2f;
+
+                // Яркость солнца
+                _sunLight = Mth.Clamp(lightCos + .64f, 0, 1);
+                // Яркость неба
+                float skyLight = Mth.Clamp(lightCos + .5f, 0, 1);
+
+                // Яркость звёзд 0.0 - 0.75
+                StarLight = Mth.Clamp(1f - lightCos + .25f, 0, 1);
+                StarLight = StarLight * StarLight * .75f;
+
+                Mat4 matSun = Mat4.Identity();
+                // Вектор солнцы или луны
+                if (_celestialAngle > .25f && _celestialAngle < .75f)// lightSin < 0)
+                {
+                    // Ночь
+                    matSun.RotateX(Glm.Pi45);
+                    matSun.RotateZ(angleSun);
+                    _vectorLight = new Vector3(matSun * new Vector4(0, -1, 0, 1));
+
+                }
+                else
+                {
+                    // День
+                    matSun.RotateX(AngleSunTimeYear[TimeYearIndex]);
+                    matSun.RotateZ(angleSun);
+                    _vectorLight = new Vector3(matSun * new Vector4(0, 1, 0, 1));
+                }
+
+                // Цвет неба
+                _colorSky.X = .5f * skyLight;
+                _colorSky.Y = .7f * skyLight;
+                _colorSky.Z = .99f * skyLight;
+
+                // Цвет тумана
+                _colorFog.X = .71f * skyLight + .06f;
+                _colorFog.Y = .8f * skyLight + .06f;
+                _colorFog.Z = .91f * skyLight + .09f;
+
+                // Цвет облаков
+                ColorClouds.X = .9f * skyLight + .1f;
+                ColorClouds.Y = .9f * skyLight + .1f;
+                ColorClouds.Z = .85f * skyLight + .15f;
+
+                if (_thunder > 0)
+                {
+                    _thunder--;
+                    _colorSky.X = 1;
+                    _colorSky.Y = 1;
+                    _colorSky.Z = 1;
+
+                    _colorFog.X = 1;
+                    _colorFog.Y = 1;
+                    _colorFog.Z = 1;
+
+                    _sunLight = 1;
+
+                    //ColorClouds.X = _colorKf;
+                    //ColorClouds.Y = _colorKf;
+                    //ColorClouds.Z = _colorKf;
+                }
+                else if (_colorKf != 1f)
+                {
+                    _colorSky.X *= _colorKf;
+                    _colorSky.Y *= _colorKf;
+                    _colorSky.Z *= _colorKf;
+
+                    _colorFog.X *= _colorKf;
+                    _colorFog.Y *= _colorKf;
+                    _colorFog.Z *= _colorKf;
+
+                    ColorClouds.X *= _colorKf;
+                    ColorClouds.Y *= _colorKf;
+                    ColorClouds.Z *= _colorKf;
+
+                    _sunLight *= _colorKf;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рассчитать год, пору года и день в году
+        /// </summary>
+        private void _CalculateInitialYear()
+        {
+            _time++;
+            if (_time >= _speedDay)
+            {
+                // Изменился день
+                _time = 0;
+                Day++;
+                if (Day >= _speedYear)
+                {
+                    Day = 0;
+                    Year++;
+                }
+                TimeYearIndex = Day / 8;
+                TimeYear = (EnumTimeYear)TimeYearIndex;
+                MoonPhaseIndex = (Day + 4) % 8;
+                MoonPhase = (EnumMoonPhase)MoonPhaseIndex;
+            }
+
+            // рассчитать небесный свет
+            _celestialAngle = _CalculateCelestialAngle();
+            float light = 1f - (Glm.Cos(_celestialAngle * Glm.Pi360) * 2f + .5f);
+            light = Mth.Clamp(light, 0f, 1f);
+            light = light * (1f - _lightMoonPhase[MoonPhaseIndex] * .3125f);
+            light = light * (1f - .32f * .3125f);
+            light = 1f - light;
+            if (_colorKf != 1f) light *= _colorKf;
+            _skylightSubtracted = (int)(light * 15f);
+        }
+
+        /// <summary>
+        /// Вычисляет угол солнца и луны в небе относительно заданного времени (0.0 - 1.0)
+        /// </summary>
+        private float _CalculateCelestialAngle()
+        {
+            /**
+             * 0.00 = полдень
+             * 0.25 = вечер
+             * 0.50 = ночь
+             * 0.75 = утро
+             */
+            float angleSun = _time / (float)_speedDay; // -.25 это чтоб с утра, 0 это день.
+            if (angleSun < 0f) angleSun++;
+            if (angleSun > 1f) angleSun--;
+
+            float time2 = angleSun;
+            angleSun = 1f - ((Glm.Cos(angleSun * Glm.Pi) + 1f) / 2f);
+
+            // Длинна дня меняется от пары года
+            if (TimeYear == EnumTimeYear.Winter)
+            {
+                angleSun = time2 - (angleSun - time2) / 2f; // 12 ночь - 8 день
+            }
+            else if (TimeYear == EnumTimeYear.Summer)
+            {
+                angleSun = time2 + (angleSun - time2); // 6.5 ночь - 13.5 день
+            }
+            else
+            {
+                angleSun = time2 + (angleSun - time2) / 2f; // 8 ночь - 12 день
+            }
+
+            //angleSun = time2 - (angleSun - time2) / 3f; // ~1 ночь - ~1 день просто реще смена заката
+            //angleSun = time2 + (angleSun - time2) / 2f; 25 ночь - 35 день
+            //angleSun = time2 + (angleSun - time2);// 1 ночь - 2 день
+            //angleSun = time2 - (angleSun - time2);// 2 ночь - 1 день
+            return angleSun;
+        }
+
+        /// <summary>
+        /// Обновление во фрейме, и возвращает было ли изменение
+        /// </summary>
+        /// <param name="timeIndex">коэффициент времени от прошлого TPS клиента в диапазоне 0 .. 1</param>
+        public void UpdateFrame(float timeIndex)
+        {
+            _wind = Glm.Cos(((TickCounter & 0x7F) + timeIndex) * .049f) // Тут определяем скорость амплитуды
+                * .16f; // Тут размер амплитуды, к 0 не двигается, 1 много
+        }
+
+        /// <summary>
+        /// Задать погоду клиенту
+        /// </summary>
+        public void SetEnvironmentClient(byte value)
+        {
+            if (value < 6)
+            {
+                _cloudConditionsNext = (EnumClouds)value;
+            }
+            else if (value == 6)
+            {
+                // Гром
+                IsThunder = true;
+                _thunder = 3;
+            }
+            else
+            {
+                // Осадки
+                Precipitation = (EnumPrecipitation)(value - 7);
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Задать погоду серверу
+        /// </summary>
+        public void SetEnvironmentServer(byte value)
+        {
+            // 20 секунд, чтоб неменялась погода. Сдвиг
+            _nextShift += 400;
+
+            if (value < 6)
+            {
+                _cloudConditionsNext = (EnumClouds)value;
+            }
+            else if (value == 6)
+            {
+                // Гром
+                IsThunder = true;
+            }
+            else
+            {
+                // Осадки
+                _nextPrecipitation = (EnumPrecipitation)(value - 7);
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Обновление раз в тик на сервере
+        /// </summary>
+        public void UpdateServer(WorldServer worldServer)
+        {
+            TickCounter++;
+            _CalculateInitialYear();
+
+            if (_nextShift <= TickCounter)
+            {
+                // Смена погоды
+                switch (CloudConditions)
+                {
+                    case EnumClouds.Clear: _Weather0Clear(); break;
+                    case EnumClouds.PartlyCloudy: _Weather1PartlyCloudy(); break;
+                    case EnumClouds.Cloudy: _Weather2Cloudy(); break;
+                    case EnumClouds.MostlyCloudy: _Weather3MostlyCloudy(); break;
+                    case EnumClouds.HeavilyCloudy: _Weather4HeavilyCloudy(); break;
+                    case EnumClouds.Overcast: _Weather5Overcast(); break;
+                }
+            }
+
+            if (CloudConditions != _cloudConditionsNext)
+            {
+                worldServer.Tracker.SendToAll(new PacketS2BEnvironment((byte)_cloudConditionsNext));
+                CloudConditions = _cloudConditionsNext;
+            }
+
+            if (Precipitation != _nextPrecipitation)
+            {
+                worldServer.Tracker.SendToAll(new PacketS2BEnvironment((byte)(_nextPrecipitation + 7)));
+                Precipitation = _nextPrecipitation;
+            }
+
+            if (_isThundering)
+            {
+                if (_rand.Next(100) == 0)
+                {
+                    // Гром
+                    IsThunder = true;
+                }
+            }
+
+            if (IsThunder)
+            {
+                IsThunder = false;
+                worldServer.Tracker.SendToAll(new PacketS2BEnvironment(6));
+            }
+        }
+
+        public void SetTickCounter(uint tickCounter)
+        {
+            if (TickCounter != tickCounter || TickCounter == 0)
+            {
+                TickCounter = tickCounter;
+                int day = (int)((TickCounter + 0) / _speedDay);
+                _time = (int)(TickCounter - day * _speedDay);
+                Day = (byte)(day % 32);
+                Year = day / 32;
+                TimeYearIndex = Day / 8;
+                TimeYear = (EnumTimeYear)TimeYearIndex;
+                MoonPhaseIndex = (Day + 4) % 8;
+                MoonPhase = (EnumMoonPhase)MoonPhaseIndex;
+            }
+        }
+
+        /// <summary>
+        /// Получить нормализованный вектор источника света
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector3 GetVectorLight() => _vectorLight;
+
+        /// <summary>
+        /// Получить яркость солнца
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float GetSunLight() => _sunLight;
+
+        /// <summary>
+        /// Получить яркость луны
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float GetMoonLight() => _lightMoonPhase[MoonPhaseIndex];
+
+        /// <summary>
+        /// Получить небесный угол
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float GetCelestialAngle() => _celestialAngle;
+
+        /// <summary>
+        /// Получить небесныц свет ночь 0..3 в зависимости от фазы луны, день 15
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetSkylightSubtracted() => _skylightSubtracted;
+
+        /// <summary>
+        /// Получить цвет неба
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector3 GetColorSky() => _colorSky;
+
+        /// <summary>
+        /// Получить цвет тумана
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector3 GetColorFog() => _colorFog;
+
+        /// <summary>
+        /// Значение ветра
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float GetWind() => _wind;
+
+        /// <summary>
+        /// Проверяет, является ли сейчас дневное время, определяя по яркости неба
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsDayTime() => _skylightSubtracted > 6;
+
+        #region Смена погоды
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private uint _GetRandWeather(int taktRand, int taktPause)
+            => (uint)(_rand.Next(taktRand * _frequencyWeatherChanges)
+                + taktPause * _frequencyWeatherChanges);
+        
+        /// <summary>
+        /// Была погода ясно, определяем что будет
+        /// </summary>
+        private void _Weather0Clear()
+        {
+            _nextShift = TickCounter + _GetRandWeather(6, 6);
+            // Оставляем ясно, или меняем на Мало облачно или Облачно
+            int r = _rand.Next(4);
+            if (r == 4)
+            {
+                // Резко пасмурно
+                _cloudConditionsNext = EnumClouds.Overcast;
+                // И возможна граза
+                _isThundering = _rand.NextBool();
+            }
+            else
+            {
+                _cloudConditionsNext = (EnumClouds)r;
+                _isThundering = false;
+            }
+        }
+
+        /// <summary>
+        /// Была погода Мало облачно, определяем что будет
+        /// </summary>
+        private void _Weather1PartlyCloudy()
+        {
+            _nextShift = TickCounter + _GetRandWeather(8, 8);
+            // Оставляем Мало облачно, или меняем
+            int r = _rand.Next(4);
+            _cloudConditionsNext = (EnumClouds)r;
+            _isThundering = false;
+        }
+
+        /// <summary>
+        /// Была погода Облачно, определяем что будет
+        /// </summary>
+        private void _Weather2Cloudy()
+        {
+            _nextShift = TickCounter + _GetRandWeather(8, 8);
+            // Оставляем Мало облачно, или меняем
+            int r = _rand.Next(5);
+            _cloudConditionsNext = (EnumClouds)r;
+
+            if (r == 4) _nextPrecipitation = _rand.Next(8) == 0 ? EnumPrecipitation.Rain : EnumPrecipitation.None;
+            else if (r == 3) _nextPrecipitation = _rand.Next(20) == 0 ? EnumPrecipitation.Rain : EnumPrecipitation.None;
+            else _nextPrecipitation = EnumPrecipitation.None;
+        }
+
+        /// <summary>
+        /// Была погода Значительная облачность, определяем что будет
+        /// </summary>
+        private void _Weather3MostlyCloudy()
+        {
+            _nextShift = TickCounter + _GetRandWeather(8, 4);
+            // Оставляем Мало облачно, или меняем
+            int r = _rand.Next(5) + 1;
+            _cloudConditionsNext = (EnumClouds)r;
+            
+            if (r == 5) _nextPrecipitation = _rand.Next(8) == 0 ? EnumPrecipitation.Showers : EnumPrecipitation.None;
+            else if (r == 4) _nextPrecipitation = _rand.Next(20) == 0 ? EnumPrecipitation.Showers : EnumPrecipitation.None;
+            else _nextPrecipitation = EnumPrecipitation.None;
+
+            if (_nextPrecipitation == EnumPrecipitation.Showers)
+            {
+                _isThundering = _rand.Next(10) == 0;
+            }
+            else
+            {
+                _isThundering = false;
+                if (r == 5) _nextPrecipitation = _rand.Next(5) == 0 ? EnumPrecipitation.Rain : EnumPrecipitation.None;
+                else if (r == 4) _nextPrecipitation = _rand.Next(8) == 0 ? EnumPrecipitation.Rain : EnumPrecipitation.None;
+                else if (r == 3) _nextPrecipitation = _rand.Next(10) == 0 ? EnumPrecipitation.Rain : EnumPrecipitation.None;
+            }
+        }
+
+        /// <summary>
+        /// Была погода Сильная облачность, определяем что будет
+        /// </summary>
+        private void _Weather4HeavilyCloudy()
+        {
+            _nextShift = TickCounter + _GetRandWeather(6, 4);
+            // Оставляем Мало облачно, или меняем
+            int r = _rand.Next(5) + 1;
+            _cloudConditionsNext = (EnumClouds)r;
+
+            if (r == 5) _nextPrecipitation = _rand.Next(5) == 0 ? EnumPrecipitation.Showers : EnumPrecipitation.None;
+            else if (r == 4) _nextPrecipitation = _rand.Next(8) == 0 ? EnumPrecipitation.Showers : EnumPrecipitation.None;
+            else _nextPrecipitation = EnumPrecipitation.None;
+
+            if (_nextPrecipitation == EnumPrecipitation.Showers)
+            {
+                _isThundering = _rand.Next(5) == 0;
+            }
+            else
+            {
+                _isThundering = false;
+                if (r == 5) _nextPrecipitation = _rand.Next(3) == 0 ? EnumPrecipitation.Rain : EnumPrecipitation.None;
+                else if (r == 4) _nextPrecipitation = _rand.Next(5) == 0 ? EnumPrecipitation.Rain : EnumPrecipitation.None;
+                else if (r == 3) _nextPrecipitation = _rand.Next(8) == 0 ? EnumPrecipitation.Rain : EnumPrecipitation.None;
+            }
+        }
+
+        /// <summary>
+        /// Была погода Пасмурно, определяем что будет
+        /// </summary>
+        private void _Weather5Overcast()
+        {
+            _nextShift = TickCounter + _GetRandWeather(6, 2);
+            // Оставляем Мало облачно, или меняем
+            int r = _rand.Next(6);
+            _cloudConditionsNext = (EnumClouds)r;
+
+            if (r == 5) _nextPrecipitation = _rand.Next(3) == 0 ? EnumPrecipitation.Showers : EnumPrecipitation.None;
+            else if (r == 4) _nextPrecipitation = _rand.Next(5) == 0 ? EnumPrecipitation.Showers : EnumPrecipitation.None;
+            else _nextPrecipitation = EnumPrecipitation.None;
+
+            if (_nextPrecipitation == EnumPrecipitation.Showers)
+            {
+                _isThundering = _rand.Next(3) == 0;
+            }
+            else
+            {
+                _isThundering = false;
+                if (r == 5) _nextPrecipitation = EnumPrecipitation.Rain;
+                else if (r == 4) _nextPrecipitation = _rand.Next(5) == 0 ? EnumPrecipitation.Rain : EnumPrecipitation.None;
+                else if (r == 3) _nextPrecipitation = _rand.Next(8) == 0 ? EnumPrecipitation.Rain : EnumPrecipitation.None;
+            }
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Присоединён игрок, передаём данные пакета
+        /// </summary>
+        public void JoinWorld(PlayerServer player)
+        {
+            player.SendPacket(new PacketS2BEnvironment((byte)CloudConditions));
+            player.SendPacket(new PacketS2BEnvironment((byte)(Precipitation + 7)));
+        }
+
+        #region NBT
+
+        /// <summary>
+        /// Сохранить данные
+        /// </summary>
+        public void WriteToNBT(TagCompound nbt)
+        {
+            nbt.SetLong("TickCounter", TickCounter);
+            nbt.SetLong("WeatherNextShift", _nextShift);
+            nbt.SetByte("Precipitation", (byte)Precipitation);
+            nbt.SetByte("CloudConditions", (byte)CloudConditions);
+            nbt.SetBool("Thundering", _isThundering);
+        }
+        /// <summary>
+        /// Прочесть данные
+        /// </summary>
+        public void ReadFromNBT(TagCompound nbt)
+        {
+            SetTickCounter((uint)nbt.GetLong("TickCounter"));
+            _nextShift = (uint)nbt.GetLong("WeatherNextShift");
+            _nextPrecipitation = (EnumPrecipitation)nbt.GetByte("Precipitation");
+            _cloudConditionsNext = (EnumClouds)nbt.GetByte("CloudConditions");
+            _isThundering = nbt.GetBool("Thundering");
+        }
+
+        #endregion
+
+        public override string ToString()
+            => _time + " d:" + Day + " y:" + Year 
+            + " Sky:" + _skylightSubtracted + "/" + _sunLight
+            + " " + TimeYear + " " 
+            + MoonPhaseConvert.ToMoonPhaseString(MoonPhase) 
+            + " " + Precipitation + " " + CloudConditions 
+            + (_isThundering ? " Th" : "");
+    }
+}

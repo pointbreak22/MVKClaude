@@ -1,0 +1,208 @@
+﻿using System;
+using System.Runtime.CompilerServices;
+using Mvk.Engine.Item;
+using Mvk.Core.Nbt;
+using Mvk.Engine.Nbt;
+using Mvk.Engine.World;
+using Mvk.Engine.World.BlockEntity;
+
+namespace Mvk.Engine.Entity.Inventory
+{
+    /// <summary>
+    /// Базовый класс инвенторя, пустой, без предметов
+    /// </summary>
+    public class InventoryBase
+    {
+        /// <summary>
+        /// Общее количество видимых ячеек, не должно привышать 30!
+        /// из-за битового флага, для обновлений
+        /// </summary>
+        public int OutsideCount { get; protected set; } = 0;
+
+        /// <summary>
+        /// Обновление на сервере каждый тик
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void UpdateServer(EntityBase entity, WorldServer worldServer) { }
+
+        /// <summary>
+        /// Получить выбранный слот правой руки
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual byte GetCurrentIndex() => 0;
+
+        /// <summary>
+        /// Задать активный слот правой руки
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual bool SetCurrentIndex(byte slotIn) => false;
+
+        /// <summary>
+        /// Сместить слот правой руки в большую сторону
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void SlotMore() { }
+
+        /// <summary>
+        /// Сместить слот правой руки в меньшую сторону
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void SlotLess() { }
+
+        /// <summary>
+        /// Получить текущий стак правой руки
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual ItemStack GetCurrentItem() => null;
+
+        /// <summary>
+        /// Задать в текущий стак правой руки
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void SetCurrentItem(ItemStack stack) { }
+
+        /// <summary>
+        /// Получить текущий стак левой руки
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual ItemStack GetCurrentLeftItem() => null;
+
+        /// <summary>
+        /// Задать в текущий стак левой руки
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void SetCurrentLeftItem(ItemStack stack) { }
+
+        /// <summary>
+        /// Возвращает стaк в слоте slotIn
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual ItemStack GetStackInSlot(int slotIn) => null;
+
+        /// <summary>
+        /// Устанавливает стaк в слоте slotIn, без событий!!!, для загрузки
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void SetStackInSlot(int slotIn, ItemStack stack) { }
+
+        /// <summary>
+        /// Устанавливает данный стек предметов в указанный слот в инвентаре
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void SetInventorySlotContents(int slotIn, ItemStack stack) { }
+
+        /// <summary>
+        /// Получить стак по слоту внешности (что в руках и одежда)
+        /// для рендера
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual ItemStack GetOutside(int slotIn) => null;
+
+        /// <summary>
+        /// Получить список стаков для внешности (что в руках и одежда)
+        /// для передачи по сети
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual ItemStack[] GetOutside() => new ItemStack[0];
+
+        /// <summary>
+        /// Задать список стаков для внешности (что в руках и одежда)
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void SetOutside(ItemStack[] stacks) { }
+
+        /// <summary>
+        /// Получить ключи слота, для ограничения установки предмета. Если слот не одежды вернёт 0
+        /// Если =0, то можно любой устанавливать.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual byte GetSlotClothKey(int slotIn) => 0;
+
+        /// <summary>
+        /// Получить ключи слота внешности, для ограничения установки предмета.
+        /// для рендера
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual byte GetOutsideSlotKey(int slotIn) => 0;
+
+        /// <summary>
+        /// Получить полный список всего инвентаря
+        /// Mvk было GetMainAndCloth
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual ItemStack[] GetAll() => new ItemStack[0];
+
+        /// <summary>
+        /// Задать полный список всего инвентаря
+        /// Mvk было SetMainAndCloth
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void SetAll(ItemStack[] stacks) { }
+
+        /// <summary>
+        /// Изменение удерживаемого предмета на сервере. Предмет в руке сейчас будет изменён
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void ServerHeldItemChange() { }
+
+        /// <summary>
+        /// Добавляет стек предметов в инвентарь, возвращает false, если это невозможно.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual bool AddItemStackToInventory(ItemStack itemStack) => false;
+
+        /// <summary>
+        /// Получить активный блок хранилища, если нет вернёт null
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual IBlockStorage GetBlockStorage() => null;
+
+        /// <summary>
+        /// Уменьшить количество предметом в текущей руке
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void DecrCurrentItem(byte amount) { }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual void _Clear() { }
+
+        public virtual void WriteToNBT(TagCompound nbt)
+            => NBTTools.ItemStacksWriteToNBT(nbt, "Inventory", GetAll());
+
+        public virtual void ReadFromNBT(TagCompound nbt)
+        {
+            _Clear();
+            Slot[] slots = NBTTools.ItemStacksReadFromNBT(nbt, "Inventory");
+            foreach (Slot slot in slots)
+            {
+                SetStackInSlot(slot.SlotId, slot.Stack);
+            }
+        }
+
+        #region Event
+
+        /// <summary>
+        /// Событие изменён слот
+        /// </summary>
+        protected virtual void _OnSlotChanged(int slotId) { }
+
+        /// <summary>
+        /// Событие изменён индекс выбраного слота правой руки
+        /// </summary>
+        protected virtual void _OnCurrentIndexChanged() { }
+
+        /// <summary>
+        /// Событие изменён предмет внешности (что в руках или одежда)
+        /// </summary>
+        public event EventHandler OutsideChanged;
+        /// <summary>
+        /// Событие изменён предмет внешности (что в руках или одежда)
+        /// flags = -1 все
+        /// </summary>
+        protected virtual void _OnOutsideChanged(int flags)
+            => OutsideChanged?.Invoke(this, new EventArgs());
+
+        #endregion
+
+    }
+}

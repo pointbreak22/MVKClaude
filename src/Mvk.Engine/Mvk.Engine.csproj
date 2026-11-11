@@ -1,5 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Движок без графики: мир, чанки, генерация, свет, сущности, предметы, сеть, команды, сервер. -->
+  <!-- Ядро без графики: мир, чанки, генерация, блоки, сущности, физика, предметы, сеть, сервер. -->
+  <PropertyGroup>
+    <!-- Временно: код перенесён из Vge почти без правок. Nullable включаем по папкам по мере чистки
+         (см. docs/improvements.md, E1). -->
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="StbImageSharp" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Mvk.Core\Mvk.Core.csproj" />
   </ItemGroup>

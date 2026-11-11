@@ -1,0 +1,351 @@
+﻿using System;
+using System.Runtime.CompilerServices;
+using Mvk.Engine.Entity;
+using Mvk.Engine.Event;
+using Mvk.Engine.Games;
+using Mvk.Engine.Network.Packets.Server;
+using Mvk.Core.Util;
+using Mvk.Engine.Util;
+using Mvk.Engine.World.Block;
+using Mvk.Engine.World.Chunk;
+using Mvk.Core.Maths;
+
+namespace Mvk.Engine.World
+{
+    /// <summary>
+    /// Клиентский объект мира
+    /// </summary>
+    public class WorldClient : WorldBase
+    {
+        /// <summary>
+        /// Посредник клиентоского чанка
+        /// </summary>
+        public readonly ChunkProviderClient ChunkPrClient;
+        /// <summary>
+        /// Мир для рендера
+        /// </summary>
+        public readonly WorldRenderer WorldRender;
+        /// <summary>
+        /// Объект игры
+        /// </summary>
+        public readonly GameBase Game;
+
+        /// <summary>
+        /// Флаг на изминение количество чанков
+        /// </summary>
+        private bool _flagDebugChunkMappingChanged;
+
+        /// <summary>
+        /// Содержит текущее начальное число линейного конгруэнтного генератора для эффектов блоков. 
+        /// Используется со значением A, равным 3, и значением C, равным 0x3c6ef35f, 
+        /// создавая очень плоский ряд значений, плохо подходящих для выбора случайных блоков в поле 16x128x16.
+        /// </summary>
+        private int _updateLCG;
+
+        public WorldClient(GameBase game) : base(512)
+        {
+            Game = game;
+            IsRemote = true;
+            Rnd = new Rand();
+           
+           // Settings = new WorldSettings();
+            WorldRender = game.WorldRender;
+            ChunkPr = ChunkPrClient = new ChunkProviderClient(this);
+            Filer = new Profiler(game.Log, "[Client] ");
+            ChunkPrClient.ChunkMappingChanged += _ChunkPrClient_ChunkMappingChanged;
+
+            WorldRender.Starting();
+        }
+
+        /// <summary>
+        /// Внести лог
+        /// </summary>
+        public override void SetLog(string logMessage, params object[] args)
+            => Filer.Log.Client(logMessage, args);
+
+        /// <summary>
+        /// Получить время в тактах объекта Stopwatch с момента запуска проекта
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override long ElapsedTicks() => Game.ElapsedTicks();
+
+        /// <summary>
+        /// Получить тактовое время мира
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public uint GetTickCounter() => Settings == null ? 0 : Settings.Environment.TickCounter;
+
+        private void _ChunkPrClient_ChunkMappingChanged(object sender, System.EventArgs e)
+            => _flagDebugChunkMappingChanged = true;
+
+        /// <summary>
+        /// Такт выполнения
+        /// </summary>
+        public void UpdateClient()
+        {
+            Settings.Environment.UpdateClient();
+
+            Filer.StartSection("Entities");
+            _UpdateEntities();
+            Filer.EndSection();
+
+            _DoVoidFogParticles();
+
+
+            if (Ce.IsDebugDrawChunks && _flagDebugChunkMappingChanged)
+            {
+                _flagDebugChunkMappingChanged = false;
+                OnTagDebug(Debug.Key.ChunkClient.ToString(), ChunkPr.GetListDebug());
+            }
+        }
+
+        /// <summary>
+        /// Останавливаем мир, НЕ смена миров
+        /// </summary>
+        public void Stoping()
+        {
+            WorldRender.Stoping();
+            ChunkPrClient.Stoping();
+            Game.ModClient.WorldStoped();
+#if DEBUG
+            Console.WriteLine("_function WorldClient.Stoping");
+#endif
+        }
+
+        /// <summary>
+        /// Пакет Возраждение в мире
+        /// </summary>
+        public void PacketRespawnInWorld(PacketS07RespawnInWorld packet)
+        {
+            Game.ModClient.WorldStoped();
+            ChunkPr.Settings.SetHeightChunks(packet.NumberChunkSections);
+            Settings = Game.ModClient.CreateWorldSettings(packet.IdSetting);
+            Game.WorldRender.WorldRenderInitSetting();
+            Settings.PacketRespawnInWorld(packet);
+            Collision.Init();
+        }
+
+        #region Mark
+
+        /// <summary>
+        /// Сделать запрос перерендера выбранной облости псевдочанков
+        /// </summary>
+        public void AreaModifiedToRender(int c0x, int c0y, int c0z, int c1x, int c1y, int c1z)
+        {
+            int x, y, z;
+            if (c0y < 0) c0y = 0;
+            if (c1y > ChunkPr.Settings.NumberSectionsLess) c1y = ChunkPr.Settings.NumberSectionsLess;
+            for (x = c0x; x <= c1x; x++)
+            {
+                for (z = c0z; z <= c1z; z++)
+                {
+                    ChunkRender chunk = ChunkPrClient.GetChunkRender(x, z);
+                    if (chunk != null)
+                    {
+                        for (y = c0y; y <= c1y; y++)
+                        {
+                            chunk.ModifiedToRender(y);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Отметить блок для обновления
+        /// </summary>
+        public override void MarkBlockForUpdate(int x, int y, int z)
+            => AreaModifiedToRender((x - 1) >> 4, (y - 1) >> 4, (z - 1) >> 4,
+                (x + 1) >> 4, (y + 1) >> 4, (z + 1) >> 4);
+
+        /// <summary>
+        /// Отметить блоки для обновления
+        /// </summary>
+        public override void MarkBlockRangeForUpdate(int x0, int y0, int z0, int x1, int y1, int z1)
+            => AreaModifiedToRender((x0 - 1) >> 4, (y0 - 1) >> 4, (z0 - 1) >> 4,
+                (x1 + 1) >> 4, (y1 + 1) >> 4, (z1 + 1) >> 4);
+
+        #endregion
+
+        #region Entity
+
+        /// <summary>
+        /// Возвращает сущностьь с заданным идентификатором или null, если он не существует в этом мире.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public EntityBase GetEntityByID(int id)
+        {
+            if (id == Game.Player.Id) return Game.Player;
+            return LoadedEntityList.Get(id);
+        }
+
+        /// <summary>
+        /// Удаление сущности по индексу в текущем мире
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveEntityInWorld(int id) => GetEntityByID(id)?.SetDead();
+            
+
+        protected override void _UpdateEntity(EntityBase entity)
+        {
+            if (entity.AddedToChunk)
+            {
+                entity.UpdateClient(this, Game.DeltaTime);
+            }
+            base._UpdateEntity(entity);
+        }
+
+        protected override void _OnEntityAdded(EntityBase entity)
+        {
+            base._OnEntityAdded(entity);
+            entity.SpawnClient();
+        }
+
+        /// <summary>
+        /// Вызывается для всех World, когда сущность выгружается или уничтожается. 
+        /// В клиентских мирах освобождает любые загруженные текстуры.
+        /// В серверных мирах удаляет сущность из трекера сущностей.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override void _OnEntityRemoved(EntityBase entity)
+        {
+            base._OnEntityRemoved(entity);
+            entity.Dispose();
+        }
+
+        #endregion
+
+        #region Entity Particle
+
+        /// <summary>
+        /// Заспавнить частицы
+        /// </summary>
+        public override void SpawnParticle(ushort particleId,
+            int count, Vector3 pos, Vector3 offset, float motion, int parameter)
+        {
+            ParticlesRenderer particles = Game.WorldRender.Particles;
+            if (count == 1)
+            {
+                particles.Spawn(particleId, pos, offset * motion, parameter);
+            }
+            else
+            {
+                Vector3 of;
+                Vector3 m = new Vector3(0);
+                for (int i = 0; i < count; i++)
+                {
+                    of = new Vector3(
+                        (Rnd.NextFloat() - .5f) * offset.X,
+                        (Rnd.NextFloat() - .5f) * offset.Y,
+                        (Rnd.NextFloat() - .5f) * offset.Z);
+                    if (motion > 0)
+                    {
+                        m = new Vector3(
+                            (Rnd.NextFloat() - .5f) * motion,
+                            (Rnd.NextFloat() - .5f) * motion,
+                            (Rnd.NextFloat() - .5f) * motion);
+                    }
+                    particles.Spawn(particleId, pos + of, m, parameter);
+                }
+            }
+        }
+
+        
+
+        /// <summary>
+        /// Обработка ближайших блоков для эффектов звуков и анимации, только у клиента
+        /// </summary>
+        public void _DoVoidFogParticles()
+        {
+            int y = (int)Game.Player.PosY;
+            long timeBegin = Game.ElapsedTicks();
+
+            BlockPos blockPos = new BlockPos();
+            BlockState blockState;
+            ChunkRender chunkRender;
+            int k, x1, y1, z1, i, j, count2;
+
+            int count0 = Game.Player.OverviewCircles.Count;
+            int count = count0 > 45 ? 45 : count0;
+            count2 = 20;
+            for (i = 0; i < count; i++)
+            {
+                if (i == 9) count2 = 4;
+                else if (i == 25) count2 = 1;
+
+                for (j = 0; j < count2; j++)
+                {
+                    chunkRender = Game.Player.OverviewCircles[i];
+                    if (chunkRender != null && chunkRender.IsChunkPresent)
+                    {
+                        _updateLCG = _updateLCG * 3 + 1013904223;
+                        k = _updateLCG >> 2;
+                        y1 = k >> 16 & 15;
+                        blockPos.Y = y + y1 - 8;
+
+                        if (blockPos.Y >= 0 && blockPos.Y < chunkRender.Settings.NumberBlocks)
+                        {
+                            x1 = k & 15;
+                            z1 = k >> 8 & 15;
+
+                            blockPos.X = chunkRender.BlockX + x1;
+                            blockPos.Z = chunkRender.BlockZ + z1;
+                            blockState = chunkRender.GetBlockState(x1, blockPos.Y, z1);
+                            blockState.GetBlock().RandomDisplayTick(this, blockPos, blockState);
+                        }
+                    }
+                }
+            }
+            // Обязательные, до 12 чанков
+            count = count0 > 481 ? 481 : count0;
+            for (i = 0; i < count; i++)
+            {
+                chunkRender = Game.Player.OverviewCircles[i];
+                if (chunkRender != null && chunkRender.IsChunkPresent)
+                {
+                    chunkRender.RequiredRandomDisplayTick();
+                }    
+            }
+            float time = (Game.ElapsedTicks() - timeBegin) / (float)Ticker.TimerFrequency;
+
+            Debug.ParticlesTime = (Debug.ParticlesTime * 15f + time) / 16f;
+        }
+
+        #endregion
+
+        #region Sound
+
+        /// <summary>
+        /// Проиграть звуковой эффект, кто отслеживает entityId сущность
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void PlaySound(int key, Vector3 pos, float volume, float pitch, int entityId = 0)
+            => Game.PlaySound(key, pos.X, pos.Y, pos.Z, volume, pitch);
+
+        /// <summary>
+        /// Проиграть звуковой эффект, по дистанции
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void PlaySoundDistance(int key, Vector3 pos, float volume, float pitch, float distance = 48f)
+            => Game.PlaySound(key, pos.X, pos.Y, pos.Z, volume, pitch);  
+
+        #endregion
+
+        public override void DebugString(string logMessage, params object[] args)
+            => Debug.DebugString = string.Format(logMessage, args);
+
+        public override string ToString()
+        {
+            string calendar = Settings == null ? "Null" : Settings.Environment.ToString();
+            return "\r\nChPr " + ChunkPrClient.ToString()
+                + "\r\nCalendar " + calendar;
+        } 
+
+        /// <summary>
+        /// Событие любого объекта с сервера для отладки
+        /// </summary>
+        public event StringEventHandler TagDebug;
+        public void OnTagDebug(string title, object tag)
+            => TagDebug?.Invoke(this, new StringEventArgs(title, tag));
+    }
+}

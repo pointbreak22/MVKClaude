@@ -1,0 +1,249 @@
+﻿using Mvk.Core.Util;
+using Mvk.Engine.Util;
+using Mvk.Engine.World;
+using Mvk.Core.Maths;
+
+namespace Mvk.Engine.Entity.Physics
+{
+    /// <summary>
+    /// Физика по земле для сущностей которые имеют силу для перемещения
+    /// </summary>
+    public class PhysicsGroundLiving : PhysicsGround
+    {
+        /// <summary>
+        /// Живая сущность, игрок или моб
+        /// </summary>
+        private readonly EntityLiving _entityLiving;
+        /// <summary>
+        /// Количество тактов для запрета повторного прыжка
+        /// </summary>
+        private int _jumpTicks = 0;
+        /// <summary>
+        /// Количество тактов для запрета всплытия
+        /// </summary>
+        private int _surfaceTicks = 0;
+        /// <summary>
+        /// Ускорение при прыжке в высоту
+        /// </summary>
+        private float _airborneJumpInHeight;
+
+        /// <summary>
+        /// Физика для сущности которая имеет силу для перемещения
+        /// </summary>
+        public PhysicsGroundLiving(CollisionBase collision, EntityLiving entity)
+            : base(collision, entity)
+        {
+            _entityLiving = entity;
+            _airborneJumpInHeight = Cp.AirborneJumpInHeight;
+        }
+
+        /// <summary>
+        /// Задать ускорение при прыжке в высоту, по умолчанию 0.84 (Cp.AirborneJumpInHeight)
+        /// </summary>
+        /// <param name="airborneJumpInHeight"></param>
+        public void SetAirborneJumpInHeight(float airborneJumpInHeight = Cp.AirborneJumpInHeight)
+            => _airborneJumpInHeight = airborneJumpInHeight;
+
+        #region Living
+
+        // TODO::2025-07-23 отладка дистанции прыжка
+        //Vector2 jumpBegin;
+        //bool jump = false;
+
+        //public override void LivingUpdate()
+        //{
+        //    base.LivingUpdate();
+        //    if (jump && Entity.OnGround)
+        //    {
+        //        // Прыжок закончен
+        //        jump = false;
+        //        float dis = Glm.Distance(new Vector2(Entity.PosX, Entity.PosZ), jumpBegin);
+        //        Console.WriteLine(dis);
+        //    }
+        //}
+
+
+
+        /// <summary>
+        /// Проверяем наличие прыжка для живой сущности
+        /// </summary>
+        protected override void _LivingUpdateJump()
+        {
+            // счётчик прыжка
+            if (_jumpTicks > 0) _jumpTicks--;
+
+            bool isSneakingPrev = _entityLiving.IsSneaking();
+            bool isSprintingPrev = _entityLiving.IsSprinting();
+
+            if (Movement.Jump)
+            {
+                _surfaceTicks++;
+                if (Entity.PresenceBlocks.IsSurface)
+                {
+                    if (_surfaceTicks > 5)
+                    {
+                        // Находимся в жидкости, всплываем
+                        MotionY += Entity.PresenceBlocks.AccelerationAscentInLiquid;
+                    }
+                }
+                else
+                {
+                    _surfaceTicks = 0;
+                    if (Entity.PresenceBlocks.IsClimb)
+                    {
+                        MotionY += Entity.PresenceBlocks.AccelerationUpClimb;
+                    } 
+                    else if (Entity.OnGround && _jumpTicks == 0)
+                    {
+                        //jump = true;
+                        //Console.WriteLine("Jump");
+                        //jumpBegin = new Vector2(Entity.PosX, Entity.PosZ);
+                        _jumpTicks = Cp.ReJump;
+                        if (Entity.PresenceBlocks.IsInLiquid)
+                        {
+                            MotionY = Entity.PresenceBlocks.IsJumpLiquid
+                                ? (Entity.PresenceBlocks.AccelerationAscentInLiquid
+                                + _airborneJumpInHeight + _airborneJumpInHeight) / 3f
+                                : Entity.PresenceBlocks.AccelerationAscentInLiquid;
+                        }
+                        else
+                        {
+                            MotionY = _airborneJumpInHeight;
+
+                            if (isSprintingPrev)
+                            {
+                                // Если прыжок с бегом, то скорость увеличивается
+                                MotionX += Glm.Sin(_entityLiving.RotationYaw) * Cp.AirborneJumpInLength;
+                                MotionZ -= Glm.Cos(_entityLiving.RotationYaw) * Cp.AirborneJumpInLength;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                _jumpTicks = 0;
+            }
+
+            // Обновить положение сидя
+            bool isSneaking = _entityLiving.IsSneaking();
+            if (Entity.OnGround && Movement.Sneak && !isSneaking)
+            {
+                // Только на земле, и в прошлом такте не сидел
+                _entityLiving.SetSneaking(true);
+                _entityLiving.Sitting();
+                IsPoseChange = true;
+            }
+            // Для воды свои правила, плыть вниз
+            else if (Movement.Sneak)
+            {
+                if (Entity.PresenceBlocks.IsInLiquid)
+                {
+                    // Находимся в жидкости, погружаемся
+                    MotionY += Entity.PresenceBlocks.AccelerationToDiveInLiquid;
+                }
+                else if (Entity.PresenceBlocks.IsClimb)
+                {
+                    // Находимся на лестнице
+                    MotionY += Entity.PresenceBlocks.AccelerationDownClimb;
+                }
+            }
+            // Если хотим встать
+            else if (!Movement.Sneak && isSneaking)
+            {
+                // Проверка коллизии вверхней части при положении стоя
+                _entityLiving.Standing();
+                if (_entityLiving.NoClip
+                    || !Collision.IsBoundingBoxes(_entityLiving.SizeLiving.GetBoundingBox(), _entityLiving.Id))
+                {
+                    _entityLiving.SetSneaking(false);
+                    IsPoseChange = true;
+                }
+                else
+                {
+                    _entityLiving.Sitting();
+                }
+            }
+
+            // Sprinting
+            bool isSprinting = Movement.Sprinting && Movement.Forward && !isSneakingPrev;
+            if (isSprintingPrev != isSprinting)
+            {
+                _entityLiving.SetSprinting(isSprinting);
+                // Тут надо сменить анимацию 
+                IsPoseChange = true;
+            }
+        }
+
+        /// <summary>
+        /// Определяем и передаём скорость перемещения для живой сущности.
+        /// Крадётся используем позже, в _LivingUpdateMotion
+        /// </summary>
+        protected override float _LivingUpdateSpeed()
+        {
+            float speed = Entity.Speed * Movement.MoveSpeed;
+            if (Movement.Sprinting)
+            {
+                // Если ускорение
+                speed += speed * Cp.SprintSpeed;
+            }
+            if (Movement.Sneak)
+            {
+                // Если крадёмся 
+                speed *= Cp.SneakSpeed;
+            }
+            return speed;
+        }
+
+        /// <summary>
+        /// Проверяем наличие ускорения для живой сущности, возвращает скорость
+        /// </summary>
+        protected override float _LivingUpdateSprinting()
+        {
+            float acceleration = Cp.AirborneAcceleration;
+            if (Movement.Sprinting)
+            {
+                // Если ускорение
+                acceleration += acceleration * Cp.SprintSpeed;
+            }
+            return acceleration;
+        }
+
+        /// <summary>
+        /// Если имеется задаём вектор передвижени для живой сущности
+        /// </summary>
+        protected override void _LivingUpdateMotion(float acceleration)
+        {
+            Vector2 motion = Sundry.MotionAngle(
+                    Movement.MoveStrafe * Cp.AirDrag,
+                    Movement.MoveForward * Cp.AirDrag,
+                    acceleration, _entityLiving.RotationYaw);
+
+            if (Entity.PresenceBlocks.IsImpulse)
+            {
+                // Импульсь от течения жидкостей блоков
+                ImpulseX += Entity.PresenceBlocks.ImpulseX;
+                ImpulseY += Entity.PresenceBlocks.ImpulseY;
+                ImpulseZ += Entity.PresenceBlocks.ImpulseZ;
+                if (IsPhysicSleep()) AwakenPhysics();
+            }
+            MotionX += motion.X;
+            MotionZ += motion.Y;
+
+            if (Entity.PresenceBlocks.IsSlow)
+            {
+                // Имеется замедление
+                MotionX *= Entity.PresenceBlocks.FactorSlowXZ;
+                MotionY *= Entity.PresenceBlocks.FactorSlowY;
+                MotionZ *= Entity.PresenceBlocks.FactorSlowXZ;
+            }
+        }
+
+        /// <summary>
+        /// Сидит ли сущность
+        /// </summary>
+        protected override bool _IsMovementSneak() => Movement.Sneak;
+
+        #endregion
+    }
+}

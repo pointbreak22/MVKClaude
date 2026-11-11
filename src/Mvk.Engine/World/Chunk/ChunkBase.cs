@@ -1,0 +1,790 @@
+﻿using System;
+using System.IO;
+using System.IO.Compression;
+using System.Runtime.CompilerServices;
+using Mvk.Engine.Entity;
+using Mvk.Core.Util;
+using Mvk.Engine.Util;
+using Mvk.Engine.World.Block;
+using Mvk.Engine.World.Light;
+using Mvk.Core.Maths;
+
+namespace Mvk.Engine.World.Chunk
+{
+    /// <summary>
+    /// Базовый объект чанка
+    /// </summary>
+    public abstract class ChunkBase : IChunkPosition
+    {
+        /// <summary>
+        /// Исходящий буфер памяти для Zip
+        /// </summary>
+        private readonly static MemoryStream _bigStreamOut = new MemoryStream();
+
+        /// <summary>
+        /// Дополнительные данные покуда для отладки
+        /// </summary>
+        public object Tag
+        {
+            get
+            {
+                return ListEntities.Count;
+            }
+        }
+
+        /// <summary>
+        /// Опции высот чанка
+        /// </summary>
+        public readonly ChunkSettings Settings;
+
+        /// <summary>
+        /// Позиция X текущего чанка
+        /// </summary>
+        public readonly int X;
+        /// <summary>
+        /// Позиция Y текущего чанка
+        /// </summary>
+        public readonly int Y;
+        /// <summary>
+        /// Блочная позиция X текущего чанка
+        /// </summary>
+        public readonly int BlockX;
+        /// <summary>
+        /// Блочная позиция Z текущего чанка
+        /// </summary>
+        public readonly int BlockZ;
+        /// <summary>
+        /// Позиция X текущего чанка
+        /// </summary>
+        public int CurrentChunkX { get; private set; }
+        /// <summary>
+        /// Позиция Y текущего чанка
+        /// </summary>
+        public int CurrentChunkY { get; private set; }
+        /// <summary>
+        /// Ключ кэш координат чанка (ulong)(uint)x  32) | ((uint)y
+        /// </summary>
+        public readonly ulong KeyCash;
+        /// <summary>
+        /// Сылка на объект мира
+        /// </summary>
+        public readonly WorldBase World;
+        /// <summary>
+        /// Данные чанка
+        /// </summary>
+        public readonly ChunkStorage[] StorageArrays;
+        /// <summary>
+        /// Количество секций в чанке (old COUNT_HEIGHT)
+        /// </summary>
+        public readonly byte NumberSections;
+        /// <summary>
+        /// Объект работы с освещением
+        /// </summary>
+        public readonly ChunkLight Light;
+
+        /// <summary>
+        /// Биомы в индексах
+        /// z << 4 | x;
+        /// </summary>
+        public readonly byte[] Biome = new byte[256];
+        /// <summary>
+        /// Список сущностей в каждом псевдочанке.
+        /// Для оптимизации выборки 
+        /// </summary>
+        public readonly MapEntity<EntityBase>[] ListEntitiesSection;
+        /// <summary>
+        /// Список всех сущностей в текущем чанке
+        /// </summary>
+        public readonly MapEntity<EntityBase> ListEntities = new MapEntity<EntityBase>();
+
+        /// <summary>
+        /// Имеет ли этот фрагмент какие-либо сущности и, следовательно, требует сохранения на каждом тике
+        /// </summary>
+        protected bool _hasEntities;
+
+        #region Кольца 1-4
+
+        /// <summary>
+        /// Присутствует, этап загрузки или начальная генерация #1 1*1
+        /// </summary>
+        public bool IsChunkPresent { get; protected set; }
+        /// <summary>
+        /// Было ли декорация чанка #2 3*3
+        /// </summary>
+        public bool IsDecorated { get; protected set; }
+        /// <summary>
+        /// Было ли карта высот с небесным освещением #3 5*5
+        /// </summary>
+        public bool IsHeightMapSky { get; protected set; }
+        /// <summary>
+        /// Было ли боковое небесное освещение и блочное освещение #4 7*7
+        /// </summary>
+        public bool IsSideLightSky { get; protected set; }
+        /// <summary>
+        /// Готов ли чанк для отправки клиентам #5 9*9
+        /// </summary>
+        public bool IsSendChunk { get; protected set; }
+        /// <summary>
+        /// Загружен ли чанк, false если была генерация, для дополнительной правки освещения.
+        /// Для проверки не корректного освещения.
+        /// </summary>
+        public bool IsLoaded { get; protected set; }
+
+        #endregion
+
+        public ChunkBase(WorldBase world, ChunkSettings settings, int chunkPosX, int chunkPosY)
+        {
+            World = world;
+            X = CurrentChunkX = chunkPosX;
+            Y = CurrentChunkY = chunkPosY;
+            BlockX = X << 4;
+            BlockZ = Y << 4;
+            KeyCash = Conv.ChunkXyToIndex(X, Y);
+            Settings = settings;
+            NumberSections = Settings.NumberSections;
+            StorageArrays = new ChunkStorage[NumberSections];
+            ListEntitiesSection = new MapEntity<EntityBase>[NumberSections];
+            for (int index = 0; index < NumberSections; index++)
+            {
+                StorageArrays[index] = new ChunkStorage(KeyCash, index);
+                ListEntitiesSection[index] = new MapEntity<EntityBase>();
+            }
+            Light = new ChunkLight(this);
+        }
+
+        /// <summary>
+        /// Выгрузили чанк
+        /// </summary>
+        public virtual void OnChunkUnload()
+        {
+            IsChunkPresent = false;
+        }
+
+        /// <summary>
+        /// Возвращает самый верхний экземпляр ChunkStorage для этого фрагмента, который содержит блок.
+        /// </summary>
+        public int GetTopFilledSegment()
+        {
+            for (int y = StorageArrays.Length - 1; y >= 0; y--)
+            {
+                if (!StorageArrays[y].IsEmptyData())
+                {
+                    return StorageArrays[y].YBase;
+                }
+            }
+            return 0;
+        }
+
+        #region Block
+
+        /// <summary>
+        /// Получить блок данных, по глобальным координатам
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public BlockState GetBlockState(BlockPos blockPos)
+            => GetBlockState(blockPos.X & 15, blockPos.Y, blockPos.Z & 15);
+        /// <summary>
+        /// Получить блок данных, XZ 0..15, Y 0..255
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public BlockState GetBlockState(int x, int y, int z)
+        {
+            if (x >> 4 == 0 && z >> 4 == 0) return GetBlockStateNotCheck(x, y, z);
+            return new BlockState().Empty();
+        }
+
+        /// <summary>
+        /// Получить блок данных, по глобальным координатам без проверки
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public BlockState GetBlockStateNotCheck(BlockPos blockPos)
+            => GetBlockStateNotCheck(blockPos.X & 15, blockPos.Y, blockPos.Z & 15);
+        /// <summary>
+        /// Получить блок данных, XZ 0..15, Y 0..255 без проверки
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public BlockState GetBlockStateNotCheck(int x, int y, int z)
+        {
+            ChunkStorage chunkStorage = StorageArrays[y >> 4];
+            if (chunkStorage.CountBlock != 0)
+            {
+                return chunkStorage.GetBlockState(x, y & 15, z);
+            }
+            else
+            {
+                return new BlockState(0, chunkStorage.Light[(y & 15) << 8 | z << 4 | x]);
+            }
+        }
+
+        /// <summary>
+        /// Получить блок данных, по глобальным координатам без проверки и без света
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public BlockState GetBlockStateNotCheckLight(BlockPos blockPos)
+            => GetBlockStateNotCheckLight(blockPos.X & 15, blockPos.Y, blockPos.Z & 15);
+        /// <summary>
+        /// Получить блок данных, XZ 0..15, Y 0..255 без проверки и без света
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public BlockState GetBlockStateNotCheckLight(int xz, int y)
+        {
+            ChunkStorage chunkStorage = StorageArrays[y >> 4];
+            return chunkStorage.CountBlock != 0
+                ? chunkStorage.GetBlockStateNotLight(xz, y & 15)
+                : new BlockState();
+        }
+
+        /// <summary>
+        /// Получить блок данных, XZ 0..15, Y 0..255 без проверки и без света
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public BlockState GetBlockStateNotCheckLight(int x, int y, int z)
+            => GetBlockStateNotCheckLight(z << 4 | x, y);
+
+        /// <summary>
+        /// Получить процес разрушения блока
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte GetBlockDestroy(BlockPos blockPos)
+        {
+            if (blockPos.IsValid(Settings))
+            {
+                return GetBlockDestroyNotCheck(blockPos.X & 15, blockPos.Y, blockPos.Z & 15);
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Получить процес разрушения блока, без проверки валидности координат, XZ 0..15, Y 0..255
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte GetBlockDestroyNotCheck(int x, int y, int z)
+        {
+            ChunkStorage chunkStorage = StorageArrays[y >> 4];
+            int index = (y & 15) << 8 | z << 4 | x;
+            if (chunkStorage.Destroy.ContainsKey(index))
+            {
+                return chunkStorage.Destroy[index];
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Задать процес разрушения блока
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetBlockDestroy(BlockPos blockPos, byte process)
+        {
+            if (blockPos.IsValid(Settings))
+            {
+                SetBlockDestroy(blockPos.X & 15, blockPos.Y, blockPos.Z & 15, process);
+            }
+        }
+
+        /// <summary>
+        /// Задать процес разрушения блока,  XZ 0..15, Y 0..255
+        /// </summary>
+        public void SetBlockDestroy(int x, int y, int z, byte process)
+        {
+            ChunkStorage chunkStorage = StorageArrays[y >> 4];
+            int index = (y & 15) << 8 | z << 4 | x;
+            if (process == 0)
+            {
+                // Удалить разрушения блока
+                chunkStorage.Destroy.Remove(index);
+            }
+            else
+            {
+                if (chunkStorage.Destroy.ContainsKey(index))
+                {
+                    chunkStorage.Destroy[index] = process;
+                }
+                else
+                {
+                    chunkStorage.Destroy.Add(index, process);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Изменить метданные блока, без изменения для клиента
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetBlockStateMet(BlockPos blockPos, int met)
+        {
+            if (blockPos.IsValid(Settings))
+            {
+                int yc = blockPos.Y >> 4;
+                int index = (blockPos.Y & 15) << 8 | (blockPos.Z & 15) << 4 | (blockPos.X & 15);
+                StorageArrays[yc].NewMetBlock(index, met);
+            }
+        }
+
+        /// <summary>
+        /// Задать новые данные блока, с перерасчётом освещения если надо и прочего, возвращает прошлые данные блока
+        /// </summary>
+        /// <param name="blockPos">Позици блока</param>
+        /// <param name="blockState">Данные нового блока</param>
+        /// <param name="flagLiquid">Проверка доп жидкости</param>
+        public BlockState SetBlockState(BlockPos blockPos, ref BlockState blockState, bool flagLiquid)
+        {
+            int bx = blockPos.X & 15;
+            int by = blockPos.Y;
+            int bz = blockPos.Z & 15;
+
+            // Получаем прошлый блок
+            BlockState blockStateOld = GetBlockState(bx, by, bz);
+
+            // Если блоки одинаковые, то возвращаем пустоту, ктороая проигнорирует смену
+            if (blockState.Equals(blockStateOld)) return new BlockState().Empty();
+
+            BlockBase block = blockState.GetBlock();
+            ChunkStorage storage = StorageArrays[by >> 4];
+            // Если в секторе блока нет и мы пробуем поставить блок воздуха, выплёвываем игнор
+            if (storage.CountBlock == 0 && block.IsAir) return new BlockState().Empty();
+            BlockBase blockOld = blockStateOld.GetBlock();
+
+            if (flagLiquid)
+            {
+                // Проверка жидкости, Как мы работаем.
+                // Если прилетает блок жидкости, а у нас не жидкость мы пробуем проверить и склеить.
+                // Если прилетает не жидкость, мы проверяем была ли доп жидкость и корректируем с ней
+
+                if (block.IsAir)
+                {
+                    if (blockState.Met == 0)
+                    {
+                        // Убираем блок
+                        if (blockOld.IsAddLiquid(blockStateOld.Met))
+                        {
+                            // Если прошлый есть доп жыдкость делаем её основной
+                            blockState.Id = Ce.Blocks.GetAddLiquidIndex(blockStateOld.Met);
+                            blockState.Met = blockOld.GetAddLiquidMet(blockStateOld.Met);
+                            block = Ce.Blocks.GetAddLiquid(blockStateOld.Met);
+                        }
+                    }
+                    else
+                    {
+                        // Убираем жидкость
+                        if (blockOld.IsAddLiquid(blockStateOld.Met))
+                        {
+                            blockState.Id = blockStateOld.Id;
+                            blockState.Met = blockStateOld.Met & 0xFFF;
+                            block = blockOld;
+                        }
+                        else
+                        {
+                            blockState.Met = 0;
+                        }
+                    }
+                }
+                else if (block.Liquid)
+                {
+                    if (!blockOld.Liquid && blockOld.CanAddLiquid())
+                    {
+                        // Добавляем жидкость в старый блок
+                        blockState.Id = blockStateOld.Id;
+                        blockState.Met = (block.IndexLiquid << 16)
+                            | (blockState.Met << 12)
+                            | (blockStateOld.Met & 0xFFF);
+                        block = blockOld;
+                    }
+                }
+                else if (blockOld.Liquid)
+                {
+                    if (!block.Liquid && block.CanAddLiquid())
+                    {
+                        // Добавляем блок в доп жидкость
+                        blockState.Met = (blockOld.IndexLiquid << 16)
+                            | (blockStateOld.Met << 12)
+                            | (blockState.Met & 0xFFF);
+                    }
+                }
+            }
+            else if (block.IsAir)
+            {
+                // Для того чтоб убрать блок жидкости
+                blockState.Met = 0;
+            }
+
+            int index = (by & 15) << 8 | bz << 4 | bx;
+            storage.SetData(index, blockState.Id, blockState.Met);
+
+            if (blockOld != block) // Блоки разные
+            {
+                // Удалить разрушение
+                storage.Destroy.Remove(index);
+
+                bool differenceOpacity = block.LightOpacity != blockOld.LightOpacity;
+                if (differenceOpacity || block.LightValue != blockOld.LightValue)
+                {
+                    World.Light.ActionChunk(this);
+                    if (differenceOpacity && World.Settings.HasNoSky)
+                    {
+                        // Отключаем проверку небесного освещения
+                        differenceOpacity = false;
+                    }
+                    World.Light.CheckLightFor(blockPos, differenceOpacity);
+                }
+                else
+                {
+                    // Проверка высоты
+                    Light.CheckHeightMap(blockPos, block.LightOpacity);
+                    if (World.IsRemote)
+                    {
+                        World.Light.ClearDebugString();
+                    }
+                    World.MarkBlockForModified(blockPos.X, blockPos.Y, blockPos.Z);
+                }
+
+                if (World.IsRemote)
+                {
+                    // Для клиента дальние частички
+                    _SetRequiredRandomTick(bx, by, bz, blockOld, block);
+
+                    World.DebugString(World.Light.ToDebugString());
+                }
+                else
+                {
+                    // Отмена тик блока
+                    _RemoveBlockTick(bx, by, bz, false);
+                }
+            }
+
+            World.MarkBlockForUpdate(blockPos.X, blockPos.Y, blockPos.Z);
+            // Пробуждение сущности
+            _AwakenEntitiesTouching(blockPos);
+
+            // Эта строка не понятна мне, зачем это я делал?! 2024-12-04
+            // if (storage.CountBlock != 0 && storage.Data[index] != block.IndexBlock) return new BlockState();
+            // Cloud подсказал 06.11.2026
+            // Она пришла из Chunk.setBlockState в Minecraft. Там после OnBlockAdded проверяется,
+            // тот ли блок лежит в хранилище. Смысл такой: OnBlockAdded мог сам заменить блок
+            // (например, песок сразу упал или блок тут же превратился в другой), и тогда метод возвращает null,
+            // сообщая вызывающему коду, что установка «перебита».
+            // У вас это сравнение storage.Data[index] != block.IndexBlock.
+            // Если ваш код нигде не проверяет результат SetBlockState на такой случай,
+            // строка не нужна, её можно удалить совсем.
+
+            return blockStateOld;
+        }
+
+        /// <summary>
+        /// Изменить состояние обязательного случайного тика
+        /// </summary>
+        protected virtual void _SetRequiredRandomTick(int x, int y, int z, BlockBase blockOld, BlockBase blockNew) { }
+
+        /// <summary>
+        /// Обновить в секции блоки состояния обязательного случайного тика
+        /// </summary>
+        protected virtual void _UpSectionRequiredRandomTick(int sy) { }
+
+        /// <summary>
+        /// Отменить мгновенный тик блока
+        /// </summary>
+        protected virtual void _RemoveBlockTick(int x, int y, int z, bool liquid) { }
+
+        #endregion
+
+        #region Entity
+
+        /// <summary>
+        /// Добавить сущность в чанк
+        /// </summary>
+        public void AddEntity(EntityBase entity, int cx, int cy, int cz)
+        {
+            _hasEntities = true;
+            if (cy < 0) cy = 0; else if (cy >= NumberSections) cy = NumberSections - 1;
+            entity.SetPositionChunk(cx, cy, cz);
+            ListEntitiesSection[cy].Add(entity.Id, entity);
+            ListEntities.Add(entity.Id, entity);
+        }
+
+        /// <summary>
+        /// Удаляет сущность из конкретного псевдочанка
+        /// </summary>
+        /// <param name="entity">сущность</param>
+        /// <param name="cy">уровень псевдочанка</param>
+        public void RemoveEntityAtIndex(EntityBase entity, int cy)
+        {
+            if (cy < 0) cy = 0; else if (cy >= NumberSections) cy = NumberSections - 1;
+            ListEntitiesSection[cy].Remove(entity.Id, entity);
+            ListEntities.Remove(entity.Id, entity);
+        }
+
+        /// <summary>
+        /// Удаляет сущность, используя его координату y в качестве индекса
+        /// </summary>
+        /// <param name="entity">сущность</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveEntity(EntityBase entity) => RemoveEntityAtIndex(entity, entity.ChunkPositionY);
+
+        /// <summary>
+        /// Пробудить все сущности данного чанка
+        /// </summary>
+        public void AwakenAllEntities()
+        {
+            for (int i = 0; i < ListEntities.Count; i++)
+            {
+                ListEntities.GetAt(i).AwakenPhysicSleep();
+            }
+        }
+
+        /// <summary>
+        /// Заполнить список сущностей, которые могут находится в секторах чанка
+        /// </summary>
+        /// <param name="id">исключение ID сущности</param>
+        public void FillInEntityBoundingBoxesFromSector(ListFast<EntityBase> list,
+            AxisAlignedBB aabb, int minY, int maxY, int id)
+        {
+            EntityBase entity;
+            MapEntity <EntityBase> entityMap;
+            int count;
+            for (int cy = minY; cy <= maxY; cy++)
+            {
+                entityMap = ListEntitiesSection[cy];
+                count = entityMap.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    entity = entityMap.GetAt(i);
+                    // TODO::2025-06-09 !entity.IsDead в колизии, продумать, когда сущность умерла, что с колизией делать?
+                    if (entity.Id != id)// && !entity.IsDead)
+                    {
+                        if (entity.Size.IntersectsWith(aabb))
+                        {
+                            // Если пересекается вносим в список
+                            list.Add(entity);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Заполнить список сущностей конкретного типа, которые могут находится в секторах чанка
+        /// </summary>
+        /// <param name="id">исключение ID сущности</param>
+        /// <param name="indexEntity">Индекс тип сущности, полученый на сервере из таблицы</param>
+        public void FillInEntityBoundingBoxesFromSectorType(ListFast<EntityBase> list,
+            AxisAlignedBB aabb, int minY, int maxY, int id, int indexEntity)
+        {
+            EntityBase entity;
+            MapEntity<EntityBase> entityMap;
+            int count;
+            for (int cy = minY; cy <= maxY; cy++)
+            {
+                entityMap = ListEntitiesSection[cy];
+                count = entityMap.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    entity = entityMap.GetAt(i);
+                    if (entity.IndexEntity == indexEntity && entity.Id != id && !entity.IsDead)
+                    {
+                        if (entity.Size.IntersectsWith(aabb))
+                        {
+                            // Если пересекается вносим в список
+                            list.Add(entity);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Имеется ли сущность, которые могут находится в секторах чанка
+        /// </summary>
+        /// <param name="id">исключение ID сущности</param>
+        public bool IsEntityBoundingBoxesFromSector(AxisAlignedBB aabb, int minY, int maxY, int id)
+        {
+            EntityBase entity;
+            MapEntity<EntityBase> entityMap;
+            int count;
+            for (int cy = minY; cy <= maxY; cy++)
+            {
+                entityMap = ListEntitiesSection[cy];
+                count = entityMap.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    entity = entityMap.GetAt(i);
+                    // TODO::2025-06-09 !entity.IsDead в колизии, продумать, когда сущность умерла, что с колизией делать?
+                    if (entity.Id != id)// && !entity.IsDead)
+                    {
+                        if (entity.Size.IntersectsWith(aabb))
+                        {
+
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Пробудить сущности соприкасающих с блоком и проверить 
+        /// соседние чанки если блок коснулся xz = 0 || 15
+        /// </summary>
+        private void _AwakenEntitiesTouching(BlockPos blockPos)
+        {
+            int x = blockPos.X;
+            int y = blockPos.Y;
+            int y1 = y + 1; // Нижний блок, чтоб сущность начала падать если это надо
+            int z = blockPos.Z;
+            int cy = y >> 4;
+
+            if (cy >= NumberSections) cy = NumberSections - 1;
+
+            EntityBase entity;
+            for (int i = 0; i < ListEntitiesSection[cy].Count; i++)
+            {
+                entity = ListEntitiesSection[cy].GetAt(i);
+                if (!entity.IsDead && entity.IsPhysicSleep())
+                {
+                    if (entity.Size.IntersectsWithBlock(x, y, z)
+                        || entity.Size.IntersectsWithBlock(x, y1, z))
+                    {
+                        entity.AwakenPhysicSleep();
+                    }
+                }
+            }
+
+            int bx = x & 15;
+            int bz = z & 15;
+
+            // Нужен соседний чанк
+            if (bx == 0)
+            {
+                World.GetChunk(CurrentChunkX - 1, CurrentChunkY)?.AwakenEntitiesTouching(x - 1, y, z);
+                if (bz == 0)
+                {
+                    World.GetChunk(CurrentChunkX - 1, CurrentChunkY - 1)?.AwakenEntitiesTouching(x - 1, y, z - 1);
+                }
+                else if (bz == 15)
+                {
+                    World.GetChunk(CurrentChunkX - 1, CurrentChunkY + 1)?.AwakenEntitiesTouching(x - 1, y, z + 1);
+                }
+            }
+            else if (bx == 15)
+            {
+                World.GetChunk(CurrentChunkX + 1, CurrentChunkY)?.AwakenEntitiesTouching(x + 1, y, z);
+                if (bz == 0)
+                {
+                    World.GetChunk(CurrentChunkX + 1, CurrentChunkY - 1)?.AwakenEntitiesTouching(x + 1, y, z - 1);
+                }
+                else if (bz == 15)
+                {
+                    World.GetChunk(CurrentChunkX + 1, CurrentChunkY + 1)?.AwakenEntitiesTouching(x + 1, y, z + 1);
+                }
+            }
+            else if (bz == 0)
+            {
+                World.GetChunk(CurrentChunkX, CurrentChunkY - 1)?.AwakenEntitiesTouching(x, y, z - 1);
+            }
+            else if (bz == 15)
+            {
+                World.GetChunk(CurrentChunkX, CurrentChunkY + 1)?.AwakenEntitiesTouching(x, y, z + 1);
+            }
+        }
+
+        /// <summary>
+        /// Пробудить сущности соприкасающих с блоком
+        /// </summary>
+        public void AwakenEntitiesTouching(int x, int y, int z)
+        {
+            int cy = y >> 4;
+            if (cy >= NumberSections) cy = NumberSections - 1;
+            int count = ListEntitiesSection[cy].Count;
+            EntityBase entity;
+            for (int i = 0; i < count; i++)
+            {
+                entity = ListEntitiesSection[cy].GetAt(i);
+                if (!entity.IsDead && entity.IsPhysicSleep())
+                {
+                    if (entity.Size.IntersectsWithBlock(x, y, z))
+                    {
+                        entity.AwakenPhysicSleep();
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Binary
+
+        /// <summary>
+        /// Внести данные в zip буфере
+        /// </summary>
+        public void SetBinaryZip(byte[] bufferIn, bool biom, uint flagsYAreas)
+        {
+            using (MemoryStream inStream = new MemoryStream(bufferIn))
+            using (GZipStream bigStream = new GZipStream(inStream, CompressionMode.Decompress))
+            {
+                _bigStreamOut.Position = 0;
+                bigStream.CopyTo(_bigStreamOut);
+                _bigStreamOut.Position = 0;
+                int count, i , key;
+                for (int sy = 0; sy < NumberSections; sy++)
+                {
+                    if ((flagsYAreas & 1 << sy) != 0)
+                    {
+                        ChunkStorage storage = StorageArrays[sy];
+                        storage.Destroy.Clear();
+                        _bigStreamOut.Read(storage.Light, 0, 4096);
+
+                        if (_bigStreamOut.ReadByte() == 0)
+                        {
+                            storage.ClearNotLight();
+                        }
+                        else
+                        {
+                            storage.Data = new int[4096];
+                            byte[] b = new byte[16384];
+                            _bigStreamOut.Read(b, 0, 16384);
+                            Buffer.BlockCopy(b, 0, storage.Data, 0, 16384);
+                            storage.UpCountBlock();
+                            count = _bigStreamOut.ReadByte() | _bigStreamOut.ReadByte() << 8;
+                            for (i = 0; i < count; i++)
+                            {
+                                key = _bigStreamOut.ReadByte() | _bigStreamOut.ReadByte() << 8;
+                                storage.Destroy.Add(key, (byte)_bigStreamOut.ReadByte());
+                            }
+                        }
+                        _UpSectionRequiredRandomTick(sy);
+                    }
+                }
+                // Надо подумать оптимизацию, но по факту пробегаю весь чанк
+
+
+
+                // биом
+                if (biom)
+                {
+                    _bigStreamOut.Read(Biome, 0, 256);
+                }
+            }
+            IsChunkPresent = true;
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Пометить что надо перерендерить сетку чанка для клиента
+        /// </summary>
+        public virtual void ModifiedToRender(int y) { }
+
+        public override string ToString() => CurrentChunkX + " : " + CurrentChunkY;
+
+        /// <summary>
+        /// Получить вектор позиции чанка
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector2i ToPosition() => new Vector2i(CurrentChunkX, CurrentChunkY);
+
+        /// <summary>
+        /// Получить вектор позиции региона
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector2i ToRegion() => new Vector2i(CurrentChunkX >> 5, CurrentChunkY >> 5);
+    }
+}

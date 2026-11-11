@@ -1,0 +1,92 @@
+﻿using System;
+using Mvk.Core.Util;
+using Mvk.Engine.Util;
+
+namespace Mvk.Engine.Entity.Particle
+{
+    // <summary>
+    /// Регистрация сущностей частичек
+    /// </summary>
+    public sealed class EntitiesFXReg
+    {
+        /// <summary>
+        /// Индекс частички куба без гравитации
+        /// </summary>
+        public static ushort CubeId { get; private set; }
+        /// <summary>
+        /// Индекс частички блока
+        /// </summary>
+        public static ushort PartId { get; private set; }
+        /// <summary>
+        /// Индекс сцветной частички с гравитацией
+        /// </summary>
+        public static ushort PartColorId { get; private set; }
+
+        /// <summary>
+        /// Таблица предметов для регистрации
+        /// </summary>
+        public static readonly EntitiesRegTable Table = new EntitiesRegTable();
+
+        /// <summary>
+        /// Инициализация блоков, если window не указывать, прорисовки о статусе не будет (для сервера)
+        /// </summary>
+        public static void Initialization(IProgress<string> progress = null)
+        {
+            progress?.Report(L.T("CreateItems"));
+
+            _InitializationBegin();
+        }
+
+        /// <summary>
+        /// Перед инициализацией
+        /// </summary>
+        private static void _InitializationBegin()
+        {
+            // Очистить таблицы и вспомогательные данные json
+            _Clear();
+
+            // Регистрация обязательных предметов
+            RegisterEntityFXClass("Cube", typeof(EntityCubeFX));
+            RegisterEntityFXClass("Part", typeof(EntityPartFX));
+            RegisterEntityFXClass("PartColor", typeof(EntityPartColorFX));
+        }
+
+        /// <summary>
+        /// Зарегистрировать Частичку
+        /// </summary>
+        public static void RegisterEntityFXClass(string alias, Type entityFxType)
+            => Table.Add(alias, new ResourcesEntityBase(alias, entityFxType));
+
+        /// <summary>
+        /// Корректировка блоков после загрузки, если загрузки нет,
+        /// всё равно надо, для активации
+        /// </summary>
+        public static void Correct(CorrectTable correct)
+        {
+            correct.CorrectRegLoad(Table);
+            Ce.EntitiesFX = new EntityFXArrays();
+            // Очистить таблицы и вспомогательные данные json
+            _Clear();
+        }
+
+        /// <summary>
+        /// Очистить таблицы и вспомогательные данные json
+        /// </summary>
+        private static void _Clear() => Table.Clear();
+
+        /// <summary>
+        /// Инициализация Id
+        /// </summary>
+        public static void InitId()
+        {
+            string alias;
+            for (ushort i = 0; i < Ce.EntitiesFX.Count; i++)
+            {
+                alias = Ce.EntitiesFX.EntitiesFXAlias[i];
+                if (alias == "Cube") CubeId = i;
+                else if (alias == "Part") PartId = i;
+                else if (alias == "PartColor") PartColorId = i;
+            }
+        }
+    }
+}

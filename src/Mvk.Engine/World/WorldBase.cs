@@ -1,0 +1,512 @@
+﻿using System;
+using System.Runtime.CompilerServices;
+using Mvk.Engine.Entity;
+using Mvk.Engine.Entity.Particle;
+using Mvk.Engine.Entity.Player;
+using Mvk.Engine.Entity.Sizes;
+using Mvk.Core.Util;
+using Mvk.Engine.Util;
+using Mvk.Engine.World.Block;
+using Mvk.Engine.World.Chunk;
+using Mvk.Engine.World.Light;
+using Mvk.Core.Maths;
+
+namespace Mvk.Engine.World
+{
+    /// <summary>
+    /// Абстрактный объект мира
+    /// </summary>
+    public abstract class WorldBase
+    {
+        /// <summary>
+        /// Это значение true для клиентских миров и false для серверных миров.
+        /// </summary>
+        public bool IsRemote { get; protected set; }
+        /// <summary>
+        /// Объект генератора случайных чисел
+        /// </summary>
+        public Rand Rnd { get; protected set; }
+        /// <summary>
+        /// Объект сыщик
+        /// </summary>
+        public Profiler Filer { get; protected set; }
+        /// <summary>
+        /// Посредник чанков
+        /// </summary>
+        public ChunkProvider ChunkPr { get; protected set; }
+        /// <summary>
+        /// Настройки мира
+        /// </summary>
+        public WorldSettings Settings { get; protected set; }
+
+        /// <summary>
+        /// Список всех сущностей во всех загруженных в данный момент чанках 
+        /// EntityBase
+        /// </summary>
+        public MapEntity<EntityBase> LoadedEntityList { get; protected set; } = new MapEntity<EntityBase>();
+        /// <summary>
+        /// Список сущностей которые надо выгрузить
+        /// </summary>
+        public ListMessy<EntityBase> UnloadedEntityList { get; protected set; } = new ListMessy<EntityBase>();
+        /// <summary>
+        /// Список игроков в мире
+        /// </summary>
+        public ListMessy<PlayerBase> PlayerEntities { get; protected set; } = new ListMessy<PlayerBase>();
+
+        /// <summary>
+        /// Объект обработки освещения для мира
+        /// </summary>
+        public readonly WorldLight Light;
+        /// <summary>
+        /// Объект проверки коллизии
+        /// </summary>
+        public readonly CollisionBase Collision;
+
+        public WorldBase(int numberBlocksToLight)
+        {
+            Light = new WorldLight(this, numberBlocksToLight);
+            Collision = new CollisionBase(this);
+        }
+
+        /// <summary>
+        /// Внести лог
+        /// </summary>
+        public virtual void SetLog(string logMessage, params object[] args) { }
+
+        /// <summary>
+        /// Получить время в тактах объекта Stopwatch с момента запуска проекта
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual long ElapsedTicks() => 0;
+
+        #region Chunk
+
+        /// <summary>
+        /// Получить чанк по координатам чанка
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ChunkBase GetChunk(int chunkPosX, int chunkPosY) 
+            => ChunkPr.GetChunk(chunkPosX, chunkPosY);
+        /// <summary>
+        /// Получить чанк по координатам чанка
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ChunkBase GetChunk(Vector2i chunkPos)
+            => ChunkPr.GetChunk(chunkPos);
+        /// <summary>
+        /// Получить чанк по координатам блока
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ChunkBase GetChunk(BlockPos blockPos)
+            => ChunkPr.GetChunk(blockPos.GetPositionChunkX(), blockPos.GetPositionChunkZ());
+
+        /// <summary>
+        /// Получить блок высоты из карты высот
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetHeightMap(int x, int z)
+        {
+            ChunkBase chunk = ChunkPr.GetChunk(x >> 4, z >> 4);
+            if (chunk != null)
+            {
+                return chunk.Light.GetHeight(x & 15, z & 15);
+            }
+            return 0;
+        }
+
+        #endregion
+
+        #region Block
+
+        /// <summary>
+        /// Получить met данные жидкости, смещённые чтоб просто прибавить для смены метдаты блока
+        /// </summary>
+        public int GetLiquidBlock(BlockPos blockPos)
+        {
+            BlockState state = GetBlockState(blockPos);
+            if (state.IsEmpty()) return 0;
+            return (state.Met >> 12) << 12;
+            //Console.WriteLine("r " + i);
+        }
+
+        /// <summary>
+        /// Получить блок данных
+        /// </summary>
+        public BlockState GetBlockState(BlockPos blockPos)
+        {
+            if (blockPos.IsValid(ChunkPr.Settings))
+            {
+                ChunkBase chunk = GetChunk(blockPos.GetPositionChunk());
+                if (chunk != null)
+                {
+                    return chunk.GetBlockStateNotCheck(blockPos.X & 15, blockPos.Y, blockPos.Z & 15);
+                }
+            }
+            return new BlockState().Empty();
+        }
+
+        /// <summary>
+        /// Получить процес разрушения блока
+        /// </summary>
+        public byte GetBlockDestroy(BlockPos blockPos)
+        {
+            if (blockPos.IsValid(ChunkPr.Settings))
+            {
+                ChunkBase chunk = ChunkPr.GetChunk(blockPos.GetPositionChunk());
+                if (chunk == null) return 0;
+                ChunkStorage chunkStorage = chunk.StorageArrays[blockPos.Y >> 4];
+                int index = (blockPos.Y & 15) << 8 | (blockPos.Z & 15) << 4 | (blockPos.X & 15);
+                if (chunkStorage.Destroy.ContainsKey(index))
+                {
+                    return chunkStorage.Destroy[index];
+                }
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Задать процес разрушения блока
+        /// </summary>
+        public void SetBlockDestroy(BlockPos blockPos, byte process, bool isMarkUpdate = true)
+        {
+            if (blockPos.IsValid(ChunkPr.Settings))
+            {
+                ChunkBase chunk = ChunkPr.GetChunk(blockPos.GetPositionChunk());
+                if (chunk == null) return;
+                ChunkStorage chunkStorage = chunk.StorageArrays[blockPos.Y >> 4];
+                int index = (blockPos.Y & 15) << 8 | (blockPos.Z & 15) << 4 | (blockPos.X & 15);
+                if (process == 0)
+                {
+                    // Удалить разрушения блока
+                    chunkStorage.Destroy.Remove(index);
+                }
+                else
+                {
+                    if (chunkStorage.Destroy.ContainsKey(index))
+                    {
+                        chunkStorage.Destroy[index] = process;
+                    }
+                    else
+                    {
+                        chunkStorage.Destroy.Add(index, process);
+                    }
+                }
+                if (isMarkUpdate)
+                {
+                    MarkBlockForModified(blockPos.X, blockPos.Y, blockPos.Z);
+                    MarkBlockForUpdate(blockPos.X, blockPos.Y, blockPos.Z);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Изменить метданные блока, БЕЗ КОНТРОЛЯ ЖИДКОСТИ и без метода OnMetSelected
+        /// </summary>
+        /// <param name="isMarkUpdate">Отметить блок для обновления</param>
+        public void SetBlockStateMet(BlockPos blockPos, int met, bool isMarkUpdate = true)
+        {
+            if (blockPos.IsValid(ChunkPr.Settings))
+            {
+                ChunkBase chunk = ChunkPr.GetChunk(blockPos.GetPositionChunk());
+                if (chunk != null)
+                {
+                    chunk.StorageArrays[blockPos.Y >> 4].NewMetBlock(
+                        (blockPos.Y & 15) << 8 | (blockPos.Z & 15) << 4 | (blockPos.X & 15),
+                        met);
+                    if (isMarkUpdate) MarkBlockForUpdate(blockPos.X, blockPos.Y, blockPos.Z);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Задать блок неба, с флагом по умолчанию 46 (уведомление соседей, modifyRender, modifySave, isCheckLiquid)
+        /// флаг, 1 частички старого блока, 2 уведомление соседей, 
+        /// 4 modifyRender, 8 modifySave, 16 sound break, 32 проверка доп жидкости,
+        /// 64 OnBreakBlock отключить!
+        /// </summary>
+        /// <param name="blockPos">позици блока</param>
+        /// <param name="flag">флаг, 1 частички старого блока, 2 уведомление соседей, 4 modifyRender, 
+        /// 8 modifySave, 16 sound break, 32 проверка доп жидкости</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool SetBlockToAir(BlockPos blockPos, BlockFlag flag = BlockFlag.cNotify) 
+            => SetBlockState(blockPos, new BlockState(0), flag);
+
+        /// <summary>
+        /// Задать блок неба доп жидкости или жидкости если она есть, с флагом по умолчанию 46 (уведомление соседей, modifyRender, modifySave, isCheckLiquid)
+        /// флаг, 1 частички старого блока, 2 уведомление соседей, 
+        /// 4 modifyRender, 8 modifySave, 16 sound break, 32 проверка доп жидкости,
+        /// 64 OnBreakBlock отключить!
+        /// </summary>
+        /// <param name="blockPos">позици блока</param>
+        /// <param name="flag">флаг, 1 частички старого блока, 2 уведомление соседей, 4 modifyRender, 
+        /// 8 modifySave, 16 sound break, 32 проверка доп жидкости</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool SetLiquidBlockToAir(BlockPos blockPos)
+            => SetBlockState(blockPos, new BlockState(0 | (2 << 12)), BlockFlag.cNotify);
+
+        /// <summary>
+        /// Сменить блока
+        /// </summary>
+        /// <param name="blockPos">позици блока</param>
+        /// <param name="blockState">данные блока</param>
+        /// <param name="flag">флаг, 1 частички старого блока, 2 уведомление соседей, 
+        /// 4 modifyRender, 8 modifySave, 16 sound break, 32 проверка доп жидкости,
+        /// 64 OnBreakBlock отключить!</param>
+        /// <returns>true смена была</returns>
+        public virtual bool SetBlockState(BlockPos blockPos, BlockState blockState, BlockFlag flag)
+        {
+            if (!blockPos.IsValid(ChunkPr.Settings)) return false;
+            ChunkBase chunk = ChunkPr.GetChunk(blockPos.GetPositionChunk());
+            if (chunk == null) return false;
+            return !chunk.SetBlockState(blockPos, ref blockState, (flag & BlockFlag.Liquid) != 0).IsEmpty();
+        }
+
+        /// <summary>
+        /// Видит ли данный блок небо
+        /// </summary>
+        public bool IsAgainstSky(BlockPos blockPos) 
+            => GetChunk(blockPos).Light.IsAgainstSky(blockPos.X, blockPos.Y, blockPos.Z);
+
+        #endregion
+
+        #region Mark
+
+        /// <summary>
+        /// Отметить блок для обновления
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void MarkBlockForUpdate(int x, int y, int z) { }
+        /// <summary>
+        /// Отметить блоки для обновления
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void MarkBlockRangeForUpdate(int x0, int y0, int z0, int x1, int y1, int z1) { }
+        /// <summary>
+        /// Отметить блок для изминения
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void MarkBlockForModified(int x, int y, int z) { }
+        /// <summary>
+        /// Отметить блоки для изминения
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void MarkBlockRangeForModified(int x0, int z0, int x1, int z1) { }
+
+        #endregion
+
+        #region Entity
+
+        /// <summary>
+        /// Вызывается, когда объект появляется в мире. Это включает в себя игроков
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void SpawnEntityInWorld(EntityBase entity)
+            => _OnEntityAdded(entity);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual void _OnEntityAdded(EntityBase entity)
+        {
+            if (entity is PlayerBase player)
+            {
+                PlayerEntities.Add(player);
+                //TODO::2023-07-07 Флаг сна всех игроков
+                //UpdateAllPlayersSleepingFlag();
+            }
+            LoadedEntityList.Add(entity.Id, entity);
+        }
+
+        /// <summary>
+        /// Вызывается для всех World, когда сущность выгружается или уничтожается. 
+        /// В клиентских мирах освобождает любые загруженные текстуры.
+        /// В серверных мирах удаляет сущность из трекера сущностей.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual void _OnEntityRemoved(EntityBase entity)
+        {
+            if (entity is PlayerBase player)
+            {
+                PlayerEntities.Remove(player);
+                //TODO::2023-07-07 Флаг сна всех игроков
+                //UpdateAllPlayersSleepingFlag();
+            }
+        }
+
+        /// <summary>
+        /// Обновляет (и очищает) объекты и объекты чанка 
+        /// </summary>
+        protected virtual void _UpdateEntities()
+        {
+            Filer.EndStartSection("EntityTick");
+
+            // Пробегаем по всем сущностям и обрабатываеи их такт
+            for (int i = 0; i < LoadedEntityList.Count; i++)
+            {
+                EntityBase entity = LoadedEntityList.GetAt(i);
+
+                if (entity != null)
+                {
+                    if (!entity.IsDead)
+                    {
+                        _UpdateEntity(entity);
+                    }
+                    else
+                    {
+                        UnloadedEntityList.Add(entity);
+                    }
+                }
+            }
+
+            Filer.EndStartSection("EntityRemove");
+
+            // Удаляем 
+            while (UnloadedEntityList.Count > 0)
+            {
+                EntityBase entity = UnloadedEntityList[UnloadedEntityList.Count - 1];
+                UnloadedEntityList.RemoveLast();
+                if (entity.AddedToChunk)
+                {
+                    ChunkBase chunk = GetChunk(entity.ChunkPositionX, entity.ChunkPositionZ);
+                    chunk?.RemoveEntity(entity);
+
+                    // Для пробуждения сущностей сверху
+                    if (entity.Size is ISizeEntityBox size)
+                    {
+                        Collision.EntityBoundingBoxesFromSector(size.GetBoundingBox().Up(.2f), entity.Id);
+                        int count = Collision.ListEntity.Count;
+                        for (int i = 0; i < count; i++)
+                        {
+                            Collision.ListEntity[i].AwakenPhysicSleep();
+                        }
+                    }
+                    // Для отладки
+                    _FlagDebugChunkProviderServer();
+                }
+                LoadedEntityList.Remove(entity.Id, entity);
+                _OnEntityRemoved(entity);
+            }
+
+            Filer.EndSection();
+        }
+
+        /// <summary>
+        /// Изменение в каждом такте сущности
+        /// </summary>
+        protected virtual void _UpdateEntity(EntityBase entity)
+        {
+            // Добавление сущности в чанк или выгрузка
+            int cx = entity.ChunkPositionX;
+            int cy = entity.ChunkPositionY;
+            int cz = entity.ChunkPositionZ;
+            bool check = !entity.AddedToChunk || cx != entity.ChunkPositionPrevX || cz != entity.ChunkPositionPrevZ;
+            if (check || cy != entity.ChunkPositionPrevY)
+            {
+                ChunkBase chunk = null;
+                if (entity.AddedToChunk)
+                {
+                    chunk = GetChunk(entity.ChunkPositionPrevX, entity.ChunkPositionPrevZ);
+                    // Удаляем из старого псевдо чанка
+                    if (chunk != null)
+                    {
+                        chunk.RemoveEntityAtIndex(entity, entity.ChunkPositionPrevY);
+                    }
+                }
+                if (check)
+                {
+                    // Если была смена чанка
+                    chunk = GetChunk(cx, cz);
+                }
+                if (chunk != null)
+                {
+                    // Добавляем в новый псевдочанк
+                    entity.AddedToChunk = true;
+                    chunk.AddEntity(entity, cx, cy, cz);
+                }
+                else
+                {
+                    // Если нет чанка помечаем что сущность без чанка
+                    entity.AddedToChunk = false;
+                }
+                // Для отладки
+                _FlagDebugChunkProviderServer();
+            }
+        }
+
+        /// <summary>
+        /// Флаг для отладки сервера
+        /// </summary>
+        protected virtual void _FlagDebugChunkProviderServer() { }
+
+        /// <summary>
+        /// Объявить всем сущностям о смерте тикущей сущности
+        /// </summary>
+        public void AboutAllEntitesToDead(EntityMob entityMob)
+        {
+            // Пробегаем по всем сущностям и обрабатываеи их такт
+            for (int i = 0; i < LoadedEntityList.Count; i++)
+            {
+                EntityBase entity = LoadedEntityList.GetAt(i);
+
+                if (entity != null && !entity.IsDead && entity.Id != entityMob.Id)
+                {
+                    entity.AboutToDead(entityMob);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Entity Particle
+
+        /// <summary>
+        /// Заспавнить частицы
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void SpawnParticle(ushort particleId, 
+            int count, Vector3 pos, Vector3 offset, float motion, int parameter) { }
+
+        /// <summary>
+        /// Частички блока
+        /// </summary>
+        /// <param name="pos">Позиция где рассыпаются частички</param>
+        /// <param name="count">Количество частичек</param>
+        /// <param name="closely">Кучно, частички стартуют</param>
+        public void ParticleDiggingBlock(BlockBase block, Vector3 pos, int count = -1, bool closely = false)
+        {
+            if (block != null && block.IsParticle)
+            {
+                if (count == -1) count = block.ParticleCount;
+                SpawnParticle(EntitiesFXReg.PartId, count, pos, 
+                    closely ? new Vector3(.5f) : new Vector3(1f, .75f, 1f), 1, block.IndexBlock);
+            }
+        }
+
+        #endregion
+
+        #region Sound
+
+        /// <summary>
+        /// Проиграть звуковой эффект, кто отслеживает entityId сущность кроме сущности entityId
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void PlaySound(int key, Vector3 pos, float volume, float pitch, int entityId) { }
+
+        /// <summary>
+        /// Проиграть звуковой эффект, кто отслеживает entityId сущность с текущей сущностью  entityId
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void PlaySoundCurrent(int key, Vector3 pos, float volume, float pitch, int entityId) { }
+
+        /// <summary>
+        /// Проиграть звуковой эффект, по дистанции
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void PlaySoundDistance(int key, Vector3 pos, float volume, float pitch, float distance = 48) { }
+
+        #endregion
+
+        /// <summary>
+        /// Для отладки
+        /// </summary>
+        public virtual void DebugString(string logMessage, params object[] args) { }
+    }
+}

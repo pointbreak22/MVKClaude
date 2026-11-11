@@ -1,0 +1,912 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using Mvk.Engine.Entity;
+using Mvk.Engine.Entity.Player;
+using Mvk.Engine.Games;
+using Mvk.Engine.Management;
+using Mvk.Engine.Network.Packets.Server;
+using Mvk.Core.Util;
+using Mvk.Engine.Util;
+using Mvk.Engine.World.Block;
+using Mvk.Engine.World.BlockEntity;
+using Mvk.Engine.World.Chunk;
+using Mvk.Core.Maths;
+
+namespace Mvk.Engine.World
+{
+    /// <summary>
+    /// Серверный объект мира
+    /// </summary>
+    public class WorldServer : WorldBase
+    {
+        /// <summary>
+        /// ID мира
+        /// </summary>
+        public readonly byte IdWorld;
+        /// <summary>
+        /// Основной сервер
+        /// </summary>
+        public readonly GameServer Server;
+        /// <summary>
+        /// Объект управляет всеми чанками которые надо загрузить или выгрузить
+        /// </summary>
+        public readonly FragmentManager Fragment;
+        /// <summary>
+        /// Трекер сущностей
+        /// </summary>
+        public readonly EntityTrackerManager Tracker;
+        /// <summary>
+        /// Посредник серверного чанка
+        /// </summary>
+        public readonly ChunkProviderServer ChunkPrServ;
+        /// <summary>
+        /// Регионы для хранения данных чанков
+        /// </summary>
+        public readonly RegionProvider Regions;
+        /// <summary>
+        /// Ждать обработчик
+        /// </summary>
+        public readonly WaitHandler Wait;
+        /// <summary>
+        /// Запущен ли мир
+        /// </summary>
+        public bool IsRuning { get; private set; } = true;
+        /// <summary>
+        /// Увеличивается каждый такт конкретного мира
+        /// </summary>
+        public uint TickCounter => Settings.Environment.TickCounter;
+
+        /// <summary>
+        /// Кешовы Список BlockTick блоков которые должны мгновенно тикать,
+        /// нужен чтоб непересоздавать его в каждом чанке в каждом тике
+        /// </summary>
+        public readonly ListMessy<BlockTick> TickBlocksCache = new ListMessy<BlockTick>();
+
+        /// <summary>
+        /// Вспомогательный массив для сбора позиций блоков, для Пометки уведомлений соседей
+        /// </summary>
+        private readonly List<BlockPos> _listNotify = new List<BlockPos>();
+        /// <summary>
+        /// Время затраченое за такт
+        /// </summary>
+        private short _timeTick = 0;
+        /// <summary>
+        /// Содержит текущее начальное число линейного конгруэнтного генератора для обновлений блоков. 
+        /// Используется со значением A, равным 3, и значением C, равным 0x3c6ef35f, 
+        /// создавая очень плоский ряд значений, плохо подходящих для выбора случайных блоков в поле 16x128x16.
+        /// </summary>
+        private int _updateLCG;
+
+        //private readonly TestAnchor _testAnchor;
+
+        public WorldServer(GameServer server, byte idWorld, WorldSettings worldSettings) 
+            : base(worldSettings.NumberChunkSections * 16)
+        {
+            Server = server;
+            IdWorld = idWorld;
+            Settings = worldSettings;
+            Rnd = new Rand(server.Settings.Seed);
+            ChunkPr = ChunkPrServ = new ChunkProviderServer(this);
+            Collision.Init();
+            Filer = new Profiler(server.Log, "[Server] ");
+            Fragment = new FragmentManager(this);
+            Tracker = new EntityTrackerManager(this);
+            Regions = new RegionProvider(this);
+
+            if (idWorld == 0)
+            {
+                //_testAnchor = new TestAnchor(this);
+                //Fragment.AddAnchor(_testAnchor);
+            }
+
+            if (idWorld != 0)
+            {
+                // Все кроме основного мира, использую дополнительный поток
+                Wait = new WaitHandler("World" + IdWorld);
+                Wait.DoInFlow += (sender, e) => Update();
+                Wait.Run();
+            }
+        }
+
+        /// <summary>
+        /// Внести лог
+        /// </summary>
+        public override void SetLog(string logMessage, params object[] args) 
+            => Filer.Log.Server(logMessage, args);
+
+        #region BlockCaches
+
+        /// <summary>
+        /// Экспортировать в мир временные блоки из кэша блоков обнолений
+        /// </summary>
+        public void ExportBlockCaches()
+        {
+            int count = Settings.BlockCaches.Count;
+            if (count > 0)
+            {
+                BlockCache blockCache;
+                for (int i = 0; i < count; i++)
+                {
+                    blockCache = Settings.BlockCaches[i];
+                    SetBlockState(blockCache.Position, blockCache.GetBlockState(), BlockFlag.cNotify);
+                }
+            }
+            Settings.BlockCaches.Clear();
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Такт выполнения
+        /// </summary>
+        public void Update()
+        {
+            long timeBegin = Server.Time();
+            Settings.Environment.UpdateServer(this);
+
+            if (TickCounter % Ce.Tps == 0)
+            {
+                // Прошла секунда
+                ChunkPrServ.ClearCounter();
+            }
+            // Запускаем фрагмент, тут определение какие чанки выгрузить, какие загрузить, 
+            // определение активных чанков.
+            Fragment.Update();
+            // Выгрузка ненужных чанков из очереди
+            Filer.StartSection("UnloadingUnnecessaryChunksFromQueue");
+            ChunkPrServ.UnloadingUnnecessaryChunksFromQueue();
+            Filer.EndSection();
+            // Загрузка поставленных в очередь чанков
+            ChunkPrServ.LoadQueuedChunks();
+
+            // Тут начинается все действия с блоками АИ мобов и всё такое....
+            if (IdWorld == 0)
+            {
+              //  _testAnchor.Update();
+            }
+
+            // Тикание блоков и чанков
+            _TickBlocks();
+
+            Filer.StartSection("Entities");
+            _UpdateEntities();
+            Filer.EndStartSection("Tracker");
+            Tracker.Update();
+            // Выгрузка требуемых чанков из очереди которые отработали
+            Filer.EndStartSection("UnloadingRequiredChunksFromQueue");
+            ChunkPrServ.UnloadingRequiredChunksFromQueue();
+            Filer.EndSection();
+
+            if (TickCounter % 900 == 0) // 900 = 45 сек
+            {
+                // Запуск сохранения чанков
+                Filer.StartSection("BeginSaving");
+                ChunkPrServ.BeginSaving();
+                Filer.EndSection();
+            }
+
+            Filer.StartSection("TickSaving");
+            // Сохраняем пакет чанков в регионы 
+            ChunkPrServ.TickSaving();
+            Filer.EndStartSection("SaveToFileRegions");
+            // Сохраняем регионы в файл
+            ChunkPrServ.SavingRegions();
+            Filer.EndSection();
+
+            _timeTick = (short)((_timeTick * 3 + (Server.Time() - timeBegin)) / 4);
+        }
+
+        /// <summary>
+        /// Останавливаем мир
+        /// </summary>
+        public void Stoping()
+        {
+            IsRuning = false;
+            Wait?.Stoping();
+            _WriteToFile();
+        }
+
+        /// <summary>
+        /// Внести изменение по мировому времени
+        /// </summary>
+        public void SetTickCounter(uint tickCounter)
+        {
+            Settings.Environment.SetTickCounter(tickCounter);
+            Tracker.SendToAll(new PacketS04TickUpdate(tickCounter));
+        }
+
+        #region Fragments (Chunks)
+
+        /// <summary>
+        /// Отметить блок для обновления 
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void MarkBlockForUpdate(int x, int y, int z)
+            => Fragment.FlagBlockForUpdate(x, y, z);
+
+        /// <summary>
+        /// Отметить блок для изминения
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void MarkBlockForModified(int x, int y, int z)
+            => GetChunkServer(x >> 4, z >> 4)?.Modified();
+
+        /// <summary>
+        /// Отметить блоки для изминения
+        /// </summary>
+        public override void MarkBlockRangeForModified(int x0, int z0, int x1, int z1)
+        {
+            int c0x = (x0) >> 4;
+            int c0z = (z0) >> 4;
+            int c1x = (x1) >> 4;
+            int c1z = (z1) >> 4;
+            int x, z;
+            for (x = c0x; x <= c1x; x++)
+            {
+                for (z = c0z; z <= c1z; z++)
+                {
+                    GetChunkServer(x, z)?.Modified();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Отметить псевдочанки на обновления, сервер. Координаты чанков
+        /// </summary>
+        public void ServerMarkChunkRangeForRenderUpdate(int x0, int y0, int z0, int x1, int y1, int z1)
+        {
+            int x, y, z;
+            for (x = x0; x <= x1; x++)
+            {
+                for (z = z0; z <= z1; z++)
+                {
+                    for (y = y0; y <= y1; y++)
+                    {
+                        Fragment.FlagChunkForUpdate(x, y, z);
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Chunk
+
+        /// <summary>
+        /// Получить чанк по координатам чанка
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ChunkServer GetChunkServer(int chunkPosX, int chunkPosY) 
+            => ChunkPr.GetChunk(chunkPosX, chunkPosY) as ChunkServer;
+        /// <summary>
+        /// Получить чанк по координатам чанка
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ChunkServer GetChunkServer(Vector2i chunkPos)
+            => ChunkPr.GetChunk(chunkPos) as ChunkServer;
+        
+        /// <summary>
+        /// Получить чанк по координатам блока
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ChunkServer GetChunkServer(BlockPos blockPos)
+            => ChunkPr.GetChunk(blockPos.GetPositionChunkX(), blockPos.GetPositionChunkZ()) as ChunkServer;
+
+        #endregion
+
+        #region Entity
+
+        /// <summary>
+        /// Сущность бросатет другую сущность в мире.
+        /// </summary>
+        /// <param name="entity">Сущность кторая кидает</param>
+        /// <param name="entityThrown">Сущность которую кунули</param>
+        /// <param name="inFrontOf">Флаг перед собой</param>
+        /// <param name="longAway">Далеко бросить от себя</param>
+        public virtual void EntityDropsEntityInWorld(EntityLiving entity, EntityBase entityThrown, bool inFrontOf, bool longAway)
+        {
+            if (entityThrown.Physics != null)
+            {
+                if (inFrontOf)
+                {
+                    if (longAway)
+                    {
+                        float pitchxz = Glm.Cos(entity.RotationPitch);
+                        entityThrown.Physics.MotionX = Glm.Sin(entity.RotationYaw) * pitchxz * 1.4f;
+                        entityThrown.Physics.MotionY = Glm.Sin(entity.RotationPitch) * 1.4f;
+                        entityThrown.Physics.MotionZ = -Glm.Cos(entity.RotationYaw) * pitchxz * 1.4f;
+                        float f1 = Rnd.NextFloat() * .02f;
+                        float f2 = Rnd.NextFloat() * Glm.Pi360;
+                        entityThrown.Physics.MotionX += Glm.Cos(f2) * f1;
+                        entityThrown.Physics.MotionZ += Glm.Sin(f2) * f1;
+                    }
+                    else
+                    {
+                        float pitchxz = Glm.Cos(entity.RotationPitch);
+                        entityThrown.Physics.MotionX = Glm.Sin(entity.RotationYaw) * pitchxz * .3f;
+                        entityThrown.Physics.MotionY = Glm.Sin(entity.RotationPitch) * .3f + .1f;
+                        entityThrown.Physics.MotionZ = -Glm.Cos(entity.RotationYaw) * pitchxz * .3f;
+                        float f1 = Rnd.NextFloat() * .02f;
+                        float f2 = Rnd.NextFloat() * Glm.Pi360;
+                        entityThrown.Physics.MotionX += Glm.Cos(f2) * f1;
+                        entityThrown.Physics.MotionY += (Rnd.NextFloat() - Rnd.NextFloat()) * .1f;
+                        entityThrown.Physics.MotionZ += Glm.Sin(f2) * f1;
+                    }
+                }
+                else
+                {
+                    float f1 = Rnd.NextFloat() * .5f;
+                    float f2 = Rnd.NextFloat() * Glm.Pi360;
+                    entityThrown.Physics.MotionX = -Glm.Sin(f2) * f1;
+                    entityThrown.Physics.MotionY = .2f;
+                    entityThrown.Physics.MotionZ = Glm.Cos(f2) * f1;
+                }
+
+                entityThrown.PosX = entity.PosX;
+                entityThrown.PosY = entity.PosY;
+                entityThrown.PosZ = entity.PosZ;
+
+                if (longAway)
+                {
+                    entityThrown.PosX += Glm.Cos(entity.RotationYaw) * .32f;
+                    entityThrown.PosZ += Glm.Sin(entity.RotationYaw) * .32f;
+                    entityThrown.PosY += entity.GetEyeHeight() - .2f;
+                }
+                else
+                {
+                    entityThrown.PosY += entity.GetEyeHeight() / 2f;
+                }
+
+                entityThrown.BeforeDrop();
+                SpawnEntityInWorld(entityThrown);
+            }
+        }
+
+        /// <summary>
+        /// Вызывается, когда объект появляется в мире. Это включает в себя игроков
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void SpawnEntityInWorld(EntityBase entity)
+        {
+            entity.SetEntityId(Server.LastEntityId());
+            base.SpawnEntityInWorld(entity);
+        }
+
+        protected override void _OnEntityAdded(EntityBase entity)
+        {
+            base._OnEntityAdded(entity);
+            Tracker.EntityAdd(entity);
+            entity.SpawnServer();
+        }
+
+        protected override void _OnEntityRemoved(EntityBase entity)
+        {
+            base._OnEntityRemoved(entity);
+            Tracker.UntrackEntity(entity);
+        }
+
+        /// <summary>
+        /// Удаление игрока в текущем мире для перехода в другой мир
+        /// </summary>
+        public void RemovePlayerInWorldForNextWorld(PlayerServer player)
+        {
+            Fragment.RemoveAnchor(player);
+            player.SetDead();
+            _OnEntityRemoved(player);
+            LoadedEntityList.Remove(player.Id, player);
+        }
+
+        /// <summary>
+        /// Игрок переходит в другой мир
+        /// </summary>
+        public void PlayerForNextWorld(PlayerServer player)
+        {
+            Fragment.AddAnchor(player);
+            SpawnEntityInWorld(player);
+        }
+
+        /// <summary>
+        /// Флаг для отладки сервера
+        /// </summary>
+        protected override void _FlagDebugChunkProviderServer() 
+            => Fragment.flagDebugChunkProviderServer = true;
+
+        /// <summary>
+        /// Изменение в каждом такте сущности
+        /// </summary>
+        protected override void _UpdateEntity(EntityBase entity)
+        {
+            if (entity.AddedToChunk)
+            {
+                entity.Update();
+            }
+            base._UpdateEntity(entity);
+        }
+
+        #endregion
+
+        #region BlockEntity
+
+        /// <summary>
+        /// Список всех блок сущностей в квадрате 3*3 чанка
+        /// </summary>
+        public List<BlockEntityBase> GetBlocksEntity3x3(ChunkServer chunk)
+        {
+            List<BlockEntityBase> blocksEntity = new List<BlockEntityBase>();
+            chunk.AddRangeBlockEntity(blocksEntity);
+            for (int i = 0; i < 8; i++)
+            {
+                GetChunkServer(chunk.X + Ce.AreaOne8X[i], chunk.Y + Ce.AreaOne8Y[i]).AddRangeBlockEntity(blocksEntity);
+            }
+            return blocksEntity;
+        }
+
+        /// <summary>
+        /// Получает ближайшего игрока к объекту в пределах указанного расстояния 
+        /// (если расстояние меньше 0, то игнорируется).
+        /// </summary>
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public PlayerServer GetClosestPlayerToEntity(EntityBase entity, float distance)
+        //    => GetClosesPlayer(entity.PosX, entity.PosY, entity.PosZ, distance);
+
+        ///// <summary>
+        ///// Получает ближайшего игрока к точке в пределах указанного расстояния 
+        ///// (расстояние можно установить меньше 0, чтобы не ограничивать расстояние)
+        ///// </summary>
+        //public PlayerServer GetClosesPlayer(float x, float y, float z, float distance)
+        //{
+        //    PlayerServer entityResult = null;
+        //    float distanceMin = -1f;
+        //    for (int i = 0; i < PlayerEntities.Count; i++)
+        //    {
+        //        if (PlayerEntities[i] is PlayerServer playerServer)
+        //        {
+        //            float distanceCache = playerServer.DistanceSq(x, y, z);
+        //            if ((distance < 0 || distanceCache < distance * distance)
+        //                && (distanceMin == -1f || distanceMin > distanceCache))
+        //            {
+        //                distanceMin = distanceCache;
+        //                entityResult = playerServer;
+        //            }
+        //        }
+        //    }
+        //    return entityResult;
+        //}
+
+        /// <summary>
+        /// Найти ближайшего игрока которые пересекают AABB
+        /// </summary>
+        public PlayerServer FindNearestPlaerWithinAABB(AxisAlignedBB aabb, EntityMob entityMob)
+        {
+            Collision.EntityBoundingBoxesFromSectorType(aabb, entityMob.Id, Ce.Entities.IndexPlayer);
+            int count = Collision.ListEntity.Count;
+            PlayerServer player = null;
+            float distanceMin = float.MaxValue;
+            for (int i = 0; i < count; i++)
+            {
+                if (Collision.ListEntity[i] is PlayerServer playerServer)
+                {
+                    float distance = entityMob.DistanceSqToEntity(playerServer);
+                    if (distance < distanceMin)
+                    {
+                        distanceMin = distance;
+                        player = playerServer;
+                    }
+                }
+                
+            }
+            return player;
+        }
+
+        #endregion
+
+        #region Blocks
+
+        /// <summary>
+        /// Задать блок сломан игроком. BlockFlag.cSound
+        /// </summary>
+        /// <param name="blockPos">позици блока</param>
+        public bool SetBreakBlock(BlockPos blockPos, EntityLiving entity)
+        {
+            BlockState blockState = new BlockState(0);
+
+            if (!blockPos.IsValid(ChunkPr.Settings)) return false;
+            ChunkServer chunk = ChunkPrServ.GetChunkServer(blockPos.GetPositionChunk());
+            if (chunk == null) return false;
+
+            BlockState blockStateOld = chunk.SetBlockState(blockPos, ref blockState, true);
+            if (blockStateOld.IsEmpty()) return false;
+
+            if (blockState.Id != blockStateOld.Id) // Жидкость попала или исчезла из этого блока
+            {
+                BlockBase blockOld = blockStateOld.GetBlock();
+                // Действие блока после его удаления
+                blockOld.OnBreakBlock(this, chunk, blockPos, blockStateOld, entity);
+                blockState.GetBlock().OnBlockAdded(this, chunk, blockPos, blockState);
+                // Звуковое сопровождение сломанного блока
+                blockOld.PlaySoundBreak(this, blockPos);
+                // Частички блока, только на сервере чтоб всем разослать
+                ParticleDiggingBlock(blockOld, blockPos.ToVector3Center());
+            }
+            else if (blockState.Met != blockStateOld.Met)
+            {
+                // Смена мет данных влечёт
+                blockState.GetBlock().OnMetSelected(this, chunk, blockPos, blockState);
+            }
+            // Уведомление соседей только на сервере!
+            _NotifyNeighborsOfStateChange(blockPos);
+
+            return true;
+        }
+        
+
+        /// <summary>
+        /// Сменить блока
+        /// </summary>
+        /// <param name="blockPos">позици блока</param>
+        /// <param name="blockState">данные блока</param>
+        /// <param name="flag">флаг, 1 частички старого блока, 2 уведомление соседей, 
+        /// 4 modifyRender, 8 modifySave, 16 sound break, 32 проверка доп жидкости,
+        /// 64 OnBreakBlock отключить!</param>
+        /// <returns>true смена была</returns>
+        public override bool SetBlockState(BlockPos blockPos, BlockState blockState, BlockFlag flag)
+        {
+            if (!blockPos.IsValid(ChunkPr.Settings)) return false;
+            ChunkServer chunk = ChunkPrServ.GetChunkServer(blockPos.GetPositionChunk());
+            if (chunk == null) return false;
+
+            BlockState blockStateOld = chunk.SetBlockState(blockPos, ref blockState, (flag & BlockFlag.Liquid) != 0);
+            if (blockStateOld.IsEmpty()) return false;
+
+            if (blockState.Id != blockStateOld.Id) // Жидкость попала или исчезла из этого блока
+            {
+                BlockBase blockOld = blockStateOld.GetBlock();
+
+                // Действие блока после его удаления
+                if ((flag & BlockFlag.Break) == 0) // проверку сломаного
+                {
+                    blockOld.OnBreakBlock(this, chunk, blockPos, blockStateOld, null);
+                }
+
+                blockState.GetBlock().OnBlockAdded(this, chunk, blockPos, blockState);
+                // Звуковое сопровождение сломанного блока
+                if ((flag & BlockFlag.Sound) != 0)
+                {
+                    blockOld.PlaySoundBreak(this, blockPos);
+                }
+                // Частички блока, только на сервере чтоб всем разослать
+                if ((flag & BlockFlag.Particle) != 0)
+                {
+                    ParticleDiggingBlock(blockOld, blockPos.ToVector3Center());
+                }
+            }
+            else if (blockState.Met != blockStateOld.Met)
+            {
+                // Смена мет данных влечёт
+                blockState.GetBlock().OnMetSelected(this, chunk, blockPos, blockState);
+            }
+
+            // Уведомление соседей только на сервере!
+            if ((flag & BlockFlag.Notify) != 0)
+            {
+                _NotifyNeighborsOfStateChange(blockPos);
+            }
+            
+
+            return true;
+        }
+
+        /// <summary>
+        /// Тикание блоков и чанков
+        /// </summary>
+        private void _TickBlocks()
+        {
+            int count = Fragment.ListChunkAction.Count;
+            if (count > 0)
+            {
+                // Случайная скорость тика, для случайных обновлений блока в чанке, параметр из майна 1.8
+                int randomTickSpeed = Settings.RandomTickSpeed;
+                // Эта скорость восстановления разрушенных блоков
+                int destroyTickSpeed = Settings.DestroyTickSpeed;
+                ulong index;
+                int yc, i, j, x, y, z, k;
+                byte destroy;
+                ChunkServer chunk;
+                ChunkStorage chunkStorage;
+                BlockPos blockPos = new BlockPos();
+                BlockState blockState;
+                BlockBase block;
+
+                for (i = 0; i < count; i++)
+                {
+                    index = Fragment.ListChunkAction[i];
+                    chunk = GetChunkServer(Conv.IndexToChunkX(index), Conv.IndexToChunkY(index));
+
+                    if (chunk != null && chunk.IsSendChunk)
+                    {
+                        Filer.StartSection("TickChunk " + chunk.X + ":" + chunk.Y);
+                        chunk.UpdateServer();
+                        Filer.EndSection();
+
+                        // Тикаем рандом и разрушенные блоки
+                        for (yc = 0; yc < chunk.NumberSections; yc++)
+                        {
+                            chunkStorage = chunk.StorageArrays[yc];
+                            if (!chunkStorage.IsEmptyData())
+                            {
+                                // Разрушение
+                                if (chunkStorage.Destroy.Count > 0)
+                                {
+                                    for (j = 0; j < destroyTickSpeed; j++)
+                                    {
+                                        _updateLCG = _updateLCG * 3 + 1013904223;
+                                        k = _updateLCG >> 2;
+                                        x = k & 15;
+                                        z = k >> 8 & 15;
+                                        y = k >> 16 & 15;
+                                        blockPos.X = x + chunk.BlockX;
+                                        blockPos.Y = y + chunkStorage.YBase;
+                                        blockPos.Z = z + chunk.BlockZ;
+                                        destroy = chunkStorage.GetDestroy(x, y, z);
+                                        if (destroy != 0 && (destroy & 127) != 0)
+                                        {
+                                            if (destroy >> 5 == 0)
+                                            {
+                                                // Залатываем разрушение
+                                                --destroy;
+                                                if (destroy == 0) destroy = 128;
+                                                SetBlockDestroy(blockPos, destroy);
+                                            }
+                                            else
+                                            {
+                                                // Пауза в 4 тика после изменения
+                                                SetBlockDestroy(blockPos, (byte)(((destroy >> 5) - 1) << 5 | (destroy & 15)), false);
+                                            }
+                                        }
+                                    }
+                                }
+                                // Рандом
+                                if (chunkStorage.GetNeedsRandomTick())
+                                {
+                                    for (j = 0; j < randomTickSpeed; j++)
+                                    {
+                                        _updateLCG = _updateLCG * 3 + 1013904223;
+                                        k = _updateLCG >> 2;
+                                        x = k & 15;
+                                        z = k >> 8 & 15;
+                                        y = k >> 16 & 15;
+                                        blockPos.X = x + chunk.BlockX;
+                                        blockPos.Y = y + chunkStorage.YBase;
+                                        blockPos.Z = z + chunk.BlockZ;
+                                        blockState = chunkStorage.GetBlockState(x, y, z);
+                                        block = blockState.GetBlock();
+                                        if (block.NeedsRandomTick)
+                                        {
+                                            block.RandomTick(this, chunk, blockPos, blockState, Rnd);
+                                            if (chunkStorage.IsEmptyData() || !chunkStorage.GetNeedsRandomTick())
+                                            {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Задать тик блока
+        /// </summary>
+        public void SetBlockTick(BlockPos blockPos, uint timeTick, bool priority = false)
+        {
+            if (blockPos.IsValid(ChunkPr.Settings))
+            {
+                GetChunkServer(blockPos.GetPositionChunk())
+                    ?.SetBlockTick(blockPos.X & 15, blockPos.Y, blockPos.Z & 15, false, timeTick, priority);
+            }
+        }
+
+        /// <summary>
+        /// Задать тик дополнительного блока жидкости
+        /// </summary>
+        public void SetBlockAddLiquidTick(BlockPos blockPos, uint timeTick)
+        {
+            if (blockPos.IsValid(ChunkPr.Settings))
+            {
+                GetChunkServer(blockPos.GetPositionChunk())
+                    ?.SetBlockTick(blockPos.X & 15, blockPos.Y, blockPos.Z & 15, true, timeTick, false);
+            }
+        }
+
+        #endregion
+
+        #region BlocksNotify
+
+        /// <summary>
+        /// Очистить список позиций соседних блоков
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ClearListNeighboringBlocks() => _listNotify.Clear();
+
+        /// <summary>
+        /// Добавить позицию блока для уведомления соседних блоков
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddEntryToNotifyNeighborBlocks(BlockPos pos)
+        {
+            if (!_listNotify.Contains(pos)) _listNotify.Add(pos);
+        }
+
+        /// <summary>
+        /// Выполнить операцию для уведомления соседних блоков
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RunEntryToNotifyNeighborBlocks()
+        {
+            if (_listNotify.Count > 0)
+            {
+                List<BlockPos> list = new List<BlockPos>();
+
+                // Добавляем соседей
+                BlockPos blockPos;
+                foreach (BlockPos pos in _listNotify)
+                {
+                    blockPos = pos.OffsetUp();
+                    if (!list.Contains(blockPos)) list.Add(blockPos);
+                    blockPos = pos.OffsetDown();
+                    if (!list.Contains(blockPos)) list.Add(blockPos);
+                    blockPos = pos.OffsetWest();
+                    if (!list.Contains(blockPos)) list.Add(blockPos);
+                    blockPos = pos.OffsetEast();
+                    if (!list.Contains(blockPos)) list.Add(blockPos);
+                    blockPos = pos.OffsetNorth();
+                    if (!list.Contains(blockPos)) list.Add(blockPos);
+                    blockPos = pos.OffsetSouth();
+                    if (!list.Contains(blockPos)) list.Add(blockPos);
+                }
+
+                // Убираем кто в списке
+                foreach (BlockPos pos in _listNotify)
+                {
+                    if (list.Contains(pos)) list.Remove(pos);
+                }
+
+                // Запуск 
+                ChunkServer chunk;
+                foreach (BlockPos pos in list)
+                {
+                    chunk = GetChunkServer(pos);
+                    if (chunk != null)
+                    {
+                        BlockState blockState = chunk.GetBlockState(pos);
+                        blockState.GetBlock().NeighborBlockChange(this, chunk, pos, blockState);
+                    }
+                    //SetBlockState(pos, new BlockState(51), 0);
+                }
+
+                _listNotify.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Уведомить соседей об изменении состояния
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void _NotifyNeighborsOfStateChange(BlockPos pos)
+        {
+            ChunkServer chunk = GetChunkServer(pos);
+            if (chunk != null)
+            {
+                BlockPos pos2 = pos.OffsetUp();
+                BlockState blockState = chunk.GetBlockState(pos2);
+                blockState.GetBlock().NeighborBlockChange(this, chunk, pos2, blockState);
+                pos2 = pos.OffsetDown();
+                blockState = chunk.GetBlockState(pos2);
+                blockState.GetBlock().NeighborBlockChange(this, chunk, pos2, blockState);
+            }
+            _NotifyBlockOfStateChange(pos.OffsetWest());
+            _NotifyBlockOfStateChange(pos.OffsetEast());
+            _NotifyBlockOfStateChange(pos.OffsetNorth());
+            _NotifyBlockOfStateChange(pos.OffsetSouth());
+        }
+
+        /// <summary>
+        /// Уведомить о блок об изменения состоянии соседнего блока
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void _NotifyBlockOfStateChange(BlockPos pos)
+        {
+            ChunkServer chunk = GetChunkServer(pos);
+            if (chunk != null)
+            {
+                BlockState blockState = chunk.GetBlockState(pos);
+                blockState.GetBlock().NeighborBlockChange(this, chunk, pos, blockState);
+            }
+        }
+
+        #endregion
+
+        #region Sound
+
+        /// <summary>
+        /// Проиграть звуковой эффект, кто отслеживает entityId сущность кроме сущности entityId
+        /// </summary>
+        public override void PlaySound(int key, Vector3 pos, float volume, float pitch, int entityId)
+            => Tracker.SendToAllTrackingEntity(entityId, new PacketS29SoundEffect(key, pos, volume, pitch));
+
+        /// <summary>
+        /// Проиграть звуковой эффект, кто отслеживает entityId сущность с текущей сущностью  entityId
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void PlaySoundCurrent(int key, Vector3 pos, float volume, float pitch, int entityId)
+            => Tracker.SendToAllTrackingEntityCurrent(entityId, new PacketS29SoundEffect(key, pos, volume, pitch));
+
+        /// <summary>
+        /// Проиграть звуковой эффект, по дистанции
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void PlaySoundDistance(int key, Vector3 pos, float volume, float pitch, float distance = 48)
+            => Tracker.SendToAllEntityDistance(pos, distance, new PacketS29SoundEffect(key, pos, volume, pitch));
+
+        #endregion
+
+        #region Entity Particle
+
+        /// <summary>
+        /// Заспавнить частицы
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void SpawnParticle(ushort particleId, int count, Vector3 pos, Vector3 offset, 
+            float motion, int parameter) => Tracker.SendToAllEntityDistance(pos, 32f, 
+                new PacketS2AParticles(particleId, count, pos, offset, motion, parameter));
+
+        #endregion
+
+        #region WriteRead
+
+        /// <summary>
+        /// Записать данные мира
+        /// </summary>
+        private void _WriteToFile()
+        {
+            GameFile.CheckPath(Settings.PathWorld);
+
+            // Сохраняем доп данных мира
+            Settings.WriteToFile();
+            // Сохраняем чанки в регионы 
+            ChunkPrServ.SaveChunks();
+            // Сохраняем регионы в файл
+            Regions.WriteToFile(true);
+        }
+
+        #endregion
+
+        public override string ToString()
+        {
+            int chBt = 0;
+            int chBe = 0;
+            int chDestroy = 0;
+            if (Server.Players.PlayerOwner != null &&
+                Server.Players.PlayerOwner.IdWorld == IdWorld)
+            {
+                ChunkServer chunk = GetChunkServer(Server.Players.PlayerOwner.GetChunkPosition());
+                if (chunk != null)
+                {
+                    chBt = chunk.GetTickBlockCount();
+                    chBe = chunk.GetBlockEntityCount();
+                    chDestroy = chunk.GetDestroyCount();
+                }
+            }
+            return "World-" + IdWorld
+                + " " + _timeTick + "ms " + Fragment.ToString() + " " + ChunkPrServ.ToString()
+                + "\r\n" + Tracker + " ChBt:" + chBt 
+                + " ChBe:" + chBe 
+                + " Desreoy:" + chDestroy + " " + Settings.Environment;
+        }
+        
+    }
+}

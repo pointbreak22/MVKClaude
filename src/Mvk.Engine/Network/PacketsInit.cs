@@ -1,0 +1,78 @@
+﻿using Mvk.Engine.Network.Packets;
+using Mvk.Engine.Network.Packets.Client;
+using Mvk.Engine.Network.Packets.Server;
+
+namespace Mvk.Engine.Network
+{
+    /// <summary>
+    /// Класс создания пакетов
+    /// </summary>
+    public class PacketsInit
+    {
+        /// <summary>
+        /// Пакеты пришедшие с сервера
+        /// </summary>
+        public static IPacket InitServer(byte index)
+        {
+            switch (index)
+            {
+                case 0x00: return new Packet00PingPong();
+                case 0x01: return new Packet01KeepAlive();
+                case 0x02: return new PacketS02LoadingGame();
+                case 0x03: return new PacketS03JoinGame();
+                case 0x04: return new PacketS04TickUpdate();
+                case 0x05: return new PacketS05Ready();
+                case 0x06: return new PacketS06PlayerEntryRemove();
+                case 0x07: return new PacketS07RespawnInWorld();
+                case 0x08: return new PacketS08PlayerPosLook();
+                case 0x0B: return new PacketS0BAnimation();
+                case 0x0C: return new PacketS0CSpawnPlayer();
+                case 0x0F: return new PacketS0FSpawnMob();
+                case 0x10: return new PacketS10EntityEquipment();
+                case 0x13: return new PacketS13DestroyEntities();
+                case 0x14: return new PacketS14EntityMotion();
+                case 0x1C: return new PacketS1CEntityMetadata();
+                case 0x20: return new PacketS20ChunkSend();
+                case 0x21: return new PacketS21ChunkData();
+                case 0x22: return new PacketS22MultiBlockChange();
+                case 0x23: return new PacketS23BlockChange();
+                case 0x29: return new PacketS29SoundEffect();
+                case 0x2A: return new PacketS2AParticles();
+                case 0x2B: return new PacketS2BEnvironment();
+                case 0x2F: return new PacketS2FSetSlot();
+                case 0x30: return new PacketS30WindowItems();
+                case 0x3A: return new PacketS3AMessage();
+                case 0x39: return new PacketS39PlayerAbilities();
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Пакеты пришедшие с клиента
+        /// </summary>
+        public static IPacket InitClient(byte index)
+        {
+            switch (index)
+            {
+                case 0x00: return new Packet00PingPong();
+                case 0x01: return new Packet01KeepAlive();
+                case 0x02: return new PacketC02LoginStart();
+                case 0x03: return new PacketC03UseEntity();
+                case 0x04: return new PacketC04PlayerPosition();
+                case 0x05: return new PacketC05UseItem();
+                case 0x06: return new PacketC06DamageItem();
+                case 0x07: return new PacketC07PlayerDigging();
+                case 0x08: return new PacketC08PlayerBlockPlacement();
+                case 0x09: return new PacketC09HeldItemChange();
+                case 0x0A: return new PacketC0APlayerAnimation();
+                case 0x0E: return new PacketC0EClickWindow();
+                case 0x14: return new PacketC14Message();
+                case 0x15: return new PacketC15PlayerSetting();
+                case 0x20: return new PacketC20AcknowledgeChunks();
+            }
+
+            return null;
+        }
+    }
+}

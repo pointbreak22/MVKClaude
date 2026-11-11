@@ -1,0 +1,133 @@
+﻿using Mvk.Engine.World;
+using Mvk.Engine.World.Block;
+using Mvk.Engine.World.Chunk;
+
+namespace Mvk.Engine.Network.Packets.Server
+{
+    /// <summary>
+    /// Отправляем клиенту много изменённых блоков
+    /// </summary>
+    public struct PacketS22MultiBlockChange : IPacket
+    {
+        public byte Id => 0x22;
+
+        /// <summary>
+        /// Позиция X текущего чанка
+        /// </summary>
+        public int CurrentChunkX { get; private set; }
+        /// <summary>
+        /// Позиция Y текущего чанка
+        /// </summary>
+        public int CurrentChunkY { get; private set; }
+
+        private BlockUpdateData[] _blocks;
+
+        public PacketS22MultiBlockChange(int count, int[] blocksLocalPos, ChunkBase chunk)
+        {
+            CurrentChunkX = chunk.CurrentChunkX;
+            CurrentChunkY = chunk.CurrentChunkY;
+            _blocks = new BlockUpdateData[count];
+            int x, y, z, index;
+            byte process;
+            for (int i = 0; i < count; i++)
+            {
+                index = blocksLocalPos[i];
+                x = (index >> 4) & 15;
+                y = index >> 8;
+                z = index & 15;
+
+                process = chunk.GetBlockDestroyNotCheck(x, y, z);
+                if ((process & 1 << 7) != 0)
+                {
+                    chunk.SetBlockDestroy(x, y, z, 0);
+                }
+                else
+                {
+                    process = (byte)(process & 15);
+                }
+                _blocks[i] = new BlockUpdateData()
+                {
+                    Index = index,
+                    State = chunk.GetBlockStateNotCheck(x, y, z),
+                    Process = process
+                };
+            }
+        }
+
+        /// <summary>
+        /// Количество изменяемых блоков
+        /// </summary>
+        public int Count() => _blocks.Length;
+
+        /// <summary>
+        /// Получили блоки
+        /// </summary>
+        public void ReceivedBlocks(WorldBase world)
+        {
+            ChunkBase chunk = world.GetChunk(CurrentChunkX, CurrentChunkY);
+            if (chunk != null)
+            {
+                BlockPos blockPos = new BlockPos();
+                int chx = CurrentChunkX << 4;
+                int chz = CurrentChunkY << 4;
+                int index;
+                byte process;
+                for (int i = 0; i < _blocks.Length; i++)
+                {
+                    index = _blocks[i].Index;
+                    blockPos.X = chx + ((index >> 4) & 15);
+                    blockPos.Y = index >> 8;
+                    blockPos.Z = chz + (index & 15);
+                    chunk.SetBlockState(blockPos, ref _blocks[i].State, false);
+                    process = _blocks[i].Process;
+                    if ((process & 1 << 7) != 0)
+                    {
+                        // Удаление
+                        world.SetBlockDestroy(blockPos, 0);
+                    }
+                    else if (process != 0)
+                    {
+                        world.SetBlockDestroy(blockPos, process);
+                    }
+                }
+            }
+        }
+
+        public void ReadPacket(ReadPacket stream)
+        {
+            CurrentChunkX = stream.Int();
+            CurrentChunkY = stream.Int();
+            ushort count = stream.UShort();
+            _blocks = new BlockUpdateData[count];
+            for (int i = 0; i < count; i++)
+            {
+                _blocks[i] = new BlockUpdateData()
+                {
+                    Index = stream.Int(),
+                    Process = stream.Byte()
+                };
+                _blocks[i].State.ReadStream(stream);
+            }
+        }
+
+        public void WritePacket(WritePacket stream)
+        {
+            stream.Int(CurrentChunkX);
+            stream.Int(CurrentChunkY);
+            stream.UShort((ushort)_blocks.Length);
+            for (int i = 0; i < _blocks.Length; i++)
+            {
+                stream.Int(_blocks[i].Index);
+                stream.Byte(_blocks[i].Process);
+                _blocks[i].State.WriteStream(stream);
+            }
+        }
+
+        private struct BlockUpdateData
+        {
+            public int Index;
+            public BlockState State;
+            public byte Process;
+        }
+    }
+}

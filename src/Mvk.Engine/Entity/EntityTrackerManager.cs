@@ -1,0 +1,252 @@
+﻿using System;
+using Mvk.Engine.Entity.Player;
+using Mvk.Engine.Games;
+using Mvk.Engine.Network;
+using Mvk.Engine.Network.Packets.Server;
+using Mvk.Engine.World;
+using Mvk.Core.Maths;
+
+namespace Mvk.Engine.Entity
+{
+    /// <summary>
+    /// Объект прослеживания всех видимых сущностей на сервере
+    /// </summary>
+    public class EntityTrackerManager
+    {
+        /// <summary>
+        /// Сетевой мир
+        /// </summary>
+        public readonly WorldServer World;
+        /// <summary>
+        /// Основной сервер
+        /// </summary>
+        public readonly GameServer Server;
+
+        /// <summary>
+        /// Карта всех треков сущностей вместе с игроками
+        /// EntityTracker
+        /// </summary>
+        private readonly MapEntity<EntityTracker> _trackedEntities = new MapEntity<EntityTracker>();
+        /// <summary>
+        /// Карта всех треков игроков
+        /// EntityTracker но нужен PlayerServer
+        /// </summary>
+        private readonly MapEntity<PlayerServer> _trackedPlayers = new MapEntity<PlayerServer>();
+
+        /// <summary>
+        /// Максимальное пороговое значение расстояния отслеживания 
+        /// </summary>
+        private readonly int _maxTrackingDistanceThreshold = 512;
+
+        public EntityTrackerManager(WorldServer world)
+        {
+            World = world;
+            Server = World.Server;
+        }
+
+        /// <summary>
+        /// Добавить сущность
+        /// </summary>
+        /// <param name="entity">сущность</param>
+        public void EntityAdd(EntityBase entity)
+        {
+            if (entity is PlayerServer playerServer)
+            {
+                // TODO::2026-07-09 Трекер сущностей растояние. Надо вынести в Mvk2 или JSON
+                _AddEntityToTracker(entity, 256);
+
+                // Fix, это нельзя, так-как вблизи не видны были игроки
+                //EntityTracker trackerEntry;
+                //for (int i = 0; i < _trackedEntities.Count; i++)
+                //{
+                //    trackerEntry = _trackedEntities.GetAt(i);
+                //    if (trackerEntry != null)
+                //    {
+                //        trackerEntry.UpdatePlayerEntity("Add", playerServer);
+                //    }
+                //}
+            }
+            //else if (entity is EntityItem)
+            //{
+            //    AddEntityToTracker(entity, 64, 20, true); // item
+            //}
+            else
+            {
+                _AddEntityToTracker(entity, 64);
+            }
+        }
+
+        /// <summary>
+        /// Убрать трек с этой сущностью
+        /// </summary>
+        public void UntrackEntity(EntityBase entity)
+        {
+            if (entity is PlayerServer playerServer)
+            {
+                for (int i = 0; i < _trackedEntities.Count; i++)
+                {
+                    _trackedEntities.GetAt(i)?.RemoveTrackedPlayerSymmetric(playerServer);
+                }
+            }
+
+            EntityTracker trackerEntry = entity.Tracker;
+            if (trackerEntry == null)
+            {
+                trackerEntry = _trackedEntities.Get(entity.Id);
+            }
+
+            if (trackerEntry != null)
+            {
+                _trackedEntities.Remove(trackerEntry.Id, trackerEntry);
+                _trackedPlayers.Remove(trackerEntry.Id, trackerEntry.TrackedEntity as PlayerServer);
+                trackerEntry.DestroyEntityPacketToTrackedPlayers();
+                entity.Tracker = null;
+            }
+        }
+
+        /// <summary>
+        /// Обновить все отслеживаемые сущности
+        /// </summary>
+        public void Update()
+        {
+            EntityTracker entityTracker;
+            EntityTracker entityTracker2;
+            for (int i = 0; i < _trackedEntities.Count; i++)
+            {
+                entityTracker = _trackedEntities.GetAt(i);
+                if (entityTracker != null)
+                {
+                    // Пробегаемся по всем, если сущность стоит, а игрок двигается, будет флаг FlagUpdatePlayerEntity
+                    entityTracker.UpdatePlayerList(_trackedPlayers);
+
+                    // И тогда будем пробегатся тут. Если двигался игрок
+                    if (entityTracker.FlagUpdatePlayerEntity && entityTracker.TrackedEntity is PlayerServer playerServer)
+                    {
+                        for (int j = 0; j < _trackedEntities.Count; j++)
+                        {
+                            entityTracker2 = _trackedEntities.GetAt(j);
+                            if (entityTracker2 != null && entityTracker2.TrackedEntity.Id != playerServer.Id)
+                            {
+                                // Пробегаемся по всем игрокам, чтоб переопределить ближайшего игрока к сущности
+                                entityTracker2.UpdatePlayerEntities(_trackedPlayers);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        #region Send
+
+        /// <summary>
+        /// Отправить всем сообщение в текущем мире
+        /// </summary>
+        public void SendToAllMessage(string message)
+            => SendToAll(new PacketS3AMessage(message));
+
+        /// <summary>
+        /// Отправить пакет всем игрокам конкретного треккера (текущего мира)
+        /// </summary>
+        public void SendToAll(IPacket packet)
+        {
+            for (int i = 0; i < _trackedPlayers.Count; i++)
+            {
+                _trackedPlayers.GetAt(i).SendPacket(packet);
+            }
+        }
+
+        /// <summary>
+        /// Отправить всем отслеживаемым игрока пакет, кроме тикущей
+        /// </summary>
+        /// <param name="entityId">Индекс сущности</param>
+        /// <param name="packet">пакет</param>
+        public void SendToAllTrackingEntity(int entityId, IPacket packet)
+        {
+            _trackedEntities.Get(entityId)?.SendPacketPlayers(packet);
+        }
+
+        /// <summary>
+        /// Отправить всем отслеживаемым игрока пакет, с тикущей
+        /// </summary>
+        /// <param name="entityId">Индекс сущности</param>
+        /// <param name="packet">пакет</param>
+        public void SendToAllTrackingEntityCurrent(int entityId, IPacket packet)
+        {
+            _trackedEntities.Get(entityId)?.SendPacketPlayersCurrent(packet);
+        }
+
+        /// <summary>
+        /// Отправить пакет игрокам которые в радиуси выбранной позиции
+        /// </summary>
+        public void SendToAllEntityDistance(Vector3 pos, float distance, IPacket packet)
+        {
+            for (int i = 0; i < _trackedEntities.Count; i++)
+            {
+                EntityTracker trackerEntry = _trackedEntities.GetAt(i);
+                if (trackerEntry != null && trackerEntry.TrackedEntity is PlayerServer playerServer)
+                {
+                    if (playerServer.Distance(pos) < distance)
+                    {
+                        playerServer.SendPacket(packet);
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Добавить сущность в трек
+        /// </summary>
+        /// <param name="entity">сущность</param>
+        /// <param name="trackingRange">Пороговое значение расстояния отслеживания</param>
+        private void _AddEntityToTracker(EntityBase entity, int trackingRange)
+        {
+            if (trackingRange > _maxTrackingDistanceThreshold)
+            {
+                trackingRange = _maxTrackingDistanceThreshold;
+            }
+
+            try
+            {
+                if (_trackedEntities.ContainsId(entity.Id))
+                {
+                    World.Server.Log.Server(Srl.EntityAlreadyBeingTracked, entity.GetType());
+                    return;
+                }
+                EntityTracker trackerEntry = new EntityTracker(entity, trackingRange);
+                _trackedEntities.Add(trackerEntry.Id, trackerEntry);
+                if (entity is PlayerServer playerServer)
+                {
+                    _trackedPlayers.Add(playerServer.Id, playerServer);
+                }
+                entity.Tracker = trackerEntry;
+            }
+            catch (Exception ex)
+            {
+                World.Server.Log.Error(Srl.DetectingObjectTrackingError, ex.Message);
+            }
+        }
+
+        public override string ToString()
+        {
+            //string list = "";
+            //for (int i = 0; i < _trackedEntities.Count; i++)
+            //{
+            //    list += "[" + _trackedEntities.GetAt(i).ToString() + "] ";
+            //}
+            // Считаем сколько сущностей не спят
+            int countPhysics = 0;
+            EntityBase entity;
+            for (int i = 0; i < _trackedEntities.Count; i++)
+            {
+                entity = _trackedEntities.GetAt(i).TrackedEntity;
+                if (entity.Physics != null && !entity.Physics.IsPhysicSleep())
+                {
+                    countPhysics++;
+                }
+            }
+            return "Tracker: " + _trackedEntities.Count + " Physics: " + countPhysics;
+        }
+    }
+}

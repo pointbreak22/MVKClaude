@@ -1,0 +1,597 @@
+﻿using System;
+using System.Runtime.CompilerServices;
+using Mvk.Engine.Entity.Inventory;
+using Mvk.Engine.Entity.MetaData;
+using Mvk.Engine.Entity.Render;
+using Mvk.Engine.Entity.Sizes;
+using Mvk.Engine.Item;
+using Mvk.Core.Nbt;
+using Mvk.Engine.Nbt;
+using Mvk.Core.Util;
+using Mvk.Engine.Util;
+using Mvk.Engine.World;
+using Mvk.Engine.World.Block;
+using Mvk.Core.Maths;
+
+namespace Mvk.Engine.Entity
+{
+    /// <summary>
+    /// Объект живой сущности, которая может сама перемещаться и вращаться.
+    /// Игроки, мобы
+    /// </summary>
+    public abstract class EntityLiving : EntityBase//<SizeEntityLiving>
+    {
+        /// <summary>
+        /// Цельная голова с телом
+        /// </summary>
+        public bool SolidHeadWithBody { get; protected set; } = true;
+
+        #region Rotation 
+
+        /// <summary>
+        /// Вращение этой сущности по оси Y в радианах
+        /// </summary>
+        public float RotationYaw;
+        /// <summary>
+        /// Вращение этой сущности вверх вниз в радианах
+        /// </summary>
+        public float RotationPitch;
+
+        /// <summary>
+        /// Вращение этой сущности по оси Y в прошлом такте
+        /// </summary>
+        public float RotationPrevYaw;
+        /// <summary>
+        /// Вращение этой сущности вверх вниз в прошлом такте
+        /// </summary>
+        public float RotationPrevPitch;
+
+        /// <summary>
+        /// Вращение этой сущности по оси Y с сервера, только для клиента
+        /// </summary>
+        public float RotationServerYaw;
+        /// <summary>
+        /// Вращение этой сущности вверх вниз с сервера, только для клиента
+        /// </summary>
+        public float RotationServerPitch;
+
+        /// <summary>
+        /// Вращение тела этой сущности по оси Y в радианах
+        /// </summary>
+        private float _rotationYawBody;
+        /// <summary>
+        /// Вращение тела этой сущности по оси Y в прошлом такте
+        /// </summary>
+        private float _rotationPrevYawBody;
+
+        #endregion
+
+        /// <summary>
+        /// Объект Размер, вес и прочее сущностей которая работает с физикой
+        /// </summary>
+        public SizeEntityLiving SizeLiving { get; protected set; }
+
+        /// <summary>
+        /// Объект инвенторя
+        /// </summary>
+        public InventoryBase Inventory { get; protected set; }
+
+        /// <summary>
+        /// Семплы хотьбы
+        /// </summary>
+        protected int[] _samplesStep = new int[0];
+        /// <summary>
+        /// Накопленное расстояние, которое необходимо преодолеть, чтобы вызвать новый звук шага
+        /// </summary>
+        private float _nextStepDistance = 1;
+        /// <summary>
+        /// Пройденное расстояние, для звукового эффекта
+        /// </summary>
+        private float _distanceWalkedOnStepModified = 0;
+
+        #region Init
+
+        /// <summary>
+        /// Вид объекта рендера для клиента
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override string _GetRenderKind(ResourcesEntity resourcesEntity)
+        {
+            return resourcesEntity.IsAnimation 
+                   ? resourcesEntity.BlinkEye != 0
+                       ? EntityRenderKind.EyeMouth
+                       : EntityRenderKind.Animation
+                    : EntityRenderKind.Client;
+        }
+
+        #endregion
+
+        #region Методы для Position и Rotation
+
+        /// <summary>
+        /// Изменено ли вращение
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsRotationChange()
+            => RotationYaw != RotationPrevYaw || RotationPitch != RotationPrevPitch;
+
+        /// <summary>
+        /// Вернуть строку расположения и вращения
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string ToStringPositionRotation()
+            => string.Format(ChatStyle.Bolb + PoleConvert.FromAngle(RotationYaw) + 
+                ChatStyle.Blue + " {0:0.000}; {1:0.000}; {2:0.000} " +
+                ChatStyle.Reset + "Y:{3:0.0} Yb:{4:0.0} P:{5:0.0}\r\nCh: " +
+                ChatStyle.Bolb + "{6}; {7}; {8}" + ChatStyle.Reset,
+                PosX, PosY, PosZ, Glm.Degrees(RotationYaw), // 0 - 3
+                Glm.Degrees(_rotationYawBody), Glm.Degrees(RotationPitch), // 4 - 5
+                ChunkPositionX, ChunkPositionY, ChunkPositionZ); // 6 - 8
+
+        /// <summary>
+        /// Получить угол Yaw тела для кадра
+        /// </summary>
+        /// <param name="timeIndex">коэффициент времени от прошлого TPS клиента в диапазоне 0 .. 1</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float GetRotationFrameYawBody(float timeIndex)
+        {
+            if (timeIndex >= 1.0f || _rotationPrevYawBody == _rotationYawBody) return _rotationYawBody;
+            float biasYaw = _rotationYawBody - _rotationPrevYawBody;
+            if (biasYaw > Glm.Pi)
+            {
+                return _rotationPrevYawBody + (_rotationYawBody - Glm.Pi360 - _rotationPrevYawBody) * timeIndex;
+            }
+            if (biasYaw < -Glm.Pi)
+            {
+                return _rotationPrevYawBody + (_rotationYawBody + Glm.Pi360 - _rotationPrevYawBody) * timeIndex;
+            }
+            return _rotationPrevYawBody + biasYaw * timeIndex;
+        }
+
+        /// <summary>
+        /// Получить угол Yaw для кадра
+        /// </summary>
+        /// <param name="timeIndex">коэффициент времени от прошлого TPS клиента в диапазоне 0 .. 1</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float GetRotationFrameYaw(float timeIndex)
+        {
+            if (timeIndex >= 1.0f || RotationPrevYaw == RotationYaw) return RotationYaw;
+            float biasYaw = RotationYaw - RotationPrevYaw;
+            if (biasYaw > Glm.Pi)
+            {
+                return RotationPrevYaw + (RotationYaw - Glm.Pi360 - RotationPrevYaw) * timeIndex;
+            }
+            if (biasYaw < -Glm.Pi)
+            {
+                return RotationPrevYaw + (RotationYaw + Glm.Pi360 - RotationPrevYaw) * timeIndex;
+            }
+            return RotationPrevYaw + biasYaw * timeIndex;
+        }
+
+        /// <summary>
+        /// Получить угол Pitch для кадра
+        /// </summary>
+        /// <param name="timeIndex">коэффициент времени от прошлого TPS клиента в диапазоне 0 .. 1</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float GetRotationFramePitch(float timeIndex)
+        {
+            if (timeIndex >= 1.0f || RotationPrevPitch == RotationPitch) return RotationPitch;
+            return RotationPrevPitch + (RotationPitch - RotationPrevPitch) * timeIndex;
+        }
+
+        /// <summary>
+        /// Обновить значения Prev
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void UpdatePositionPrev()
+        {
+            PosPrevX = PosX;
+            PosPrevY = PosY;
+            PosPrevZ = PosZ;
+            RotationPrevYaw = RotationYaw;
+            RotationPrevPitch = RotationPitch;
+        }
+
+        /// <summary>
+        /// Обновить значения позиций с сервера, только для клиента
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void UpdatePositionServer()
+        {
+            UpdatePositionPrev();
+            PosX = PosServerX;
+            PosY = PosServerY;
+            PosZ = PosServerZ;
+            RotationYaw = RotationServerYaw;
+            RotationPitch = RotationServerPitch;
+        }
+
+        /// <summary>
+        /// Поворот тела от поворота головы или движения.
+        /// Для сущностей где голова вращается отдельно от тела.
+        /// Запускается ТОЛЬКО на клиенте, где есть Render
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void _RotationBody(bool notCheck = false)
+        {
+            if (SolidHeadWithBody) _RotationBodyEqualHead();
+            else _RotationBodyFromHead(notCheck);
+        }
+
+        /// <summary>
+        /// Поворот тела равен повороту головы, для сущностей где тело и голова цельная.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void _RotationBodyEqualHead()
+        {
+            if (RotationYaw != _rotationYawBody) _rotationYawBody = RotationYaw;
+            if (RotationPrevYaw != _rotationPrevYawBody) _rotationPrevYawBody = RotationPrevYaw;
+        }
+
+        /// <summary>
+        /// Поворот тела от поворота головы или движения.
+        /// Для сущностей где голова вращается отдельно от тела.
+        /// </summary>
+        private void _RotationBodyFromHead(bool notCheck)
+        {
+            if (notCheck || PosX != PosPrevX || PosZ != PosPrevZ
+                || RotationYaw != RotationPrevYaw || _rotationYawBody != _rotationPrevYawBody)
+            {
+                _rotationPrevYawBody = _rotationYawBody;
+                float yawOffset = _rotationYawBody;
+
+                float xDis = PosX - PosPrevX;
+                float zDis = PosZ - PosPrevZ;
+                if (xDis * xDis + zDis * zDis > .00025f)
+                {
+                    // Движение, высчитываем угол направления
+                    if (Render.IsMovingStrafe())
+                    {
+                        // Этот вариант, если тело при движении стремится к голове, для анимации
+                        yawOffset = RotationYaw;
+                    }
+                    else
+                    {
+                        // Вариант если надо повернуть тело, как в minecraft
+                        yawOffset = Glm.Atan2(zDis, xDis) + Glm.Pi90;
+                        // Реверс для бега назад
+                        float yawRev = Glm.WrapAngleToPi(yawOffset - _rotationYawBody);
+                        if (yawRev < -1.8f) yawOffset += Glm.Pi;
+                        else if (yawRev > 1.8f) yawOffset -= Glm.Pi;
+                    }
+                }
+
+                float yaw = Glm.WrapAngleToPi(yawOffset - _rotationYawBody);
+                _rotationYawBody += yaw * .2f;
+                yaw = Glm.WrapAngleToPi(RotationYaw - _rotationYawBody);
+
+                if (yaw < -Glm.Pi60) yaw = -Glm.Pi60;
+                else if (yaw > Glm.Pi60) yaw = Glm.Pi60;
+
+                _rotationYawBody = RotationYaw - yaw;
+
+                // Смещаем тело если дельта выше 30 градусов, плавным возвращением
+                if (yaw > Glm.Pi30 || yaw < -Glm.Pi30) _rotationYawBody += yaw * .03f;
+
+                _rotationYawBody = Glm.WrapAngleToPi(_rotationYawBody);
+            }
+        }
+
+        /// <summary>
+        /// Спавн сущности, первый пакет, вращение
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SpawnRotation(float yaw, float pitch)
+        {
+            RotationServerYaw = RotationPrevYaw = RotationYaw = yaw;
+            RotationServerPitch = RotationPrevPitch = RotationPitch = pitch;
+            _RotationBody(true);
+        }
+
+        #endregion
+
+        #region Gets
+
+        /// <summary>
+        /// Высота глаз
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual float GetEyeHeight() => SizeLiving.GetEye();
+
+        
+
+        #endregion
+
+        #region MetaData
+
+        /// <summary>
+        /// Инициализация
+        /// </summary>
+        protected override void _InitMetaData()
+        {
+            MetaData = new DataWatcher(2);
+            // флаги 0-горит; 1-крадется; 2-едет на чем-то; 3-бегает; 4-ест; 5-невидимый
+            MetaData.Set(0, (byte)0);
+            MetaData.Set(1, _GetHelathMax()); // здоровье
+        }
+
+        /// <summary>
+        /// Обновить данные со списка в дополнительных данных
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void UpdateWatchedObjectsFromList(WatchableObject[] watchables)
+        {
+            bool sneak = IsSneaking();
+            base.UpdateWatchedObjectsFromList(watchables);
+
+            // Если изменено положение Hitbox
+            if (sneak != IsSneaking())
+            {
+                if (sneak) Standing(); else Sitting();
+            }
+        }
+
+        /// <summary>
+        /// Возвращает true, если флаг активен для сущности.Известные флаги:
+        /// 0) горит; 1) крадется; 2) едет на чем-то; 3) бегает; 4) ест; 5) наблюдение; 
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected bool GetFlag(int flag) => (MetaData.GetByte(0) & 1 << flag) != 0;
+
+        /// <summary>
+        /// Включите или отключите флаг сущности
+        /// 0) горит; 1) крадется; 2) едет на чем-то; 3) бегает; 4) в жидкости; 5) взбирвться; 6) спит; 7)* невидимый по чаре
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void SetFlag(int flag, bool set)
+        {
+            byte var3 = MetaData.GetByte(0);
+            if (set) MetaData.UpdateObject(0, (byte)(var3 | 1 << flag));
+            else MetaData.UpdateObject(0, (byte)(var3 & ~(1 << flag)));
+        }
+
+        /// <summary>
+        /// Горит ли сущность
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool InFire() => GetFlag(0);
+        /// <summary>
+        /// Задать горит ли сущность
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetInFire(bool fire) => SetFlag(0, fire);
+
+        /// <summary>
+        /// Крадется
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsSneaking() => GetFlag(1);
+        /// <summary>
+        /// Задать значение крадется ли
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetSneaking(bool sneaking) => SetFlag(1, sneaking);
+
+        /// <summary>
+        /// Ускорение
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsSprinting() => GetFlag(3);
+        /// <summary>
+        /// Задать значение ускоряется ли
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetSprinting(bool sprinting) => SetFlag(3, sprinting);
+
+        /// <summary>
+        /// В жидкости
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsInLiquid() => GetFlag(4);
+        /// <summary>
+        /// Задать значение в жидкости ли
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetInLiquid(bool inLiquid) => SetFlag(4, inLiquid);
+
+        /// <summary>
+        /// Взбираться
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsClimb() => GetFlag(5);
+        /// <summary>
+        /// Задать значение взбирается ли
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetClimb(bool climb) => SetFlag(5, climb);
+
+        /// <summary>
+        /// Спит ли сущность
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsSleep() => GetFlag(6);
+        /// <summary>
+        /// Задать спит сущность
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetSleep(bool sleep) => SetFlag(6, sleep);
+
+        /// <summary>
+        /// Положение стоя
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void Standing() { }
+
+        /// <summary>
+        /// Положение сидя
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual void Sitting() { }
+
+        #endregion
+
+        #region Helath
+
+        /// <summary>
+        /// Уровень здоровья
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float GetHealth() => MetaData.GetFloat(1);
+
+        /// <summary>
+        /// Задать уровень здоровья
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetHealth(float health) => MetaData.UpdateObject(1, Mth.Clamp(health, 0, _GetHelathMax()));
+
+        /// <summary>
+        /// Максимальное значение здоровья сущности
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual float _GetHelathMax() => 10;
+
+        /// <summary>
+        /// Мертвые и спящие существа не могут двигаться
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual bool _IsMovementBlocked() => GetHealth() <= 0f;
+
+        /// <summary>
+        /// Максимальное ли здоровье
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsHealthMax() => GetHealth() == _GetHelathMax();
+        /// <summary>
+        /// Умирает
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsDying() => GetHealth() <= 0f;
+
+        /// <summary>
+        /// Увеличить хп
+        /// </summary>
+        public bool HealthAdd(int amount)
+        {
+            float health = GetHealth();
+            if (health > 0)
+            {
+                float healthNew = health + amount;
+                if (healthNew > _GetHelathMax()) healthNew = _GetHelathMax();
+                if (health != healthNew)
+                {
+                    SetHealth(healthNew);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        #endregion
+
+        #region Drop
+
+        /// <summary>
+        /// Добавляет стек предметов в инвентарь, если это невозможно заспавнит предмет рядом
+        /// </summary>
+        public virtual void AddItemStackToInventory(ItemStack itemStack) { }
+
+        /// <summary>
+        /// Дропнуть предмет от сущности. Server
+        /// </summary>
+        /// <param name="itemStack">Стак предмета</param>
+        /// <param name="inFrontOf">Флаг перед собой</param>
+        /// <param name="longAway">Далеко бросить от себя</param>
+        public virtual void DropItem(ItemStack itemStack, bool inFrontOf, bool longAway) { }
+        
+        /// <summary>
+        /// Выпадает ли предмет при разрушении блока?
+        /// </summary>
+        public virtual bool IsDropBreakingBlock() => true;
+
+        #endregion
+
+        #region Sound
+
+        /// <summary>
+        /// Шаг дистанции перемещения, для звука
+        /// </summary>
+        protected virtual float _StepDistance() => IsSprinting() ? 2.6f : 2.8f;
+
+        /// <summary>
+        /// Обновить звуки шагов
+        /// </summary>
+        protected void _UpdateSoundSteps(WorldClient world)
+        {
+            // Расчёт перемещения
+            float xx = PosX - PosPrevX;
+            float zz = PosZ - PosPrevZ;
+            _distanceWalkedOnStepModified += Mth.Sqrt(xx * xx + zz * zz);
+            if (_distanceWalkedOnStepModified > _nextStepDistance)
+            {
+                BlockBase blockDown = world.GetBlockState(new BlockPos(PosX, PosY - 0.20002f, PosZ)).GetBlock();
+                if (!blockDown.IsAir)
+                {
+                    _nextStepDistance = _distanceWalkedOnStepModified + _StepDistance();
+                    //if (IsSoundStep())
+                    {
+                        _SoundStep(world, blockDown);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Есть ли звуковой эффект шага
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual bool IsSampleStep(BlockBase blockDown) => _samplesStep.Length > 0;
+        /// <summary>
+        /// Получить индекс семпла хотьбы
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public virtual int SampleStep(WorldBase world, BlockBase blockDown) 
+            => _samplesStep[world.Rnd.Next(_samplesStep.Length)];
+
+        /// <summary>
+        /// Звуковой эффект шага
+        /// </summary>
+        protected void _SoundStep(WorldBase world, BlockBase blockDown)
+        {
+            //if (IsInWater())
+            //{
+            //    // Звук в воде
+            //    SoundEffectWater(World.SampleSoundInTheWater(), .35f);
+            //}
+            //else
+            if (!IsSneaking() && IsSampleStep(blockDown))
+            {
+                // Звук шага
+                world.PlaySound(SampleStep(world, blockDown), GetPositionVec(), .25f, 1f, Id);
+            }
+        }
+
+        #endregion
+
+        #region NBT
+
+        protected override void _WriteToNBT(TagCompound nbt)
+        {
+            base._WriteToNBT(nbt);
+            nbt.SetFloat("Yaw", RotationYaw);
+            nbt.SetFloat("Pitch", RotationPitch);
+            nbt.SetShort("Health", (short)(GetHealth() * 10));
+            Inventory?.WriteToNBT(nbt);
+        }
+
+        public override void ReadFromNBT(TagCompound nbt)
+        {
+            base.ReadFromNBT(nbt);
+            RotationPrevYaw = RotationYaw = nbt.GetFloat("Yaw");
+            RotationPrevPitch = RotationPitch = nbt.GetFloat("Pitch");
+           // SetHealth(nbt.GetShort("Health") / 10f);
+            Inventory?.ReadFromNBT(nbt);
+        }
+
+        #endregion
+    }
+}

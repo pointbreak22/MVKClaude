@@ -1,0 +1,369 @@
+﻿using System;
+using System.Runtime.CompilerServices;
+using Mvk.Engine.Entity;
+using Mvk.Engine.Entity.List;
+using Mvk.Engine.Entity.Player;
+using Mvk.Core.Nbt;
+using Mvk.Engine.Nbt;
+using Mvk.Engine.Network;
+using Mvk.Engine.Network.Packets.Server;
+using Mvk.Engine.World;
+using Mvk.Engine.World.Block;
+using Mvk.Core.Maths;
+
+namespace Mvk.Engine.Item
+{
+    /// <summary>
+    /// Объект одной ячейки предметов
+    /// </summary>
+    public class ItemStack
+    {
+        /// <summary>
+        /// Объект предмета
+        /// </summary>
+        public ItemBase Item { get; private set; }
+        /// <summary>
+        /// Урон или износ
+        /// </summary>
+        public int ItemDamaged { get; private set; }
+        /// <summary>
+        /// Количество вещей в стаке
+        /// </summary>
+        public byte Amount { get; private set; }
+        /// <summary>
+        /// Мет данные стака
+        /// </summary>
+        public byte Met { get; private set; }
+
+        public ItemStack(ItemBase item, byte amount, int itemDamaged, byte met)
+        {
+            Item = item;
+            Amount = amount;
+            ItemDamaged = itemDamaged;
+            Met = met;
+        }
+        public ItemStack(ItemBase item, byte amount, int itemDamaged)
+        {
+            Item = item;
+            Amount = amount;
+            ItemDamaged = itemDamaged;
+        }
+        public ItemStack(ItemBase item, byte amount)
+        {
+            Item = item;
+            Amount = amount;
+        }
+        public ItemStack(ItemBase item)
+        {
+            Item = item;
+            Amount = 1;
+        }
+
+        /// <summary>
+        /// Копия стака
+        /// </summary>
+        public ItemStack Copy() => new ItemStack(Item, Amount, ItemDamaged, Met);
+        /// <summary>
+        /// Копия стака с заданным количеством
+        /// </summary>
+        public ItemStack Copy(byte amount) => new ItemStack(Item, amount, ItemDamaged, Met);
+
+        /// <summary>
+        /// Изменить метданные бстака
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ItemStack SetMet(byte met)
+        {
+            Met = met;
+            return this;
+        }
+
+        /// <summary>
+        /// Добавить к количеству
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ItemStack AddAmount(byte amount)
+        {
+            Amount += amount;
+            return this;
+        }
+        /// <summary>
+        /// Уменьшить количество на amount
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ItemStack ReduceAmount(byte amount)
+        {
+            Amount -= amount;
+            if (Amount < 0) Amount = 0;
+            return this;
+        }
+        /// <summary>
+        /// Задать новое количество
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ItemStack SetAmount(byte amount)
+        {
+            Amount = amount;
+            return this;
+        }
+
+        /// <summary>
+        /// Количество сделать нуль
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Zero() => Amount = 0;
+
+        /// <summary>
+        /// Проверка и замена стака если мы берём в воздух блокировка для положить в инвентарь и или ящик
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ItemStack CheckToAir()
+        {
+            if (Item != null && Item.CheckToAir())
+            {
+                Item = Ce.Items.ItemObjects[Item.IndexReplaceItemDueAir()];
+            }
+            return this;
+        }
+
+        #region Is
+
+        /// <summary>
+        /// Возвращает true, когда повреждаемый элемент поврежден
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsItemDamaged() => Item.MaxDamage > 0 && ItemDamaged > 0;
+
+        /// <summary>
+        /// true, если этот стек предметов можно повредить
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsItemStackDamageable() => Item.MaxDamage > 0;
+
+        /// <summary>
+        /// Возвращает true, если стак может содержать 2 или более единиц элемента.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsStackable() => Item.MaxStackSize > 1;
+
+        #endregion
+
+        #region Spawn
+
+        /// <summary>
+        /// Создает данный ItemStack как EntityItem в мире в заданной позиции 
+        /// </summary>
+        public static void SpawnAsEntity(WorldServer world, BlockPos blockPos, ItemBase item, byte amount = 1)
+            => SpawnAsEntity(world, blockPos, new ItemStack(item, amount));
+
+        /// <summary>
+        /// Создает данный ItemStack как EntityItem в мире в заданной позиции 
+        /// </summary>
+        public static void SpawnAsEntity(WorldServer world, BlockPos blockPos, ItemStack itemStack)
+        {
+            Vector3 pos = new Vector3(
+                blockPos.X + world.Rnd.NextFloat() * .5f + .25f,
+                blockPos.Y + world.Rnd.NextFloat() * .5f + .25f,
+                blockPos.Z + world.Rnd.NextFloat() * .5f + .25f
+            );
+            _SpawnAsEntityPos(world, pos, itemStack);
+        }
+
+        /// <summary>
+        /// Создает данный ItemStack как EntityItem в мире в заданной позиции 
+        /// </summary>
+        private static void _SpawnAsEntityPos(WorldServer world, Vector3 pos, ItemStack itemStack)
+        {
+            EntityBase entity = Ce.Entities.CreateEntityServer(Ce.Entities.IndexItem, world);
+            entity.PosX = pos.X;
+            entity.PosY = pos.Y;
+            entity.PosZ = pos.Z;
+            if (entity is EntityItem entityItem)
+            {
+                entityItem.SetEntityItemStack(itemStack);
+            }
+            //entity.SetDefaultPickupDelay();
+            world.SpawnEntityInWorld(entity);
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Усреднить износ предмета
+        /// </summary>
+        /// <param name="amount">Количество добавится для замены</param>
+        /// <param name="damage">Урон добавляемого</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ItemStack AverageWearItem(byte amount, int damage)
+        {
+            ItemDamaged = (Amount * ItemDamaged + amount * damage) / (Amount + amount);
+            return this;
+        }
+
+        /// <summary>
+        /// Изменить износ предмета в правой руке
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetDamageItem(PlayerBase entityPlayer, int damage)
+        {
+            ItemDamaged = damage;
+            entityPlayer.Inventory.SetCurrentItem(this);
+        }
+
+        /// <summary>
+        /// Попытки повредить ItemStack с количеством повреждений damage. 
+        /// Вернёт урон
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int AttemptDamageItem(PlayerBase entityPlayer, int damage)
+        {
+            if (!IsItemStackDamageable())
+            {
+                return 0;
+            }
+            else
+            {
+                // Тут можно отнять урон магии или прочих защит
+
+                return damage;
+            }
+        }
+
+        /// <summary>
+        /// Наносим урон предмету (инструменту), вернёт новый урон
+        /// </summary>
+        /// <param name="damage">Сила урона</param>
+        /// <param name="isLeft">Левая ли рука</param>
+        public int DamageItemTool(PlayerBase entityPlayer, int damage, bool isLeft)
+        {
+            damage = AttemptDamageItem(entityPlayer, damage);
+            if (damage > 0)
+            {
+                DamageItemToolNotAttempt(entityPlayer, damage, isLeft);
+            }
+            return damage;
+        }
+
+
+        /// <summary>
+        /// Наносим урон предмету (инструменту) без попытки проверки магии и прочего
+        /// </summary>
+        /// <param name="damage">Сила урона</param>
+        /// <param name="isLeft">Левая ли рука</param>
+        public void DamageItemToolNotAttempt(PlayerBase entityPlayer, int damage, bool isLeft)
+        {
+            ItemDamaged += damage;
+            if (ItemDamaged >= Item.MaxDamage)
+            {
+                // Сломался
+                ItemDamaged = 0;
+                Zero();
+                if (isLeft)
+                {
+                    entityPlayer.Inventory.SetCurrentLeftItem(null);
+                }
+                else
+                {
+                    entityPlayer.Inventory.SetCurrentItem(null);
+                }
+
+                if (!entityPlayer.GetWorld().IsRemote 
+                    && entityPlayer.GetWorld() is WorldServer worldServer)
+                {
+                    // Звук ломаного инструмента,
+                    // всем звуковой эффект поломки из сервера, так-как на клиенте этот метод работает через тик,
+                    // и сервер раньше может обнулить и звука не будет
+                    worldServer.PlaySoundCurrent(Item.SampleBreak, 
+                        entityPlayer.GetPositionCenterVec(), 1,
+                        worldServer.Rnd.NextFloat() * .4f + .8f,
+                        entityPlayer.Id);
+                }
+            }
+            else
+            {
+                if (isLeft)
+                {
+                    entityPlayer.Inventory.SetCurrentLeftItem(this);
+                }
+                else
+                {
+                    entityPlayer.Inventory.SetCurrentItem(this);
+                }
+                //Console.WriteLine((entityPlayer.GetWorld().IsRemote ? "Client" : "Server") 
+                //    + " ItemDamage:" + ItemDamage);
+            }
+        }
+
+        /// <summary>
+        /// Записать стак в буффер пакета
+        /// </summary>
+        public static void WriteStream(ItemStack itemStack, WritePacket stream)
+        {
+            if (itemStack == null)
+            {
+                stream.Short(-1);
+            }
+            else
+            {
+                stream.Short((short)itemStack.Item.IndexItem);
+                stream.Byte(itemStack.Amount);
+                stream.Short((short)itemStack.ItemDamaged);
+                stream.Byte(itemStack.Met);
+            }
+        }
+
+
+        /// <summary>
+        /// Прочесть стак с буфера пакета
+        /// </summary>
+        public static ItemStack ReadStream(ReadPacket stream)
+        {
+            int id = stream.Short();
+            if (id != -1)
+            {
+                return new ItemStack(Ce.Items.ItemObjects[id],
+                    stream.Byte(), stream.Short(), stream.Byte());
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Записать стак в NBT
+        /// </summary>
+        public TagCompound WriteToNBT(TagCompound nbt)
+        {
+            nbt.SetShort("Id", (short)Item.IndexItem);
+            nbt.SetByte("Amount", Amount);
+            nbt.SetByte("Met", Met);
+            nbt.SetShort("Damaged", (short)ItemDamaged);
+            return nbt;
+        }
+
+
+        /// <summary>
+        /// Прочесть стак с NBT
+        /// </summary>
+        public static ItemStack ReadFromNBT(TagCompound nbt)
+        {
+            if (nbt.HasKey("Id"))
+            { 
+                return new ItemStack(Ce.Items.ItemObjects[nbt.GetShort("Id")], 
+                    nbt.GetByte("Amount"), nbt.GetShort("Damaged"), nbt.GetByte("Met"));
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Получить строку повреждения предмета
+        /// </summary>
+        public string ToStringDamaged()
+        {
+            if (Item == null) return "";
+            int max = Item.MaxDamage;
+            return (max - ItemDamaged).ToString() + "/" + max.ToString();
+        }
+
+        public override string ToString() => Item.ToString() + " (" + Amount + ")" 
+            + (Met == 0 ? "" : " M" + Met);
+    }
+}

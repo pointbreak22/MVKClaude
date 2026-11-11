@@ -1,0 +1,92 @@
+﻿using System.Runtime.CompilerServices;
+using Mvk.Engine.Entity.Animation;
+using Mvk.Engine.Entity.Model;
+using Mvk.Engine.Entity.Render;
+using Mvk.Core.Json;
+using Mvk.Engine.Json;
+using Mvk.Core.Util;
+using Mvk.Engine.Util;
+
+namespace Mvk.Engine.Entity.Shape
+{
+    /// <summary>
+    /// Форма сущности, нужна только клиенту
+    /// </summary>
+    public class ShapeEntity : ShapeBase
+    {
+        /// <summary>
+        /// Буфер сетки формы, для рендера
+        /// </summary>
+        private readonly VertexEntityBuffer _bufferMesh;
+
+        /// <summary>
+        /// Массив названий всех текстур
+        /// </summary>
+        private readonly string[] _nameTextures = new string[0];
+
+        public ShapeEntity(ushort index, string alias, JsonCompound jsonModel)
+            : base(index)
+        {
+            _definition = new ModelEntityDefinition(alias);
+            _definition.RunModelFromJson(jsonModel, false);
+            _nameTextures = _definition.GenNameTextures();
+            Textures = _definition.GenTextures();
+            DepthTextures = new int[Textures.Length];
+
+            _bufferMesh = _definition.GenBufferMesh();
+        }
+
+        #region Definition
+
+        /// <summary>
+        /// Сгенерировать массив костей
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Bone[] GenBones(float scale) => _definition.GenBones(scale);
+
+        /// <summary>
+        /// Сгенерировать списки модели ключевых кадров для каждой кости скелета
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ModelAnimationClip[] GetModelAnimationClips(AnimationData[] animationDatas)
+            => _definition.GetModelAnimationClips(animationDatas);
+
+        #endregion 
+
+        /// <summary>
+        /// Корректировка размера ширины текстуры, в буффере UV
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void SizeAdjustmentTextureWidth(float coef)
+            => _bufferMesh.SizeAdjustmentTextureWidth(coef);
+
+        /// <summary>
+        /// Корректировка размера высоты текстуры, в буффере UV
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void SizeAdjustmentTextureHeight(float coef)
+            => _bufferMesh.SizeAdjustmentTextureHeight(coef);
+
+        /// <summary>
+        /// Копия буфера сетки с масштабом
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public VertexEntityBuffer CopyBufferFloatMesh(float scale = 1)
+            => _bufferMesh.CopyBufferMesh(scale);
+
+        /// <summary>
+        /// Найти индекс текстуры по названию
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override int FindIndexTexture(string name)
+        {
+            for (int i = 0; i < _nameTextures.Length; i++)
+            {
+                if (_nameTextures[i] == name) return i;
+            }
+
+            return -1;
+        }
+
+    }
+}

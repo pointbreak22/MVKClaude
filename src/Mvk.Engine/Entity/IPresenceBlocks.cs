@@ -1,0 +1,100 @@
+﻿using Mvk.Engine.World;
+
+namespace Mvk.Engine.Entity
+{
+    /// <summary>
+    /// Интерфейс наличия блоков в которой находится сущность
+    /// </summary>
+    public interface IPresenceBlocks
+    {
+        /// <summary>
+        /// Находится ли в воде
+        /// </summary>
+       // bool IsInWater { get; }
+
+        /// <summary>
+        /// Можно ли всплыть
+        /// </summary>
+        bool IsSurface { get; }
+        /// <summary>
+        /// Можно ли прыгнуть в жидкости
+        /// </summary>
+        bool IsJumpLiquid { get; }
+        /// <summary>
+        /// Находится ли в любой из жидкостей
+        /// </summary>
+        bool IsInLiquid { get; }
+        /// <summary>
+        /// Можно ли совершить авто прыжок
+        /// </summary>
+        bool IsInAutoJump { get; }
+        /// <summary>
+        /// Ускорение всплытия в жидкости
+        /// </summary>
+        float AccelerationAscentInLiquid { get; }
+        /// <summary>
+        /// Ускорение для погружения в жидкости
+        /// </summary>
+        float AccelerationToDiveInLiquid { get; }
+        /// <summary>
+        /// Коэффициент трения в жидкости
+        /// </summary>
+        float FactorInertiaInLiquid { get; }
+        /// <summary>
+        /// Коэффициент гравитации в жидкости
+        /// </summary>
+        float FactorGravityInLiquid { get; }
+
+        /// <summary>
+        /// Состояние взбираться на лестнице, лиане, канат
+        /// </summary>
+        bool IsClimb { get; }
+        /// <summary>
+        /// Коэффициент гравитации взбираться
+        /// </summary>
+        float FactorGravityClimb { get; }
+        /// <summary>
+        /// Ускорение поднятия взбираться 2,35 м/с  (майнкрафт)
+        /// </summary>
+        float AccelerationUpClimb { get; }
+        /// <summary>
+        /// Ускорение спуска взбираться 3,0 (майнкрафт)
+        /// </summary> 
+        float AccelerationDownClimb { get; }
+
+        /// <summary>
+        /// Имеются ли замедления
+        /// </summary>
+        bool IsSlow { get; }
+        /// <summary>
+        /// Коэффициент замедления по X и Z
+        /// </summary>
+        float FactorSlowXZ { get; }
+        /// <summary>
+        /// Коэффициент замедления по Y
+        /// </summary>
+        float FactorSlowY { get; }
+
+        /// <summary>
+        /// Имеется импульс
+        /// </summary>
+        bool IsImpulse { get; }
+        /// <summary>
+        /// Импульс по координате X
+        /// </summary>
+        float ImpulseX { get; }
+        /// <summary>
+        /// Импульс по координате X
+        /// </summary>
+        float ImpulseY { get; }
+        /// <summary>
+        /// Импульс по координате X
+        /// </summary>
+        float ImpulseZ { get; }
+
+        /// <summary>
+        /// Обновление перерасчёта в такте
+        /// </summary>
+        void Update(WorldBase world);
+    }
+}
