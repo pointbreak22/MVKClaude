@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Хост для ПК (Windows / Linux / macOS). Выбирает бэкенд графики и собирает всё вместе. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Mvk2</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Mvk.Game.Client\Mvk.Game.Client.csproj" />
+    <ProjectReference Include="..\..\Mvk.Rendering.OpenGL\Mvk.Rendering.OpenGL.csproj" />
+    <ProjectReference Include="..\..\Mvk.Platform\Mvk.Platform.csproj" />
+  </ItemGroup>
+</Project>

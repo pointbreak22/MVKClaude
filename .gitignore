@@ -1,0 +1,18 @@
+# Сборка
+bin/
+obj/
+artifacts/
+TestResults/
+
+# IDE
+.vs/
+.idea/
+*.user
+*.suo
+
+# Оригинальный проект Vge (отдельный git-репозиторий, только для чтения)
+original/
+
+# Игровые данные, создаваемые при запуске
+saves/
+logs/

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Платформа на Silk.NET: окно, ввод (в InputAction), звук OpenAL, файлы. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Mvk.Core\Mvk.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Windowing" />
+    <PackageReference Include="Silk.NET.Input" />
+    <PackageReference Include="Silk.NET.OpenAL" />
+    <PackageReference Include="Silk.NET.OpenAL.Soft.Native" />
+  </ItemGroup>
+</Project>

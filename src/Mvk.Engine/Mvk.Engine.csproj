@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Движок без графики: мир, чанки, генерация, свет, сущности, предметы, сеть, команды, сервер. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Mvk.Core\Mvk.Core.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- RHI: интерфейсы графики, общие для всех бэкендов (OpenGL, Vulkan). -->
+  <ItemGroup>
+    <ProjectReference Include="..\Mvk.Core\Mvk.Core.csproj" />
+  </ItemGroup>
+</Project>

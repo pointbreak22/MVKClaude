@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Клиент Малювек 2: небо и погода, HUD, экраны, рендер сущностей. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Mvk.Game\Mvk.Game.csproj" />
+    <ProjectReference Include="..\Mvk.Engine.Client\Mvk.Engine.Client.csproj" />
+  </ItemGroup>
+</Project>

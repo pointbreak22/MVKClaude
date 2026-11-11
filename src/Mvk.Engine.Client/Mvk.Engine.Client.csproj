@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Клиентская часть движка: мешинг, камера, частицы, GUI, звук. Видит только интерфейсы RHI. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Mvk.Engine\Mvk.Engine.csproj" />
+    <ProjectReference Include="..\Mvk.Rendering\Mvk.Rendering.csproj" />
+  </ItemGroup>
+</Project>

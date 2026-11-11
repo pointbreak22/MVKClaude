@@ -1,0 +1,27 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="CLAUDE.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Mvk.Core/Mvk.Core.csproj" />
+    <Project Path="src/Mvk.Engine/Mvk.Engine.csproj" />
+    <Project Path="src/Mvk.Engine.Client/Mvk.Engine.Client.csproj" />
+    <Project Path="src/Mvk.Rendering/Mvk.Rendering.csproj" />
+    <Project Path="src/Mvk.Rendering.OpenGL/Mvk.Rendering.OpenGL.csproj" />
+    <Project Path="src/Mvk.Platform/Mvk.Platform.csproj" />
+    <Project Path="src/Mvk.Game/Mvk.Game.csproj" />
+    <Project Path="src/Mvk.Game.Client/Mvk.Game.Client.csproj" />
+  </Folder>
+  <Folder Name="/src/Hosts/">
+    <Project Path="src/Hosts/Mvk.Desktop/Mvk.Desktop.csproj" />
+    <Project Path="src/Hosts/Mvk.Server/Mvk.Server.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Mvk.Core.Tests/Mvk.Core.Tests.csproj" />
+    <Project Path="tests/Mvk.Engine.Tests/Mvk.Engine.Tests.csproj" />
+    <Project Path="tests/Mvk.Game.Tests/Mvk.Game.Tests.csproj" />
+  </Folder>
+</Solution>

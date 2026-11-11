@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Ядро: математика (бывш. WinGL.Util.Glm/Mth), утилиты, NBT, JSON. Без зависимостей. -->
+</Project>

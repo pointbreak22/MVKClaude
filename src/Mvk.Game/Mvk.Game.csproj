@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Контент Малювек 2 (серверная часть): блоки, предметы, биомы, генерация «Остров», ИИ мобов, команды. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Mvk.Engine\Mvk.Engine.csproj" />
+  </ItemGroup>
+</Project>

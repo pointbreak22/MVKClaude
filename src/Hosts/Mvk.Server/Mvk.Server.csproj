@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Выделенный сервер без графики. Не должен ссылаться на Rendering/Platform/Client. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Mvk2.Server</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Mvk.Game\Mvk.Game.csproj" />
+  </ItemGroup>
+</Project>

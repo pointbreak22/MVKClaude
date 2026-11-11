@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Бэкенд RHI на OpenGL 3.3 core / OpenGL ES 3.0. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Mvk.Rendering\Mvk.Rendering.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.OpenGL" />
+  </ItemGroup>
+</Project>
