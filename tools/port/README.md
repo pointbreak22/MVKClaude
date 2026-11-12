@@ -17,6 +17,8 @@ python tools/port/deps.py             # какие серверные файлы
    - `seam1.py` — рендер сущностей через `IEntityRenderFactory`;
    - `seam2.py` — блок хранит `EnumBlockRender`, затемнение сторон и палитра вынесены из `Gi`;
    - `seam6.py` — реестры получают `IProgress<string>` вместо окна, атлас без GL и System.Drawing;
-   - `cleanup.py` — убирает using клиентских пространств имён.
+   - `seam4.py` — логика клиента (`GameBase`, `WorldClient`, игрок, `ChunkClient`) без окна:
+     всё отображение через `IGameClientHost`;
+   - `cleanup.py` — убирает using клиентских пространств имён (Renderer, Gui, WinGL).
 
 Когда перенос Engine закончится, скрипты останутся как история: дальше код правится в `src/` напрямую.

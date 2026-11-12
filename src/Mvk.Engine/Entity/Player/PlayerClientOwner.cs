@@ -6,6 +6,7 @@ using Mvk.Engine.Event;
 using Mvk.Engine.Games;
 using Mvk.Engine.Network.Packets.Client;
 using Mvk.Engine.Network.Packets.Server;
+using Mvk.Engine.Realms;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
 using Mvk.Engine.World;
@@ -25,19 +26,15 @@ namespace Mvk.Engine.Entity.Player
         /// </summary>
         public const float Pi89 = 1.55334303f;
 
-        /// <summary>
-        /// Объект кэш чата
-        /// </summary>
-        public readonly ChatList Chat;
 
         /// <summary>
         /// Массив всех видимых чанков 
         /// </summary>
-        public readonly ListFast<ChunkRender> FrustumCulling = new ListFast<ChunkRender>();
+        public readonly ListFast<ChunkClient> FrustumCulling = new ListFast<ChunkClient>();
         /// <summary>
         /// Массив всех чанков в дистанции
         /// </summary>
-        public readonly ListFast<ChunkRender> OverviewCircles = new ListFast<ChunkRender>();
+        public readonly ListFast<ChunkClient> OverviewCircles = new ListFast<ChunkClient>();
 
         /// <summary>
         /// Смещения вращение по оси Y в радианах, мышью до такта
@@ -149,7 +146,6 @@ namespace Mvk.Engine.Entity.Player
         {
             Login = game.ToLoginPlayer();
             Token = game.ToTokenPlayer();
-            Chat = new ChatList(Ce.ChatLineTimeLife, _game.Render.FontMain);
             Fov = new SmoothFrame(Options.FovFloat);
             _eyeFrame = SizeLiving.GetEye();
             Eye = new SmoothFrame(_eyeFrame);
@@ -174,7 +170,7 @@ namespace Mvk.Engine.Entity.Player
             Physics = new PhysicsPlayer(_game.World.Collision, this);
 
             // Создание объекта рендера не в конструкторе, так-как там ещё не создан рендер мир
-            InitRender(IndexEntity, _game.WorldRender.Entities);
+            InitRender(IndexEntity, _game.Host.EntityRenders);
         }
 
         #region Методы от Entity
@@ -456,7 +452,7 @@ namespace Mvk.Engine.Entity.Player
             int chunkPosZ = ChunkPositionZ;
 
             int i, xc, zc, xb, zb, x1, y1, z1, x2, y2, z2;
-            ChunkRender chunk;
+            ChunkClient chunk;
             Vector3i vec;
             ListFast<Vector2i> debug = Ce.IsDebugDrawChunks ? new ListFast<Vector2i>() : null;
             FrustumCulling.Clear();
@@ -482,7 +478,7 @@ namespace Mvk.Engine.Entity.Player
 
                 if (_frustumCulling.IsBoxInFrustum(x1, y1, z1, x2, y2, z2))
                 {
-                    chunk = _game.World.ChunkPrClient.GetChunkRender(xc + chunkPosX, zc + chunkPosZ);
+                    chunk = _game.World.ChunkPrClient.GetChunkClient(xc + chunkPosX, zc + chunkPosZ);
                     if (chunk != null)
                     {
                         chunk.Distance = vec.Z;
@@ -500,7 +496,7 @@ namespace Mvk.Engine.Entity.Player
                 }
                 else
                 {
-                    chunk = _game.World.ChunkPrClient.GetChunkRender(xc + chunkPosX, zc + chunkPosZ);
+                    chunk = _game.World.ChunkPrClient.GetChunkClient(xc + chunkPosX, zc + chunkPosZ);
                     if (chunk != null)
                     {
                         chunk.Distance = vec.Z;
@@ -534,7 +530,7 @@ namespace Mvk.Engine.Entity.Player
 
             int i, xc, zc, y1, y2;
             y2 = _game.World.ChunkPr.Settings.NumberSections;
-            ChunkRender chunk;
+            ChunkClient chunk;
             Vector3i vec;
 
             for (i = 0; i < countOC; i++)
@@ -542,7 +538,7 @@ namespace Mvk.Engine.Entity.Player
                 vec = Ce.OverviewCircles[i];
                 xc = vec.X;
                 zc = vec.Y;
-                chunk = _game.World.ChunkPrClient.GetChunkRender(xc + chunkPosX, zc + chunkPosZ);
+                chunk = _game.World.ChunkPrClient.GetChunkClient(xc + chunkPosX, zc + chunkPosZ);
                 if (chunk != null)
                 {
                     for (y1 = 0; y1 < y2; y1++)
@@ -783,7 +779,7 @@ namespace Mvk.Engine.Entity.Player
                 int chY = ChunkPositionY;
                 int chZ = ChunkPositionZ;
                 Vector3i pos;
-                ChunkRender chunk = null;
+                ChunkClient chunk = null;
                 int count = Ce.OverviewAlphaSphere.Length;
                 int x, z, xOld, zOld;
                 xOld = zOld = 0;
@@ -799,7 +795,7 @@ namespace Mvk.Engine.Entity.Player
                     {
                         chunk.ModifiedToRenderAlpha(pos.Y + chY);
                     }
-                    chunk = _game.World.ChunkPrClient.GetChunkRender(x, z);
+                    chunk = _game.World.ChunkPrClient.GetChunkClient(x, z);
                     if (chunk != null)
                     {
                         chunk.ModifiedToRenderAlpha(pos.Y + chY);
@@ -983,7 +979,7 @@ namespace Mvk.Engine.Entity.Player
         {
             IdWorld = packet.IdWorld;
             _game.World.PacketRespawnInWorld(packet);
-            _game.WorldRender.RespawnInWorld();
+            _game.Host.OnRespawnInWorld();
             _heightChinkFrustumCulling = _game.World.ChunkPrClient.Settings.NumberBlocks;
         }
 
@@ -1017,7 +1013,7 @@ namespace Mvk.Engine.Entity.Player
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void PacketMessage(PacketS3AMessage packet)
         {
-            Chat.AddMessage(packet.Message, Gi.WindowsChatWidthMessage,  Gi.Si);
+            _game.Host.ChatMessage(packet.Message);
         }
 
         /// <summary>
@@ -1086,7 +1082,7 @@ namespace Mvk.Engine.Entity.Player
                 // Корректируем FrustumCulling
                 _CameraHasBeenChanged();
                 // Меняем в рендере мира
-                _game.WorldRender.ModifyOverviewChunk();
+                _game.Host.OnModifyOverviewChunk();
                 // Отправим обзор 
                 _game.TrancivePacket(new PacketC15PlayerSetting(OverviewChunk));
                 if (isSaveOptions)

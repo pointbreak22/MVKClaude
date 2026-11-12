@@ -292,7 +292,7 @@ namespace Mvk.Engine.Network
         /// </summary>
         private void _Handle0FSpawnMob(PacketS0FSpawnMob packet)
         {
-            EntityBase entity = Ce.Entities.CreateEntityClient(packet.IndexEntity, Game.WorldRender.Entities);
+            EntityBase entity = Ce.Entities.CreateEntityClient(packet.IndexEntity, Game.Host.EntityRenders);
 
             entity.SetEntityId(packet.Index);
             entity.SpawnPosition(packet.X, packet.Y, packet.Z);
@@ -470,7 +470,7 @@ namespace Mvk.Engine.Network
             }
             else
             {
-                Game.ModClient.Screen.AcceptNetworkPackage(packet);
+                Game.Host.AcceptNetworkPackage(packet);
             }
         }
 

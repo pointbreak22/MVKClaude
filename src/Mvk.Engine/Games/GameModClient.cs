@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity;
+﻿using Mvk.Engine.Actions;
+using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.Particle;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Item;
@@ -24,22 +25,13 @@ namespace Mvk.Engine.Games
         /// Цвета биомов
         /// </summary>
         public readonly ColorsBiom Colors = new ColorsBiom();
-        /// <summary>
-        /// Объект окна
-        /// </summary>
-        protected readonly WindowMain _window;
 
-        public GameModClient(WindowMain window) => _window = window;
+        public GameModClient() { }
 
         public void Init(GameBase game)
         {
             Game = game;
         }
-
-        /// <summary>
-        /// Объект экрана
-        /// </summary>
-        public ScreenBase Screen => _window.Screen;
 
         /// <summary>
         /// Инициализация после старта игры, когда уже все блоки и сущности загружены
@@ -82,11 +74,6 @@ namespace Mvk.Engine.Games
         /// </summary>
         public virtual PlayerClientOwner CreatePlayerClientOwner() 
             => new PlayerClientOwner(Game);
-
-        /// <summary>
-        /// Создать объект индикация
-        /// </summary>
-        public virtual HudBase CreateHud() => new HudDebug(Game);
 
         #region Key
 

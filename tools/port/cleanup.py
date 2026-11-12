@@ -8,7 +8,7 @@ for d, _, fs in os.walk(eng):
         if not f.endswith(".cs"): continue
         p = os.path.join(d, f)
         t = open(p, "rb").read().decode("utf-8-sig")
-        u = re.sub(r"^using Mvk\.Engine\.(Renderer|Gui|Realms)(\.[\w.]+)?;\r?\n", "", t, flags=re.M)
+        u = re.sub(r"^using Mvk\.Engine\.(Renderer|Gui)(\.[\w.]+)?;\r?\n", "", t, flags=re.M)
         u = re.sub(r"^using WinGL(\.[\w.]+)?;\r?\n", "", u, flags=re.M)
         if u != t:
             open(p, "wb").write(b"\xef\xbb\xbf" + u.encode("utf-8")); n += 1

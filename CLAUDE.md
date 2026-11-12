@@ -97,4 +97,7 @@ assets/                   ресурсы из res/Assets (копируются �
 ## Текущий статус
 Этап 0 готов, golden-эталоны сняты (генерация острова, математика).
 Этап 1 (Core) готов: математика, Json, NBT, Rand и утилиты перенесены, паритет проверяют
-`Golden/math.csv` и `Golden/core.csv`. Дальше этап 2 (Engine). Android отложен. См. `docs/progress.md`.
+`Golden/math.csv` и `Golden/core.csv`.
+Этап 2 (Engine) в работе: `src/Mvk.Engine` генерируется скриптами `tools/port` (руками не править,
+добавлять швы в скрипты) и компилируется; логика клиента отделена от окна через `IGameClientHost`
+(ADR 0003). Android отложен. См. `docs/progress.md`.

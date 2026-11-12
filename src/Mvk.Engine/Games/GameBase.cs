@@ -19,7 +19,7 @@ namespace Mvk.Engine.Games
     /// <summary>
     /// Абстрактный класс игры
     /// </summary>
-    public abstract class GameBase : Warp
+    public abstract class GameBase : IDisposable
     {
         /// <summary>
         /// Объект лога
@@ -37,6 +37,10 @@ namespace Mvk.Engine.Games
         /// Объект игрового мода для клиентской части, этот объект наследуется другими проектами
         /// </summary>
         public readonly GameModClient ModClient;
+        /// <summary>
+        /// Хост клиента: окно, экраны, рендер мира, звук (реализует Mvk.Engine.Client)
+        /// </summary>
+        public readonly IGameClientHost Host;
 
         /// <summary>
         /// Локальная игра
@@ -47,10 +51,6 @@ namespace Mvk.Engine.Games
         /// </summary>
         public bool IsGamePaused { get; protected set; } = false;
         /// <summary>
-        /// Объект индикация
-        /// </summary>
-        public HudBase Hud { get; protected set; }
-        /// <summary>
         /// Объект игрока для клиента
         /// </summary>
         public readonly PlayerClientOwner Player;
@@ -58,10 +58,6 @@ namespace Mvk.Engine.Games
         /// Клиентский объект мира
         /// </summary>
         public WorldClient World { get; private set; }
-        /// <summary>
-        /// Рендер мира
-        /// </summary>
-        public readonly WorldRenderer WorldRender;
         /// <summary>
         /// Список игроков во всех мирах, для чата 
         /// </summary>
@@ -119,8 +115,9 @@ namespace Mvk.Engine.Games
         /// </summary>
         private bool _flagFirstMouseFPV;
 
-        public GameBase(WindowMain window, GameModClient gameModClient) : base(window)
+        public GameBase(IGameClientHost host, GameModClient gameModClient)
         {
+            Host = host;
             ModClient = gameModClient;
             ModClient.Init(this);
             Ce.InitClient();
@@ -130,17 +127,22 @@ namespace Mvk.Engine.Games
             Player = ModClient.CreatePlayerClientOwner();
             Key = new Keyboard(this);
             Key.InGameMenu += _Key_InGameMenu;
-            WorldRender = new WorldRenderer(this);
+            Host.Attach(this);
         }
 
         /// <summary>
         /// Дельта последнего кадра в mc
         /// </summary>
-        public float DeltaTimeFrame => window.DeltaTimeFrame;
+        public float DeltaTimeFrame => Host.DeltaTimeFrame;
         /// <summary>
         /// Дельта последнего тика в mc
         /// </summary>
-        public float DeltaTime => window.DeltaTime;
+        public float DeltaTime => Host.DeltaTime;
+
+        /// <summary>
+        /// Сохранить опции
+        /// </summary>
+        public void OptionsSave() => Host.OptionsSave();
 
         /// <summary>
         /// Активация окна меню
@@ -148,7 +150,7 @@ namespace Mvk.Engine.Games
         private void _Key_InGameMenu(object sender, EventArgs e)
         {
             SetGamePauseSingle(true);
-            window.LScreen.InGameMenu();
+            Host.OpenInGameMenu();
         }
 
         /// <summary>
@@ -181,7 +183,7 @@ namespace Mvk.Engine.Games
             Player.WorldStarting();
             _stopwatch.Start();
             // Рендер мира информируем, что готово всё
-            WorldRender.GameStarting();
+            Host.OnGameStarting();
             //Ce.IsDebugDrawChunks = 
             // TODO::2025-09-19 включение F3
             //Ce.IsDebugDraw = true;
@@ -235,8 +237,8 @@ namespace Mvk.Engine.Games
         protected void StartedGame()
         {
             // Закрываем скрин загрузки
-            window.ScreenClose();
-            Hud = ModClient.CreateHud();
+            Host.ScreenClose();
+            Host.OnStartedGame();
         }
 
         #endregion
@@ -251,7 +253,7 @@ namespace Mvk.Engine.Games
             if (_isMouseFirstPersonView != on)
             {
                 _isMouseFirstPersonView = on;
-                window.CursorShow(!on);
+                Host.CursorShow(!on);
                 if (on)
                 {
                     // Включить вид от первого лица
@@ -265,7 +267,7 @@ namespace Mvk.Engine.Games
             }
         }
 
-        public override void OnMouseMove(int x, int y)
+        public virtual void OnMouseMove(int x, int y)
         {
             if (_isMouseFirstPersonView)
             {
@@ -282,11 +284,11 @@ namespace Mvk.Engine.Games
                     Player.MouseMove(x - centerX, y - centerY);
                 }
                 // Смещаем курсор в центр
-                window.SetCursorPosition(centerX, centerY);
+                Host.SetCursorPosition(centerX, centerY);
             }
         }
 
-        public override void OnMouseDown(MouseButton button, int x, int y)
+        public virtual void OnMouseDown(MouseButton button, int x, int y)
         {
             if (_isMouseFirstPersonView)
             {
@@ -299,7 +301,7 @@ namespace Mvk.Engine.Games
             }
         }
 
-        public override void OnMouseUp(MouseButton button, int x, int y)
+        public virtual void OnMouseUp(MouseButton button, int x, int y)
         {
             if (_isMouseFirstPersonView)
             {
@@ -310,7 +312,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Вращение колёсика мыши
         /// </summary>
-        public override void OnMouseWheel(int delta, int x, int y)
+        public virtual void OnMouseWheel(int delta, int x, int y)
         {
             if (_isMouseFirstPersonView)
             {
@@ -326,7 +328,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Клавиша нажата
         /// </summary>
-        public override void OnKeyDown(Keys keys)
+        public virtual void OnKeyDown(Keys keys)
         {
             Key.OnKeyDown(keys);
             if (_isMouseFirstPersonView)
@@ -339,7 +341,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Клавиша отпущена
         /// </summary>
-        public override void OnKeyUp(Keys keys)
+        public virtual void OnKeyUp(Keys keys)
         {
             Key.OnKeyUp(keys);
             if (_isMouseFirstPersonView)
@@ -351,7 +353,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Нажата клавиша в char формате
         /// </summary>
-        public override void OnKeyPress(char key) => Key.OnKeyPress(key);
+        public virtual void OnKeyPress(char key) => Key.OnKeyPress(key);
 
         #endregion
 
@@ -361,7 +363,7 @@ namespace Mvk.Engine.Games
         /// Игровой такт
         /// </summary>
         /// <param name="deltaTime">Дельта последнего тика в mc</param>
-        public override void OnTick(float deltaTime)
+        public virtual void OnTick(float deltaTime)
         {
             // почерёдно получаем пакеты с сервера
             //Filer.StartSection("Packets.Update");
@@ -383,12 +385,10 @@ namespace Mvk.Engine.Games
                 //Filer.EndStartSection("WorldRender.Update", 10);
                
                 // Обновить рендоровский мир
-                WorldRender.OnTick(deltaTime);
+                Host.OnTick(deltaTime);
                 
                 // Filer.EndSection(5);
 
-                // Тут индикация если имеется
-                Hud?.OnTick(deltaTime);
 
                 // Прошла минута, или 1800 тактов
                 if (TickCounterClient % 1800 == 0)
@@ -421,45 +421,6 @@ namespace Mvk.Engine.Games
         /// Задать время с сервера
         /// </summary>
        // public void SetTickCounter(uint time) => TickCounter = time;
-
-        /// <summary>
-        /// Изменён размер окна
-        /// </summary>
-        public void OnResized(int width, int height)
-        {
-            // Тут индикация если имеется
-            if (Hud != null)
-            {
-                Hud.OnResized(width, height);
-            }
-        }
-
-        /// <summary>
-        /// Метод для прорисовки кадра
-        /// </summary>
-        /// <param name="timeIndex">коэффициент времени от прошлого TPS клиента в диапазоне 0 .. 1</param>
-        public override void Draw(float timeIndex)
-        {
-            // Тут прорисовка мира
-            //gl.ClearColor(.4f, .4f, .7f, 1f);
-            // Мир
-            if (FlagGameStarted)
-            {
-                // Мир появляется, как загрузятся 
-                WorldRender.Draw(timeIndex);
-            }
-
-            // Тут индикация если имеется
-            if (Hud != null)
-            {
-                Hud.Draw(timeIndex);
-            }
-
-            if (Ce.IsDebugDrawChunks)
-            {
-                Debug.DrawChunks(window);
-            }
-        }
 
         #endregion
 
@@ -494,7 +455,7 @@ namespace Mvk.Engine.Games
                 posZ *= .1f;
             }
             //Console.WriteLine(posX + " " + posY + " " + posZ + " v:" + volume);
-            window.PlaySound(key, posX, posY, posZ, volume, pitch);
+            Host.PlaySound(key, posX, posY, posZ, volume, pitch);
         }
 
         /// <summary>
@@ -564,16 +525,7 @@ namespace Mvk.Engine.Games
 
         #endregion
 
-        public override void Dispose()
-        {
-            base.Dispose();
-            // Надо очистить сетки
-            if (Hud != null)
-            {
-                Hud.Dispose();
-            }
-            WorldRender.Dispose();
-        }
+        public virtual void Dispose() => Host.DisposeGame();
 
         public override string ToString()
         {
@@ -582,7 +534,7 @@ namespace Mvk.Engine.Games
                 Player.Ping, IsGamePaused ? " Pause" : "", // 1-2
                 _ToTraffic(), 0,//TickCounter, // 3-4
                 Player, // 5
-                WorldRender.ToString(), // 6
+                Host.ToDebugString(), // 6
                 World != null ? World.ToString() : "" // 7
                 );
         }
@@ -625,7 +577,7 @@ namespace Mvk.Engine.Games
         public event ThreadExceptionEventHandler Error;
         protected void _OnError(Exception ex)
         {
-            WorldRender.Stoping();
+            Host.OnWorldStoping();
             Error?.Invoke(this, new ThreadExceptionEventArgs(ex));
         }
 

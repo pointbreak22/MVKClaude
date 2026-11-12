@@ -57,7 +57,7 @@ namespace Mvk.Engine.Entity.Player
             Id = id;
             IdWorld = idWorld;
             _InitIndexPlayer();
-            InitRender(IndexEntity, _game.WorldRender.Entities);
+            InitRender(IndexEntity, _game.Host.EntityRenders);
         }
 
         /// <summary>

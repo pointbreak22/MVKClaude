@@ -94,7 +94,7 @@ namespace Mvk.Engine.World
 
             for (int y = 0; y < height; y++)
             {
-                Buffer.BlockCopy(_buffer, index2 + (_stride * y),
+                System.Buffer.BlockCopy(_buffer, index2 + (_stride * y),
                     buffer, y * sizeRGBAw, sizeRGBAw);
             }
 
@@ -166,7 +166,7 @@ namespace Mvk.Engine.World
                 + index % _textureAtlasBlockCount * sizeRGBA;
             for (int y = 0; y < buffered.Height; y++)
             {
-                Buffer.BlockCopy(buffered.Buffer, y * sizeRGBAw,
+                System.Buffer.BlockCopy(buffered.Buffer, y * sizeRGBAw,
                     _buffer, index2 + (_stride * y), sizeRGBAw);
             }
             return buffered.Height / size;

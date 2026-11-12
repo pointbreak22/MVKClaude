@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Mvk.Engine.Event;
+using Mvk.Engine.Realms;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
 using Mvk.Engine.World.Chunk;
@@ -218,30 +219,22 @@ namespace Mvk.Engine
 
         private static bool _renderChunks;
 
-        private static MeshGuiColor _meshChunks;
 
-        public static void DrawChunks(WindowMain window)
+        /// <summary>
+        /// Вершины отладочной карты чанков (x, y, u, v, r, g, b, a), если изменились, иначе null
+        /// </summary>
+        public static float[] TakeChunksVertices()
         {
-            if (_meshChunks == null)
+            if (_renderChunks && !_flagBlockDraw)
             {
-                _meshChunks = new MeshGuiColor(window.GetOpenGL());
-            }
-            if (_renderChunks)
-            {
-                if (!_flagBlockDraw)
+                List<float> vs = new List<float>();
+                if (_RenderChuks(vs))
                 {
-                    List<float> vs = new List<float>();
-                    if (_RenderChuks(vs))
-                    {
-                        _renderChunks = false;
-                        _meshChunks.Reload(vs.ToArray());
-                    }
+                    _renderChunks = false;
+                    return vs.ToArray();
                 }
             }
-
-            window.Render.FontMain.BindTexture();
-            window.Render.ShaderBindGuiColor();
-            _meshChunks.Draw();
+            return null;
         }
 
         private static bool _RenderChuks(List<float> vs)

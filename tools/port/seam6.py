@@ -96,6 +96,8 @@ t = t.replace("""        /// <summary>
 t = cut(t, "public void EndImage(TextureMap textureMap)", "            Clear();\n        }\n", "atlas EndImage")
 t = cut(t, "public void DebugSpritePng(string alias, SpriteData sprite)", "            Marshal.FreeHGlobal(ptr);\n        }\n", "atlas Debug")
 t = cut(t, "public void DeleteTexture(TextureMap textureMap)", "                _idAtlasBlurry = 0;\n            }\n        }\n", "atlas Delete")
+# Свойство Buffer затеняет System.Buffer внутри класса
+t = re.sub(r"(?<![\w.])Buffer\.BlockCopy\(", "System.Buffer.BlockCopy(", t)
 save(r"World\GeneratingAtlas.cs", t)
 
 

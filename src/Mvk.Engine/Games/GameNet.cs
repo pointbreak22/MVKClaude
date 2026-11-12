@@ -36,8 +36,8 @@ namespace Mvk.Engine.Games
         /// </summary>
         private string _stopText;
 
-        public GameNet(WindowMain window, string ipAddress, int port, 
-            GameModClient gameMod) : base(window, gameMod)
+        public GameNet(IGameClientHost host, string ipAddress, int port, 
+            GameModClient gameMod) : base(host, gameMod)
         {
             IsLoacl = false;
             _ipAddress = ipAddress;
@@ -108,7 +108,7 @@ namespace Mvk.Engine.Games
         {
             base.GameStoping(notification, isWarning);
 
-            window.LScreen.Process(L.T("Leaving") + Ce.Ellipsis);
+            Host.ShowProcess(L.T("Leaving") + Ce.Ellipsis);
             _stopIsWarning = isWarning;
             _stopNotification = notification;
             if (_socket != null)
@@ -148,13 +148,13 @@ namespace Mvk.Engine.Games
         private void _Socket_Disconnected(object sender, StringEventArgs e)
         {
             _isConnected = false;
-            WorldRender.Stoping();
+            Host.OnWorldStoping();
             _StopAfterTick(e.Text);
         }
 
         private void _Socket_Error(object sender, ErrorEventArgs e)
         {
-            WorldRender.Stoping();
+            Host.OnWorldStoping();
             _StopAfterTick("Error: " + e.GetException().Message);
         }
 

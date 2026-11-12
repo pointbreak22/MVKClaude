@@ -22,10 +22,6 @@ namespace Mvk.Engine.World
         /// </summary>
         public readonly ChunkProviderClient ChunkPrClient;
         /// <summary>
-        /// Мир для рендера
-        /// </summary>
-        public readonly WorldRenderer WorldRender;
-        /// <summary>
         /// Объект игры
         /// </summary>
         public readonly GameBase Game;
@@ -49,12 +45,11 @@ namespace Mvk.Engine.World
             Rnd = new Rand();
            
            // Settings = new WorldSettings();
-            WorldRender = game.WorldRender;
             ChunkPr = ChunkPrClient = new ChunkProviderClient(this);
             Filer = new Profiler(game.Log, "[Client] ");
             ChunkPrClient.ChunkMappingChanged += _ChunkPrClient_ChunkMappingChanged;
 
-            WorldRender.Starting();
+            Game.Host.OnWorldStarting();
         }
 
         /// <summary>
@@ -104,7 +99,7 @@ namespace Mvk.Engine.World
         /// </summary>
         public void Stoping()
         {
-            WorldRender.Stoping();
+            Game.Host.OnWorldStoping();
             ChunkPrClient.Stoping();
             Game.ModClient.WorldStoped();
 #if DEBUG
@@ -120,7 +115,7 @@ namespace Mvk.Engine.World
             Game.ModClient.WorldStoped();
             ChunkPr.Settings.SetHeightChunks(packet.NumberChunkSections);
             Settings = Game.ModClient.CreateWorldSettings(packet.IdSetting);
-            Game.WorldRender.WorldRenderInitSetting();
+            Game.Host.OnWorldSettings();
             Settings.PacketRespawnInWorld(packet);
             Collision.Init();
         }
@@ -139,7 +134,7 @@ namespace Mvk.Engine.World
             {
                 for (z = c0z; z <= c1z; z++)
                 {
-                    ChunkRender chunk = ChunkPrClient.GetChunkRender(x, z);
+                    ChunkClient chunk = ChunkPrClient.GetChunkClient(x, z);
                     if (chunk != null)
                     {
                         for (y = c0y; y <= c1y; y++)
@@ -223,10 +218,9 @@ namespace Mvk.Engine.World
         public override void SpawnParticle(ushort particleId,
             int count, Vector3 pos, Vector3 offset, float motion, int parameter)
         {
-            ParticlesRenderer particles = Game.WorldRender.Particles;
             if (count == 1)
             {
-                particles.Spawn(particleId, pos, offset * motion, parameter);
+                Game.Host.SpawnParticle(particleId, pos, offset * motion, parameter);
             }
             else
             {
@@ -245,7 +239,7 @@ namespace Mvk.Engine.World
                             (Rnd.NextFloat() - .5f) * motion,
                             (Rnd.NextFloat() - .5f) * motion);
                     }
-                    particles.Spawn(particleId, pos + of, m, parameter);
+                    Game.Host.SpawnParticle(particleId, pos + of, m, parameter);
                 }
             }
         }
@@ -262,7 +256,7 @@ namespace Mvk.Engine.World
 
             BlockPos blockPos = new BlockPos();
             BlockState blockState;
-            ChunkRender chunkRender;
+            ChunkClient chunkRender;
             int k, x1, y1, z1, i, j, count2;
 
             int count0 = Game.Player.OverviewCircles.Count;

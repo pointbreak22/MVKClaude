@@ -16,3 +16,5 @@ TestResults/
 # Игровые данные, создаваемые при запуске
 saves/
 logs/
+
+__pycache__/

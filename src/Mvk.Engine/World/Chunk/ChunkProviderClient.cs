@@ -20,7 +20,7 @@ namespace Mvk.Engine.World.Chunk
         /// <summary>
         /// Выгрузить чанк
         /// </summary>
-        public void UnloadChunk(ChunkRender chunk)
+        public void UnloadChunk(ChunkClient chunk)
         {
             if (chunk != null)
             {
@@ -45,16 +45,16 @@ namespace Mvk.Engine.World.Chunk
             if (packet.IsRemoved())
             {
                 // Выгружаем чанк
-                UnloadChunk(_chunkMapping.Get(chx, chy) as ChunkRender);
+                UnloadChunk(_chunkMapping.Get(chx, chy) as ChunkClient);
             }
             else
             {
                 // Вносим данные в чанк
-                ChunkRender chunkRender = _chunkMapping.Get(chx, chy) as ChunkRender;
+                ChunkClient chunkRender = _chunkMapping.Get(chx, chy) as ChunkClient;
                 bool isNew = chunkRender == null;
                 if (isNew)
                 {
-                    chunkRender = new ChunkRender(_worldClient, chx, chy);
+                    chunkRender = _worldClient.Game.Host.CreateChunk(_worldClient, chx, chy);
                     _chunkMapping.Add(chunkRender);
                 }
 
@@ -84,8 +84,8 @@ namespace Mvk.Engine.World.Chunk
         /// <summary>
         /// Получить клиентский чанк по координатам чанка
         /// </summary>
-        public ChunkRender GetChunkRender(int x, int y)
-             => _chunkMapping.Get(x, y) as ChunkRender;
+        public ChunkClient GetChunkClient(int x, int y)
+             => _chunkMapping.Get(x, y) as ChunkClient;
 
         #endregion
 
@@ -97,7 +97,7 @@ namespace Mvk.Engine.World.Chunk
             // Получить список всех чанков
             List<IChunkPosition> positions = _chunkMapping.GetList();
             // Выгружаем чанки
-            foreach (ChunkRender chunkRender in positions)
+            foreach (ChunkClient chunkRender in positions)
             {
                 UnloadChunk(chunkRender);
             }
@@ -111,7 +111,7 @@ namespace Mvk.Engine.World.Chunk
         /// <param name="z">координата чанка Z</param>
         public void ModifiedToRenderAlpha(int x, int y, int z)
         {
-            ChunkRender chunk = GetChunkRender(x, z);
+            ChunkClient chunk = GetChunkClient(x, z);
             if (chunk != null)
             {
                 if (!chunk.ModifiedToRenderAlpha(y))
@@ -122,13 +122,13 @@ namespace Mvk.Engine.World.Chunk
                     }
                 }
             }
-            chunk = GetChunkRender(x + 1, z);
+            chunk = GetChunkClient(x + 1, z);
             if (chunk != null) chunk.ModifiedToRenderAlpha(y);
-            chunk = GetChunkRender(x - 1, z);
+            chunk = GetChunkClient(x - 1, z);
             if (chunk != null) chunk.ModifiedToRenderAlpha(y);
-            chunk = GetChunkRender(x, z + 1);
+            chunk = GetChunkClient(x, z + 1);
             if (chunk != null) chunk.ModifiedToRenderAlpha(y);
-            chunk = GetChunkRender(x, z - 1);
+            chunk = GetChunkClient(x, z - 1);
             if (chunk != null) chunk.ModifiedToRenderAlpha(y);
         }
 

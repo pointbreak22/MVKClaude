@@ -2,6 +2,25 @@
 
 Новые записи сверху. Изменения поведения относительно оригинала помечаются `[ПОВЕДЕНИЕ]`.
 
+## 2026-11-12: этап 2, Engine компилируется (логика клиента отделена от окна)
+Сделано:
+- `src/Mvk.Engine` собирается скриптами `tools/port` из оригинала (299 файлов) и компилируется:
+  0 ошибок, 0 предупреждений. Ни одной ссылки на окно, OpenGL, System.Drawing.
+- Шов клиента (ADR 0003, швы 3/4/5/8, `seam4.py`): `GameBase` больше не наследует окно (`Warp`),
+  всё отображение идёт через `IGameClientHost` (экраны, HUD, чат, рендер мира, частицы, звук, курсор).
+  `GameBase(host, modClient)`, `GameLocal(host, …)`, `GameNet(host, …)`, `GameModClient()` без окна.
+- Логический чанк клиента `ChunkClient` (частицы обязательных блоков, дистанция); сетки добавит
+  наследник в клиенте, его создаёт `IGameClientHost.CreateChunk`.
+- `Keys`, `MouseButton` → `Mvk.Engine.Actions`; `ColorsBiom` → `Mvk.Engine.World`;
+  `RenderFigure` → `Mvk.Engine.Util`; `Gi` остался в Engine без буферов вершин и рендеров блоков.
+- Отладочная карта чанков: Engine отдаёт вершины (`Debug.TakeChunksVertices`), меш рисует клиент.
+- `dotnet test`: 41 из 41.
+
+Дальше:
+- Тест-хост `IGameClientHost` без окна и прогон `GameLocal` в тестах (headless-клиент).
+- Golden атласа: байты PNG через StbImageSharp против GDI+.
+- Этап 3: `Mvk2` (мир, генерация) → `Mvk.Game`, проверка по `island.csv`.
+
 ## 2026-11-12: этап 1, Json, NBT, утилиты Core
 Сделано:
 - В `Mvk.Core` перенесены Json (без Bbmodel), NBT (без NBTTools) и самодостаточные утилиты `Vge/Util`

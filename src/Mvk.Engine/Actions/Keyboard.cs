@@ -94,8 +94,8 @@ namespace Mvk.Engine.Actions
             {
                 // Сочетания клавиш с F3
                 if (keys == Keys.C) Ce.IsDebugDrawChunks = !Ce.IsDebugDrawChunks; // F3+C
-                else if (keys == Keys.G) _game.WorldRender.ChunkCursorHiddenShow(); // F3+G
-                else if (keys == Keys.B) _game.WorldRender.HitboxEntitiesHiddenShow(); // F3+B
+                else if (keys == Keys.G) _game.Host.DebugToggle(EnumDebugToggle.ChunkCursor); // F3+G
+                else if (keys == Keys.B) _game.Host.DebugToggle(EnumDebugToggle.HitboxEntities); // F3+B
             }
             else
             {

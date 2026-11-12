@@ -22,7 +22,6 @@ client = ["Renderer/*", "Gui/*", "WindowMain.cs", "Warp.cs", "AssetsTexture.cs",
           "Entity/Render/EntityRenderAbstract.cs", "Entity/Render/EntityRenderAnimation.cs",
           "Entity/Render/EntityRenderClient.cs", "Entity/Render/EntityRenderEyeMouth.cs",
           "Entity/Render/EntityRenderItem.cs", "Entity/Render/EntityRenderParticle.cs",
-          "Gi.cs",
           "Util/BufferedFileImage.cs"]
 # Р›РѕРіРёРєР° РєР»РёРµРЅС‚Р° РѕСЃС‚Р°С‘С‚СЃСЏ РІ Engine (headless-РєР»РёРµРЅС‚), СЂРµРЅРґРµСЂ СѓС…РѕРґРёС‚ Р·Р° РёРЅС‚РµСЂС„РµР№СЃС‹: СЃРј. docs/adr/0003
 

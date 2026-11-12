@@ -3,6 +3,7 @@ using System.Threading;
 using Mvk.Engine.Event;
 using Mvk.Engine.Network;
 using Mvk.Engine.Network.Packets.Server;
+using Mvk.Engine.Realms;
 using Mvk.Engine.World;
 
 namespace Mvk.Engine.Games
@@ -21,11 +22,11 @@ namespace Mvk.Engine.Games
         /// </summary>
         private readonly bool _flagRun = true;
 
-        public GameLocal(WindowMain window, GameSettings gameSettings, 
+        public GameLocal(IGameClientHost host, GameSettings gameSettings, 
             AllWorlds worlds, GameModClient gameModClient) 
-            : base(window, gameModClient)
+            : base(host, gameModClient)
         {
-            _server = new GameServer(Log, window.CreateGameModServer(),
+            _server = new GameServer(Log, host.CreateGameModServer(),
                 gameSettings, worlds);
             _server.Closeded += _Server_Closeded;
             _server.Error += _Server_Error;
@@ -92,7 +93,7 @@ namespace Mvk.Engine.Games
         {
             base.GameStoping(notification, isWarning);
 
-            window.LScreen.Process(L.T("Saving") + Ce.Ellipsis);
+            Host.ShowProcess(L.T("Saving") + Ce.Ellipsis);
             if (_server != null)
             {
                 _stopNotification = notification;
@@ -164,16 +165,16 @@ namespace Mvk.Engine.Games
         /// </summary>
         public override void PacketLoadingGame(PacketS02LoadingGame packet)
         {
-            if (window.Screen != null && window.Screen is ScreenWorking screen)
+            if (Host.IsLoadingScreen)
             {
                 if (packet.Status == PacketS02LoadingGame.EnumStatus.Begin)
                 {
-                    screen.ServerBegin(packet.Value);
+                    Host.ServerLoadingBegin(packet.Value);
                 }
                 else if (packet.Status == PacketS02LoadingGame.EnumStatus.Step)
                 {
                     //Thread.Sleep(50);
-                    screen.ServerStep();
+                    Host.ServerLoadingStep();
                 }
                 else if (packet.Status == PacketS02LoadingGame.EnumStatus.ServerGo)
                 {
