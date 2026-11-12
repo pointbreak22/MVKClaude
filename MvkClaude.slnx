@@ -23,5 +23,6 @@
     <Project Path="tests/Mvk.Core.Tests/Mvk.Core.Tests.csproj" />
     <Project Path="tests/Mvk.Engine.Tests/Mvk.Engine.Tests.csproj" />
     <Project Path="tests/Mvk.Game.Tests/Mvk.Game.Tests.csproj" />
+    <Project Path="tests/Mvk.Platform.Tests/Mvk.Platform.Tests.csproj" />
   </Folder>
 </Solution>

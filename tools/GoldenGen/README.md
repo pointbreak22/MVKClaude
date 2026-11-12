@@ -20,7 +20,11 @@ dotnet bin/Release/net10.0/GoldenGen.dll ../../tests/Mvk.Game.Tests/Golden/islan
 dotnet bin/Release/net10.0/GoldenGen.dll math ../../tests/Mvk.Core.Tests/Golden/math.csv
 dotnet bin/Release/net10.0/GoldenGen.dll core ../../tests/Mvk.Core.Tests/Golden/core.csv
 dotnet bin/Release/net10.0/GoldenGen.dll png  ../../tests/Mvk.Engine.Tests/Golden/png.csv
+dotnet bin/Release/net10.0/GoldenGen.dll ogg  ../../tests/Mvk.Platform.Tests/Golden/audio.csv
 ```
+`ogg`: каждый OGG из `original/res/Assets`, декодированный `AudioSample.LoadOgg`:
+`путь;каналы,частота,байт:sha256` PCM16. Код эталона (`AudioGolden.cs`) общий с `Mvk.Platform.Tests`.
+
 `png`: каждый PNG из `original/res/Assets`, декодированный GDI+ как в `BufferedFileImage`:
 `путь;ШxВ:sha256` пикселей BGRA. Код эталона (`ImageGolden.cs`) общий с `Mvk.Engine.Tests`.
 

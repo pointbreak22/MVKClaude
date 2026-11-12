@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Mvk.Platform\Mvk.Platform.csproj" />
+    <ProjectReference Include="..\..\src\Mvk.Rendering\Mvk.Rendering.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Эталоны, снятые со старого проекта -->
+    <None Include="Golden\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Общий с tools/GoldenGen код эталона: здесь он декодирует новым кодом -->
+    <Compile Include="..\..\tools\GoldenGen\AudioGolden.cs" Link="Golden\AudioGolden.cs" />
+  </ItemGroup>
+</Project>

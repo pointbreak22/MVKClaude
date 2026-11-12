@@ -7,24 +7,34 @@ namespace Mvk.Rendering
     /// Игровой код работает только через него и не знает, какой API под ним.
     /// </summary>
     /// <remarks>
-    /// Заготовка этапа 0. На этапе 4 добавятся буферы, текстуры, пайплайны и списки команд
-    /// (модель в стиле Vulkan, см. docs/adr/0002-rhi.md).
+    /// Модель в стиле Vulkan (docs/adr/0002-rhi.md): ресурсы создаются заранее,
+    /// конвейеры неизменяемы, кадр записывается в <see cref="CommandList"/> и отдаётся в <see cref="Submit"/>.
+    /// Create*, Submit и ReadPixels вызываются в потоке, которому принадлежит контекст (поток окна).
     /// </remarks>
     public interface IGraphicsDevice : IDisposable
     {
-        /// <summary>
-        /// Какой бэкенд реализует устройство
-        /// </summary>
+        /// <summary>Какой бэкенд реализует устройство</summary>
         GraphicsBackend Backend { get; }
 
-        /// <summary>
-        /// Задать размер области вывода в пикселях
-        /// </summary>
-        void SetViewport(int width, int height);
+        /// <summary>Название GPU и версии API, для лога</summary>
+        string Description { get; }
+
+        IGpuBuffer CreateBuffer(BufferKind kind, BufferUsage usage);
+
+        ITexture CreateTexture(in TextureDescription description);
+
+        /// <summary>Скомпилировать шейдер. Ошибка компиляции даёт исключение с логом драйвера.</summary>
+        IShader CreateShader(ShaderDescription description);
+
+        IPipeline CreatePipeline(PipelineDescription description);
+
+        /// <summary>Выполнить записанные команды</summary>
+        void Submit(CommandList commands);
 
         /// <summary>
-        /// Очистить экран цветом и буфер глубины
+        /// Прочитать пиксели текущего кадра (до смены буферов) в RGBA8, строки сверху вниз.
+        /// Для снимков экрана и визуальных тестов.
         /// </summary>
-        void Clear(float r, float g, float b, float a);
+        void ReadPixels(int x, int y, int width, int height, Span<byte> rgba);
     }
 }

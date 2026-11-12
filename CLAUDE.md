@@ -38,7 +38,7 @@ src/
   Hosts/Mvk.Android/      (позже)
   Hosts/Mvk.Server/       выделенный сервер без графики
 tests/
-  Mvk.Core.Tests/  Mvk.Engine.Tests/  Mvk.Game.Tests/
+  Mvk.Core.Tests/  Mvk.Engine.Tests/  Mvk.Game.Tests/  Mvk.Platform.Tests/ (платформа и RHI)
 assets/                   ресурсы из res/Assets (копируются в вывод сборки)
 ```
 
@@ -63,7 +63,8 @@ assets/                   ресурсы из res/Assets (копируются �
 ## Команды
 - Сборка: `dotnet build MvkClaude.slnx -c Debug`
 - Тесты: `dotnet test MvkClaude.slnx`
-- Запуск ПК: `dotnet run --project src/Hosts/Mvk.Desktop` (окно с белым фоном на этапе 0)
+- Запуск ПК: `dotnet run --project src/Hosts/Mvk.Desktop` (на этапе 4 тестовая сцена RHI с кубами;
+  `-- --screenshot кадр.png` рисует кадр в PNG и выходит, им проверяется рендер без человека)
 - Сервер: `dotnet run --project src/Hosts/Mvk.Server`
 
 ## Проверка паритета с оригиналом
@@ -98,6 +99,11 @@ assets/                   ресурсы из res/Assets (копируются �
 Этап 0 готов, golden-эталоны сняты (генерация острова, математика).
 Этап 1 (Core) готов: математика, Json, NBT, Rand и утилиты перенесены, паритет проверяют
 `Golden/math.csv` и `Golden/core.csv`.
-Этап 2 (Engine) в работе: `src/Mvk.Engine` генерируется скриптами `tools/port` (руками не править,
-добавлять швы в скрипты) и компилируется; логика клиента отделена от окна через `IGameClientHost`
-(ADR 0003). Android отложен. См. `docs/progress.md`.
+Этапы 2 и 3 готовы: `src/Mvk.Engine` и `src/Mvk.Game` генерируются скриптами `tools/port`
+(`run_all.py`, `run_game.py`; руками не править, добавлять швы в скрипты); логика клиента отделена
+от окна через `IGameClientHost` (ADR 0003); PNG и генерация острова совпадают с оригиналом побитно
+(`png.csv`, `island.csv`).
+Этап 4 готов: RHI (`Mvk.Rendering`: буферы, текстуры, шейдеры, конвейеры, `CommandList`), бэкенд
+OpenGL, `Mvk.Platform` (ввод через `InputActionMap`, звук OpenAL, `audio.csv`), тестовая сцена
+в `Mvk.Desktop`.
+Следующий: этап 5 (клиент: мешинг, рендер мира, GUI на RHI). Android отложен. См. `docs/progress.md`.

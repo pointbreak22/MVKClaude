@@ -15,6 +15,8 @@
   <ItemGroup Label="Движок">
     <!-- Декодер PNG на чистом C# (замена System.Drawing, который есть только на Windows) -->
     <PackageVersion Include="StbImageSharp" Version="2.30.15" />
+    <!-- Декодер OGG Vorbis, та же версия, что в оригинале (PCM совпадает побайтно, см. audio.csv) -->
+    <PackageVersion Include="NVorbis" Version="0.10.5" />
   </ItemGroup>
 
   <ItemGroup Label="Тесты">

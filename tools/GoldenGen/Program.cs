@@ -65,6 +65,14 @@ namespace GoldenGen
                 return 0;
             }
 
+            if (args.Length > 0 && args[0] == "ogg")
+            {
+                string oggOutput = Path.GetFullPath(args.Length > 1 ? args[1] : "audio.csv", _startDirectory);
+                AudioGolden.Write(Path.Combine(AppContext.BaseDirectory, "Assets"), oggOutput);
+                Console.WriteLine("Done: " + oggOutput);
+                return 0;
+            }
+
             string output = Path.GetFullPath(args.Length > 0 ? args[0] : "island.csv");
             int radius = args.Length > 1 ? int.Parse(args[1], CultureInfo.InvariantCulture) : 3;
             List<long> seeds = new List<long>();

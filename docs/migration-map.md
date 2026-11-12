@@ -5,8 +5,8 @@
 | Оригинал (original/src) | Новый проект | Этап | Статус | Заметки |
 |---|---|---|---|---|
 | WinGL/Util (Glm, Mth, Clipboard) | Mvk.Core.Maths (Clipboard → Mvk.Platform) | 1 | ✅ | побитный паритет: `Golden/math.csv`; Clipboard ещё не перенесён |
-| WinGL/OpenGL (GL, Shader, ShaderProgram) | Mvk.Rendering.OpenGL | 4 | ⬜ | заменяется Silk.NET.OpenGL |
-| WinGL/Win32, Window.cs, Actions | Mvk.Platform | 4 | ⬜ | Silk.NET Windowing/Input, клавиши → InputAction |
+| WinGL/OpenGL (GL, Shader, ShaderProgram) | Mvk.Rendering (RHI) + Mvk.Rendering.OpenGL | 4 | ✅ | не перенос, а замена: RHI + бэкенд на Silk.NET.OpenGL; проверка снимком тестовой сцены (`Mvk.Desktop --screenshot`) |
+| WinGL/Win32, Window.cs, Actions | Mvk.Platform | 4 | 🟨 | окно, `InputDevice`, `InputActionMap` готовы; перевод клавиш в `Engine.Actions.Keys`, буфер обмена, полноэкранный режим → этап 5 |
 | Vge/Json (кроме Bbmodel), NBT (кроме NBTTools) | Mvk.Core.Json, Mvk.Core.Nbt | 1 | ✅ | паритет байтов: `Golden/core.csv`; Bbmodel и NBTTools (зависят от блоков и предметов) → Engine |
 | Vge/Util: ArrayFast, Conv, DoubleList, ListByte, ListFast, ListFlout, ListMessy, PointIntersection, Pole, Rand, RegTable, Sat3d, SizeDirectory, Vertex3d, WaitHandler, WeaverSpinLock, ComparisonDistance, CorrectTable, Sundry, Ticker | Mvk.Core.Util | 1 | ✅ | Rand побитно (`core.csv`); `Ce.Tps` и `Ce.MinDesiredBatchSize` стали параметром/константой |
 | Vge/Util: AxisAlignedBB, AabbOutline, Frustum, MovingObjectPosition | Mvk.Engine | 2 | 🟨 | компилируется; AxisAlignedBB зависит от `BlockPos` (World) |
@@ -20,7 +20,8 @@
 | Vge/Games (клиент), Realms | логика: Mvk.Engine; окно и экраны: Mvk.Engine.Client | 2/5 | 🟨 | `GameBase` без `Warp`, отображение через `IGameClientHost` (ADR 0003); ChatList, Loading → клиент |
 | Vge/Renderer | Mvk.Engine.Client (+ RHI) | 5 | ⬜ | 38 из 58 файлов напрямую вызывают GL |
 | Vge/Gui | Mvk.Engine.Client | 5 | ⬜ | 10 из 37 файлов вызывают GL |
-| Vge/Audio (Al, Alc) | Mvk.Platform (OpenAL) + Mvk.Engine.Client | 4–5 | ⬜ | DllImport → Silk.NET.OpenAL |
+| Vge/Audio (Al, Alc, AudioSample, AudioSource, AudioSources) | Mvk.Platform.Audio (`AudioDevice`, `PcmSample`) | 4 | ✅ | DllImport → Silk.NET.OpenAL; декодирование OGG побайтно: `Golden/audio.csv` (51 звук) |
+| Vge/Audio (AudioBase, реестр звуков) | Mvk.Engine + Mvk.Engine.Client | 5 | ⬜ | связать ключи звуков Engine с `AudioDevice` через `IGameClientHost` |
 | Vge/Сe.cs (кириллическая «С» в имени), Gi.cs | Mvk.Engine/Ce.cs, Gi.cs | 2 | 🟨 | файл переименован; из `Gi` убраны буферы вершин и рендеры блоков, палитра → `ColorPalette`, затемнение → `BlockShading` |
 | Mvk2/World, Entity, Item, Command, Packets, Util, Games (логика), DebugMvk (без снимка биомов) | Mvk.Game | 3 | ✅ | `run_game.py`; генерация острова побитно: `IslandParityTests` против `Golden/island.csv` |
 | Mvk2/Renderer, Gui, WindowMvk, DebugMvk | Mvk.Game.Client | 5 | ⬜ | |
