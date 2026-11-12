@@ -17,6 +17,7 @@
     <Compile Include="MathGolden.cs" />
     <Compile Include="CoreGolden.cs" />
     <Compile Include="ImageGolden.cs" />
+    <Compile Include="IslandGolden.cs" />
     <Using Include="WinGL.Util" />
     <None Include="..\..\original\res\Assets\**\*" LinkBase="Assets" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

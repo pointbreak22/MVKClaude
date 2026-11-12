@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!-- Контент Малювек 2 (серверная часть): блоки, предметы, биомы, генерация «Остров», ИИ мобов, команды. -->
+  <PropertyGroup>
+    <!-- Временно, как в Mvk.Engine: код перенесён из Mvk2 почти без правок (docs/improvements.md, E4). -->
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Mvk.Engine\Mvk.Engine.csproj" />
   </ItemGroup>

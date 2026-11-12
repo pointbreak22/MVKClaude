@@ -28,42 +28,7 @@ client = ["Renderer/*", "Gui/*", "WindowMain.cs", "Warp.cs", "AssetsTexture.cs",
 def match(rel, pats):
     return any(fnmatch.fnmatch(rel, p) for p in pats)
 
-def read(p):
-    b = open(p, "rb").read()
-    if b.startswith(b"\xef\xbb\xbf"): b = b[3:]
-    return b.decode("utf-8")
-
-USINGS = {
-    "Vge.Util": ["Mvk.Core.Util", "Mvk.Engine.Util"],
-    "Vge.NBT": ["Mvk.Core.Nbt", "Mvk.Engine.Nbt"],
-    "Vge.Json": ["Mvk.Core.Json", "Mvk.Engine.Json"],
-    "WinGL.Util": ["Mvk.Core.Maths"],
-}
-
-def convert(t):
-    def using(m):
-        ns = m.group(1)
-        if ns in USINGS:
-            return "\n".join("using " + n + ";" for n in USINGS[ns])
-        if ns == "Vge": return "using Mvk.Engine;"
-        if ns.startswith("Vge."): return "using Mvk.Engine." + ns[4:] + ";"
-        return m.group(0)
-    t = re.sub(r"^using ([\w.]+);", using, t, flags=re.M)
-    t = re.sub(r"^namespace Vge\.NBT\b", "namespace Mvk.Engine.Nbt", t, flags=re.M)
-    t = re.sub(r"^namespace Vge\b", "namespace Mvk.Engine", t, flags=re.M)
-    # РџРѕР»РЅС‹Рµ РёРјРµРЅР° РІ РєРѕРґРµ
-    t = re.sub(r"\bVge\.Util\.", "Mvk.Engine.Util.", t)
-    t = re.sub(r"\bVge\.(?=[A-Z])", "Mvk.Engine.", t)
-    t = re.sub(r"\bWinGL\.Util\.", "Mvk.Core.Maths.", t)
-    # Р¤Р°Р№Р»С‹ РёР· С‚РµС… Р¶Рµ РїСЂРѕСЃС‚СЂР°РЅСЃС‚РІ, С‡С‚Рѕ РїРµСЂРµРµС…Р°Р»Рё РІ Core, РІРёРґРµР»Рё РёС… С‚РёРїС‹ Р±РµР· using
-    extra = []
-    for ns, core in [("Mvk.Engine.Util", "Mvk.Core.Util"), ("Mvk.Engine.Nbt", "Mvk.Core.Nbt"),
-                     ("Mvk.Engine.Json", "Mvk.Core.Json")]:
-        if re.search(r"^namespace " + re.escape(ns) + r"\b", t, flags=re.M) and ("using " + core + ";") not in t:
-            extra.append("using " + core + ";")
-    if extra:
-        t = "\n".join(extra) + "\n" + t
-    return t
+from portconv import USINGS, convert, read
 
 dry = "--dry" in sys.argv
 ported = skipped = 0

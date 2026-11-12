@@ -1,0 +1,169 @@
+﻿using Mvk.Game.World.Block.List;
+using System.Runtime.CompilerServices;
+using Mvk.Engine.Entity.Player;
+using Mvk.Engine.Item;
+using Mvk.Engine.Item.List;
+using Mvk.Core.Util;
+using Mvk.Engine.Util;
+using Mvk.Engine.World;
+using Mvk.Engine.World.Block;
+using Mvk.Core.Maths;
+
+namespace Mvk.Game.Item.List
+{
+    /// <summary>
+    /// Предмет дверь
+    /// </summary>
+    public class ItemDoor : ItemBlock
+    {
+        private readonly BlockDoor _blockDoor;
+
+        public ItemDoor(BlockDoor blockDoor) : base(blockDoor) 
+            => _blockDoor = blockDoor;
+
+        #region Дейстыия рук, ЛКМ и ПКМ
+
+        /// <summary>
+        /// Дополнительная проверка на moving, чтоб сократить последующие проверки
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override bool _CheckMoving(MovingObjectPosition moving)
+            => moving.IsBlock() && moving.Side == Pole.Up;
+
+        /// <summary>
+        /// Сместить начальное положение
+        /// </summary>
+        protected override BlockPos _ShiftInitialPosition(BlockPos blockPos, Pole side,
+            Vector3 facing, float playerYaw)
+        {
+            // Определяем на какую сторону смотрит игрок
+            if (side == Pole.Up || side == Pole.Down)
+            {
+                // Стороны по playerYaw
+                side = (Pole)PoleConvert.Reverse[(int)PoleConvert.FromAngle(playerYaw)];
+            }
+            // Определение с какой стороны петля
+            bool left = PoleConvert.IsFromAngleLeft(playerYaw, side);
+
+            if (side == Pole.East)
+            {
+                blockPos.X--;
+                if (left) blockPos.Z--;
+            }
+            else if (side == Pole.South)
+            {
+                blockPos.Z--;
+                if (!left) blockPos.X--;
+            }
+            else if (side == Pole.North && left) blockPos.X--;
+            else if (side == Pole.West && !left) blockPos.Z--;
+
+            return blockPos;
+        }
+
+        /// <summary>
+        /// Установить дополнительные блоки.
+        /// Вернёт количество дополнительных предметов на удаление. -1, не смог установить
+        /// </summary>
+        protected override byte _InstallAdditionalBlocks(PlayerBase player, BlockState blockState, 
+            BlockPos blockPos, Pole side, Vector3 facing, float playerYaw)
+        {
+            WorldBase world = player.GetWorld();
+
+            // Определяем на какую сторону смотрит игрок
+            if (side == Pole.Up || side == Pole.Down)
+            {
+                // Стороны по playerYaw
+                side = (Pole)PoleConvert.Reverse[(int)PoleConvert.FromAngle(playerYaw)];
+            }
+            // Определение с какой стороны петля
+            bool left = PoleConvert.IsFromAngleLeft(playerYaw, side);
+
+            int add = BlockDoor.ConvMetData(false, left, (int)side - 2);
+
+            byte result = 1;
+            BlockPos blockPosCheck;
+            BlockState blockStateOld;
+            for (int x = 0; x < 2; x++)
+            {
+                for (int z = 0; z < 2; z++)
+                {
+                    for (int y = 0; y < 4; y++)
+                    {
+                        if (x != 0 || z != 0 || y != 0)
+                        {
+                            blockPosCheck = blockPos.Offset(x, y, z);
+                            blockStateOld = world.GetBlockState(blockPosCheck);
+                            int met = BlockDoor.ConvMetData(x, y, z) + add;
+                            if (!world.SetBlockState(blockPosCheck, new BlockState(Block.IndexBlock | met << 12), BlockFlag.cParticle))
+                            {
+                                result = 0;
+                            }
+                            else if (player.IsDropBreakingBlock() && player is PlayerServer playerServer)
+                            {
+                                blockStateOld.GetBlock().DropBlockAsItem(playerServer.GetWorldServer(),
+                                    null, blockPos, blockStateOld);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (result == 0)
+            {
+                // Откатать на воздух!
+                for (int x = 0; x < 2; x++)
+                {
+                    for (int z = 0; z < 2; z++)
+                    {
+                        for (int y = 0; y < 4; y++)
+                        {
+                            world.SetBlockToAir(blockPos.Offset(x, y, z), BlockFlag.cQuiet);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Проверка, может ли блок устанавливаться в этом месте
+        /// </summary>
+        /// <param name="blockPos">Координата блока, по которому щелкают правой кнопкой мыши</param>
+        /// <param name="block">Объект блока который хотим установить</param>
+        /// <param name="side">Сторона, по которой щелкнули правой кнопкой мыши</param>
+        /// <param name="facing">Значение в пределах 0..1, образно фиксируем пиксел клика на стороне</param>
+        protected override bool _CanPlaceBlockOnSide(ItemStack stack, PlayerBase player, WorldBase world,
+            BlockPos blockPos, BlockBase block, Pole side, Vector3 facing, float playerYaw)
+        {
+            for (int x = 0; x < 2; x++)
+            {
+                for (int z = 0; z < 2; z++)
+                {
+                    for (int y = 0; y < 4; y++)
+                    {
+                        if (!base._CanPlaceBlockOnSide(stack, player, world, 
+                            blockPos.Offset(x, y, z), Block, side, facing, playerYaw))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            // Определяем на какую сторону смотрит игрок
+            if (side == Pole.Up || side == Pole.Down)
+            {
+                // Стороны по playerYaw
+                side = (Pole)PoleConvert.Reverse[(int)PoleConvert.FromAngle(playerYaw)];
+            }
+            // Определение с какой стороны петля
+            bool left = PoleConvert.IsFromAngleLeft(playerYaw, side);
+
+            return _blockDoor.CanDoorStay(world, blockPos, left, side);
+        }
+
+        #endregion
+    }
+}

@@ -1,0 +1,63 @@
+﻿using Mvk.Core.Util;
+using Mvk.Engine.Util;
+using Mvk.Engine.World;
+using Mvk.Engine.World.Block;
+using Mvk.Engine.World.Chunk;
+using Mvk.Engine.World.Environment;
+
+namespace Mvk.Game.World.Block.List
+{
+    /// <summary>
+    /// Блок плода
+    /// </summary>
+    public class BlockFetus : BlockBase
+    {
+        public BlockFetus(MaterialBase material) : base(material) { }
+
+        /// <summary>
+        /// ID блок листвы текущего дерева
+        /// </summary>
+        protected int _idLeaves;
+
+        /// <summary>
+        /// Смена соседнего блока
+        /// </summary>
+        public override void NeighborBlockChange(WorldServer world, ChunkServer chunk,
+            BlockPos blockPos, BlockState blockState)
+        {
+            base.NeighborBlockChange(world, chunk, blockPos, blockState);
+            if (!CanBlockStay(world, chunk, blockPos, blockState.Met))
+            {
+                //DropBlockAsItem(worldIn, blockPos, state);
+                world.SetBlockToAir(blockPos, BlockFlag.cParticle); // 1 2 4 8 32 без звука но с частичками
+            }
+        }
+
+        /// <summary> 
+        /// Проверка установи блока, можно ли его установить тут
+        /// </summary>
+        public override bool CanBlockStay(WorldBase world, ChunkBase chunk, BlockPos blockPos, int met = 0)
+        {
+            if (chunk == null) chunk = world.GetChunk(blockPos);
+            if (chunk != null)
+            {
+                return chunk.GetBlockState(blockPos.OffsetUp()).Id == _idLeaves;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Случайный эффект блока, для сервера
+        /// </summary>
+        public override void RandomTick(WorldServer world, ChunkServer chunk,
+            BlockPos blockPos, BlockState blockState, Rand random)
+        {
+            EnumTimeYear timeYear = world.Settings.Environment.TimeYear;
+            if (timeYear == EnumTimeYear.Winter || timeYear == EnumTimeYear.Spring)
+            {
+                // Удаляем
+                world.SetBlockToAir(blockPos);
+            }
+        }
+    }
+}

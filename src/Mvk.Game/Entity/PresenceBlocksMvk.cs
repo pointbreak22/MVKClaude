@@ -1,0 +1,269 @@
+﻿using Mvk.Engine.Entity;
+using Mvk.Engine.Entity.Physics;
+using Mvk.Engine.Entity.Sizes;
+using Mvk.Core.Util;
+using Mvk.Engine.Util;
+using Mvk.Engine.World;
+using Mvk.Engine.World.Block;
+using Mvk.Engine.World.Block.List;
+using Mvk.Engine.World.Chunk;
+using Mvk.Core.Maths;
+
+namespace Mvk.Game.Entity
+{
+    /// <summary>
+    /// Наличия блоков в которой находится сущность
+    /// </summary>
+    public class PresenceBlocksMvk : IPresenceBlocks
+    {
+        public readonly EntityBase Entity;
+
+        public PresenceBlocksMvk(EntityBase entity)
+            => Entity = entity;
+
+        /// <summary>
+        /// Находится ли в воде
+        /// </summary>
+       // public bool IsInWater { get; private set; }
+
+        /// <summary>
+        /// Можно ли всплыть
+        /// </summary>
+        public bool IsSurface { get; private set; }
+        /// <summary>
+        /// Можно ли прыгнуть в жидкости
+        /// </summary>
+        public bool IsJumpLiquid { get; private set; }
+        /// <summary>
+        /// Находится ли в любой из жидкостей
+        /// </summary>
+        public bool IsInLiquid { get; private set; }
+        /// <summary>
+        /// Можно ли совершить авто прыжок
+        /// </summary>
+        public bool IsInAutoJump { get; private set; }
+        /// <summary>
+        /// Ускорение всплытия в жидкости
+        /// </summary>
+        public float AccelerationAscentInLiquid { get; private set; } = .048f;
+        /// <summary>
+        /// Ускорение для погружения в жидкости
+        /// </summary>
+        public float AccelerationToDiveInLiquid { get; private set; } = -.032f;
+
+        /// <summary>
+        /// Коэффициент трения в жидкости
+        /// </summary>
+        public float FactorInertiaInLiquid { get; private set; } = .8f;
+        /// <summary>
+        /// Коэффициент гравитации в жидкости
+        /// </summary>
+        public float FactorGravityInLiquid { get; private set; } = .01f;
+
+        /// <summary>
+        /// Состояние взбираться на лестнице, лиане, канат
+        /// </summary>
+        public bool IsClimb { get; private set; }
+        /// <summary>
+        /// Коэффициент гравитации взбираться
+        /// </summary>
+        public float FactorGravityClimb { get; private set; } = .04f;
+        /// <summary>
+        /// Ускорение поднятия взбираться 2,35 м/с  (майнкрафт)
+        /// </summary>
+        public float AccelerationUpClimb { get; private set; } = .1285f;
+        /// <summary>
+        /// Ускорение спуска взбираться 3,0 (майнкрафт)
+        /// </summary> 
+        public float AccelerationDownClimb { get; private set; } = -.1145f;
+
+        /// <summary>
+        /// Имеются ли замедления
+        /// </summary>
+        public bool IsSlow { get; private set; }
+        /// <summary>
+        /// Коэффициент замедления по X и Z
+        /// </summary>
+        public float FactorSlowXZ { get; private set; }
+        /// <summary>
+        /// Коэффициент замедления по Y
+        /// </summary>
+        public float FactorSlowY { get; private set; }
+
+        /// <summary>
+        /// Имеется импульс
+        /// </summary>
+        public bool IsImpulse { get; private set; }
+        /// <summary>
+        /// Импульс по координате X
+        /// </summary>
+        public float ImpulseX { get; private set; }
+        /// <summary>
+        /// Импульс по координате X
+        /// </summary>
+        public float ImpulseY { get; private set; }
+        /// <summary>
+        /// Импульс по координате X
+        /// </summary>
+        public float ImpulseZ { get; private set; }
+        /// <summary>
+        /// Счётчик для авто прыжка из воды
+        /// </summary>
+        private int _numberAutoJump;
+
+        /// <summary>
+        /// Обновление перерасчёта в такте
+        /// </summary>
+        public void Update(WorldBase world)
+        {
+            _EmptyBlocks();
+
+            if (Entity.Size is ISizeEntityBox sizeBox)
+            {
+                // Коробка
+                AxisAlignedBB aabb = sizeBox.GetBoundingBox().Expand(-.2f, -.4f, -.2f);
+
+                Vector3i min = aabb.MinInt();
+                Vector3i max = aabb.MaxInt();
+
+                int numberBlocks = world.ChunkPr.Settings.NumberBlocks;
+
+                int minCx = min.X >> 4;
+                int minCz = min.Z >> 4;
+                int maxCx = max.X >> 4;
+                int maxCz = max.Z >> 4;
+                int minY = min.Y;
+                if (minY < 0) minY = 0; else if (minY > numberBlocks) minY = numberBlocks;
+                int maxY = max.Y;
+                if (maxY < 0) maxY = 0; else if (maxY > numberBlocks) maxY = numberBlocks;
+
+                int xb, zb, x, y, z;
+                int xc, zc;
+                BlockPos blockPos = new BlockPos();
+
+                for (xc = minCx; xc <= maxCx; xc++)
+                {
+                    for (zc = minCz; zc <= maxCz; zc++)
+                    {
+                        ChunkBase chunk = world.GetChunk(xc, zc);
+                        for (x = min.X; x <= max.X; x++)
+                        {
+                            if (x >> 4 == xc)
+                            {
+                                xb = x & 15;
+                                for (z = min.Z; z <= max.Z; z++)
+                                {
+                                    if (z >> 4 == zc)
+                                    {
+                                        zb = z & 15;
+                                        for (y = minY; y <= maxY; y++)
+                                        {
+                                            if (chunk != null)
+                                            {
+                                                blockPos.X = x;
+                                                blockPos.Y = y;
+                                                blockPos.Z = z;
+                                                _CheckBlock(world, blockPos,
+                                                    chunk.GetBlockStateNotCheckLight(xb, y, zb));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                _CheckSurface(world);
+            }
+            else
+            {
+                // Точка, проверяем по позиции
+                BlockPos blockPos = new BlockPos(Entity.PosX, Entity.PosY, Entity.PosZ);
+                _CheckBlock(world, blockPos, world.GetBlockState(blockPos));
+                IsJumpLiquid = IsSurface = IsInLiquid;
+            }
+        }
+
+        private void _EmptyBlocks()
+        {
+            IsJumpLiquid = false;
+            IsSurface = false;
+            IsInLiquid = false;
+            IsImpulse = false;
+            IsSlow = false;
+            IsClimb = false;
+            if (_numberAutoJump > 0)
+            {
+                _numberAutoJump--;
+                if (_numberAutoJump == 0)
+                {
+                    IsInAutoJump = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Определения Статусов возможности всплыть и прыжка в жидкости
+        /// </summary>
+        /// <param name="world"></param>
+        private void _CheckSurface(WorldBase world)
+        {
+            if (IsInLiquid)
+            {
+                BlockPos blockPos = new BlockPos(Entity.PosX,
+                        Entity.PosY + Entity.Size.GetHeight() * PhysicsGround.FactorJumpLiquid, Entity.PosZ);
+                IsSurface = world.GetBlockState(blockPos).GetBlock().Material.Liquid;
+                if (IsSurface)
+                {
+                    IsJumpLiquid = false;
+                }
+                else
+                {
+                    blockPos = new BlockPos(Entity.PosX,
+                            Entity.PosY + Entity.Size.GetHeight() * PhysicsGround.FactorJumpLiquid * .5f, Entity.PosZ);
+                    IsJumpLiquid = !world.GetBlockState(blockPos).GetBlock().Material.Liquid;
+                }
+            }
+        }
+
+        private void _CheckBlock(WorldBase world, BlockPos blockPos, BlockState blockState)
+        {
+            BlockBase block = blockState.GetBlock();
+            if (block.Material.Liquid)
+            {
+                if (blockState.Met != 0)
+                {
+                    Vector3 vec = BlockLiquid.GetVectorFlow(world, blockPos);
+                    ImpulseX = vec.X * block.LiquidImpulse;// .026f;
+                    ImpulseY = vec.Y * block.LiquidImpulse;
+                    ImpulseZ = vec.Z * block.LiquidImpulse;
+                    IsImpulse = true;
+                }
+                IsInLiquid = true;
+                IsInAutoJump = true;
+                _numberAutoJump = 5;
+            }
+            else if (block.Material.Climb)
+            {
+                IsClimb = true;
+                IsInAutoJump = true;
+                _numberAutoJump = 5;
+            }
+            else if (block.IsSlow)
+            {
+                FactorSlowXZ = block.FactorSlowXZ;
+                FactorSlowY = block.FactorSlowY;
+                IsSlow = true;
+            }
+        }
+
+        public override string ToString()
+        {
+            return (IsInLiquid ? " Liquid" : "") 
+                + (IsSlow ? " Slow" : "")
+                + (IsImpulse ? " Impulse" : "")
+                + (IsClimb ? " Climb" : "")
+                + (IsInAutoJump ? " AutoJump" : "");
+        }
+    }
+}

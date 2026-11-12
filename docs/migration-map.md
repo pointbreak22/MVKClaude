@@ -22,7 +22,7 @@
 | Vge/Gui | Mvk.Engine.Client | 5 | ⬜ | 10 из 37 файлов вызывают GL |
 | Vge/Audio (Al, Alc) | Mvk.Platform (OpenAL) + Mvk.Engine.Client | 4–5 | ⬜ | DllImport → Silk.NET.OpenAL |
 | Vge/Сe.cs (кириллическая «С» в имени), Gi.cs | Mvk.Engine/Ce.cs, Gi.cs | 2 | 🟨 | файл переименован; из `Gi` убраны буферы вершин и рендеры блоков, палитра → `ColorPalette`, затемнение → `BlockShading` |
-| Mvk2/World, Entity, Item, Command, Packets, Util | Mvk.Game | 3 | ⬜ | golden-тесты генерации |
+| Mvk2/World, Entity, Item, Command, Packets, Util, Games (логика), DebugMvk (без снимка биомов) | Mvk.Game | 3 | ✅ | `run_game.py`; генерация острова побитно: `IslandParityTests` против `Golden/island.csv` |
 | Mvk2/Renderer, Gui, WindowMvk, DebugMvk | Mvk.Game.Client | 5 | ⬜ | |
 | Mvk2/Games | Mvk.Game (+ Client) | 3/5 | ⬜ | |
 | res/Assets | assets/ | 5 | ⬜ | копировать в вывод сборки |

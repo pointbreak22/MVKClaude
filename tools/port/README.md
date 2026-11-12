@@ -23,3 +23,6 @@ python tools/port/deps.py             # какие серверные файлы
    - `cleanup.py` — убирает using клиентских пространств имён (Renderer, Gui, WinGL).
 
 Когда перенос Engine закончится, скрипты останутся как история: дальше код правится в `src/` напрямую.
+
+## Mvk2 → Mvk.Game
+`python tools/port/run_game.py` — то же для контента: `port_game.py` (клиентские папки Gui, Renderer, Realms и окно не переносятся), файлы `game_new/`, швы `game_seam*.py` по алфавиту, `cleanup.py`. Общая замена пространств имён — `portconv.py`.

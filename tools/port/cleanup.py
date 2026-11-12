@@ -1,6 +1,7 @@
 """Убрать using клиентских пространств имён из Engine: оставшиеся ссылки покажет компилятор по именам типов."""
 import os, re
-eng = r"E:\Projects\Games\MvkClaude\src\Mvk.Engine"
+import sys
+eng = sys.argv[1] if len(sys.argv) > 1 else r"E:\Projects\Games\MvkClaude\src\Mvk.Engine"
 n = 0
 for d, _, fs in os.walk(eng):
     if "\\bin" in d or "\\obj" in d: continue

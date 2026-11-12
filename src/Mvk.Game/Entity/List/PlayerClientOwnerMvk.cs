@@ -1,0 +1,116 @@
+﻿using Mvk.Game.Entity.Inventory;
+using Mvk.Game.Entity.Player;
+using Mvk.Engine.Entity.Render;
+using System;
+using System.Runtime.CompilerServices;
+using Mvk.Engine.Entity;
+using Mvk.Engine.Entity.Player;
+using Mvk.Engine.Games;
+using Mvk.Engine.Network.Packets.Server;
+using Mvk.Engine.World.Chunk;
+using Mvk.Core.Maths;
+
+namespace Mvk.Game.Entity.List
+{
+    /// <summary>
+    /// Объект игрока владельца, на клиенте Mvk
+    /// </summary>
+    public class PlayerClientOwnerMvk : PlayerClientOwner
+    {
+        /// <summary>
+        /// Объект инвенторя игрока
+        /// </summary>
+        public InventoryPlayerMvk InvPlayer { get; private set; }
+
+        public PlayerClientOwnerMvk(GameBase game) : base(game)
+        {
+            _handManager = new HandManagerMvk(game, this);
+        }
+
+        /// <summary>
+        /// Запуск мира
+        /// </summary>
+        public override void WorldStarting()
+        {
+            base.WorldStarting();
+            PresenceBlocks = new PresenceBlocksMvk(this);
+        }
+
+        /// <summary>
+        /// Инициализация для клиента
+        /// </summary>
+        public override void InitRender(ushort index, IEntityRenderFactory renderFactory)
+        {
+            IndexEntity = index;
+            if (Ce.Entities.GetResourcesEntity(IndexEntity) is ResourcesEntity resourcesEntity)
+            {
+                Render = renderFactory.Create(EntityRenderKindMvk.Owner, this, resourcesEntity);
+            }
+            else
+            {
+                // Отсутствует файл json, сущности
+                throw new Exception(Sr.GetString(Sr.FileMissingJsonEntity, GetType().Name));
+            }
+
+            _InitMetaData();
+            _InitSize();
+            _CreateInventory();
+        }
+
+        /// <summary>
+        /// Инициализация инвенторя
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override void _CreateInventory()
+        {
+            Inventory = InvPlayer = new InventoryPlayerMvk(null);
+            Inventory.OutsideChanged += (sender, e) => Render.OutsideItemChanged();
+            InvPlayer.CurrentIndexChanged += _InvPlayer_CurrentIndexChanged;
+        }
+
+        /// <summary>
+        /// Событие изменён индекс выбраного слота правой руки
+        /// </summary>
+        private void _InvPlayer_CurrentIndexChanged(object sender, EventArgs e)
+        {
+            _handManager.SetStop();
+        }
+
+        /// <summary>
+        /// Для определения параметров блока чанк и локальные координаты блока
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override string _ToBlockInfo(ChunkBase chunk, Vector3i pos) 
+            => DebugMvk.ToBlockInfo(chunk, pos);
+
+        #region Packet
+
+        /// <summary>
+        /// Пакет управления передвежением и изменением слота
+        /// </summary>
+        public override void PacketSetSlot(PacketS2FSetSlot packet)
+        {
+            short slotId = packet.SlotId;
+
+            if (slotId < 100 || slotId == 255)
+            {
+                // Пришёл стак для инвентаря
+                InvPlayer.SetInventorySlotContents(slotId, packet.Stack);
+                //Console.WriteLine(slotId + " " + packet.Stack?.ToString());
+
+            //    if (slot == ClientMain.Player.InventPlayer.CurrentItem)
+            //    {
+            //        ClientMain.Player.ItemInWorldManagerDestroyAbout();
+            //    }
+
+            }
+            else
+            {
+                // Пришёл стак для склада
+                _game.Host.AcceptNetworkPackage(packet);
+            }
+        }
+
+        #endregion
+    }
+}
