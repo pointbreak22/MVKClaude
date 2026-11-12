@@ -42,11 +42,6 @@ namespace Mvk.Engine.World.Chunk
         }
 
         /// <summary>
-        /// Пометить что надо перерендерить сетку секции y. Без отображения ничего не делает
-        /// </summary>
-        public virtual void ModifiedToRender(int y) { }
-
-        /// <summary>
         /// Пометить что надо перерендерить сетку чанка альфа блоков.
         /// Без отображения сеток нет, вернёт false
         /// </summary>

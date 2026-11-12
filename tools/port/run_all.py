@@ -17,6 +17,6 @@ for d, _, fs in os.walk(new):
         rel = os.path.relpath(os.path.join(d, f), new)
         os.makedirs(os.path.dirname(os.path.join(eng, rel)), exist_ok=True)
         shutil.copy(os.path.join(d, f), os.path.join(eng, rel))
-for s in sys.argv[1:] or ["seam1.py", "seam2.py", "seam6.py", "seam4.py", "cleanup.py"]:
+for s in sys.argv[1:] or ["seam1.py", "seam2.py", "seam6.py", "seam4.py", "fix_warnings.py", "cleanup.py"]:
     run(s)
 print("run_all ok")

@@ -19,6 +19,7 @@ python tools/port/deps.py             # какие серверные файлы
    - `seam6.py` — реестры получают `IProgress<string>` вместо окна, атлас без GL и System.Drawing;
    - `seam4.py` — логика клиента (`GameBase`, `WorldClient`, игрок, `ChunkClient`) без окна:
      всё отображение через `IGameClientHost`;
+   - `fix_warnings.py` — предупреждения компилятора, унаследованные от оригинала;
    - `cleanup.py` — убирает using клиентских пространств имён (Renderer, Gui, WinGL).
 
 Когда перенос Engine закончится, скрипты останутся как история: дальше код правится в `src/` напрямую.

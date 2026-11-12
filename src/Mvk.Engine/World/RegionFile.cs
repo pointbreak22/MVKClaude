@@ -68,7 +68,7 @@ namespace Mvk.Engine.World
                                 size = stream.ReadInt();
                                 stream.ReadByte();
                                 _buffers[i] = new byte[size];
-                                stream.Read(_buffers[i], 0, size);
+                                stream.ReadExactly(_buffers[i], 0, size);
                             }
                         }
                     }

@@ -67,6 +67,14 @@ namespace GoldenGen
                 return 0;
             }
 
+            if (args.Length > 0 && args[0] == "png")
+            {
+                string pngOutput = Path.GetFullPath(args.Length > 1 ? args[1] : "png.csv", _startDirectory);
+                ImageGolden.Write(Path.Combine(AppContext.BaseDirectory, "Assets"), pngOutput);
+                Console.WriteLine("Готово: " + pngOutput);
+                return 0;
+            }
+
             string output = Path.GetFullPath(args.Length > 0 ? args[0] : "island.csv");
             int radius = args.Length > 1 ? int.Parse(args[1], CultureInfo.InvariantCulture) : 3;
             List<long> seeds = new List<long>();

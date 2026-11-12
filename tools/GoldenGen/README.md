@@ -15,6 +15,15 @@ dotnet bin/Release/net10.0/GoldenGen.dll ../../tests/Mvk.Game.Tests/Golden/islan
 ```
 Аргументы: `[файл] [радиус] [seed1 seed2 ...]`. По умолчанию seed: 1, 2, 20241004, -987654321.
 
+Другие эталоны (первый аргумент — режим, путь вывода относительно текущей папки):
+```
+dotnet bin/Release/net10.0/GoldenGen.dll math ../../tests/Mvk.Core.Tests/Golden/math.csv
+dotnet bin/Release/net10.0/GoldenGen.dll core ../../tests/Mvk.Core.Tests/Golden/core.csv
+dotnet bin/Release/net10.0/GoldenGen.dll png  ../../tests/Mvk.Engine.Tests/Golden/png.csv
+```
+`png`: каждый PNG из `original/res/Assets`, декодированный GDI+ как в `BufferedFileImage`:
+`путь;ШxВ:sha256` пикселей BGRA. Код эталона (`ImageGolden.cs`) общий с `Mvk.Engine.Tests`.
+
 ## Что в файле
 `seed;chunkX;chunkZ;blocks;biomes;heightMapGen;light;blockEntities`
 - `blocks` — SHA-256 по всем секциям `ChunkStorage.Data` (id + met + доп. жидкость);

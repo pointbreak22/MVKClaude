@@ -11,7 +11,7 @@
 | Vge/Util: ArrayFast, Conv, DoubleList, ListByte, ListFast, ListFlout, ListMessy, PointIntersection, Pole, Rand, RegTable, Sat3d, SizeDirectory, Vertex3d, WaitHandler, WeaverSpinLock, ComparisonDistance, CorrectTable, Sundry, Ticker | Mvk.Core.Util | 1 | ✅ | Rand побитно (`core.csv`); `Ce.Tps` и `Ce.MinDesiredBatchSize` стали параметром/константой |
 | Vge/Util: AxisAlignedBB, AabbOutline, Frustum, MovingObjectPosition | Mvk.Engine | 2 | 🟨 | компилируется; AxisAlignedBB зависит от `BlockPos` (World) |
 | Vge/Util: Logger, Profiler, Options, OptionsFile, FileAssets | Mvk.Engine | 2 | 🟨 | компилируется; связаны с `Ce`, `Gi`, событиями |
-| Vge/Util: BufferedImage, BufferedFileImage | Mvk.Engine | 2 | 🟨 | PNG через StbImageSharp (RGBA→BGRA); нужен golden против GDI+ |
+| Vge/Util: BufferedImage, BufferedFileImage | Mvk.Engine | 2 | ✅ | PNG через StbImageSharp (RGBA→BGRA); побайтный паритет с GDI+ на 178 ассетах: `Golden/png.csv` |
 | Vge/World | Mvk.Engine | 2 | 🟨 | `ChunkRender` → логический `ChunkClient` + сетки в клиенте; `ColorsBiom` → `Mvk.Engine.World`; `BlockBase`, `WorldClient`, `ChunkProviderClient`, `GeneratingAtlas` ссылаются на Renderer: разрезать |
 | Vge/Entity (кроме Render) | Mvk.Engine | 2 | 🟨 | компилируется; рендер через `IEntityRenderFactory` |
 | Vge/Entity/Render | Mvk.Engine.Client | 5 | ⬜ | |

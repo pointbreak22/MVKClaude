@@ -33,7 +33,7 @@ namespace Mvk.Engine.World.Gen.Feature
         /// <summary>
         /// Диапазон по Y
         /// </summary>
-        private readonly byte _rangeY;
+        private readonly byte _rangeY = 0; // в оригинале не задаётся нигде, всегда 0 (improvements E8)
         /// <summary>
         /// Можно ли в воздухе ставить
         /// </summary>

@@ -40,9 +40,9 @@ namespace Mvk.Engine.Nbt
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -72,9 +72,9 @@ namespace Mvk.Engine.Nbt
                 }
                 return compound;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -121,9 +121,9 @@ namespace Mvk.Engine.Nbt
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -154,9 +154,9 @@ namespace Mvk.Engine.Nbt
                 }
                 return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
         

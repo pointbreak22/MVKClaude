@@ -10,6 +10,9 @@
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />
+    <!-- Общий с tools/GoldenGen код эталона: здесь он декодирует PNG новым кодом -->
+    <Compile Include="..\..\tools\GoldenGen\ImageGolden.cs" Link="Golden\ImageGolden.cs" />
+    <None Include="Golden\**\*.csv" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mvk.Engine\Mvk.Engine.csproj" />

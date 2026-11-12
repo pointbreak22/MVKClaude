@@ -154,10 +154,10 @@ namespace Mvk.Engine.Network
                     _buffer[_position++]
                 }, 0);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // TODO::Crash 2025-05-15 Уже два раза тут крашилось, из PacketS14EntityMotion.cs:строка 49
-                throw ex; 
+                throw; 
             }
         }
 
