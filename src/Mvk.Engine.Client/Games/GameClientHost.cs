@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using Mvk.Engine.Entity;
+using Mvk.Core.Maths;
+using Mvk.Engine.Entity.Particle;
 using Mvk.Engine.Entity.Render;
 using Mvk.Engine.Gui.Huds;
 using Mvk.Engine.Gui.Screens;
@@ -106,6 +108,8 @@ namespace Mvk.Engine.Games
                 WorldRender = new WorldRenderer(Game, Context, _shaderBlocksLow, _shaderEntityLow);
                 // Предметы и сущности в GUI рисуются через RenderMain (в оригинале общий RenderMain окна)
                 WorldRender.Entities.Gui = Render;
+                WorldRender.Particles.Gui = Render;
+                WorldRender.Particles.RenderFactory = this;
                 Render.ShsEntity = WorldRender.Entities.ShsEntity;
             }
             return WorldRender;
@@ -118,7 +122,7 @@ namespace Mvk.Engine.Games
             => _entityRenders[kind] = create;
 
         /// <summary>
-        /// Создать рендер сущности по ключу вида (IEntityRenderFactory). Частицы пока без рендера.
+        /// Создать рендер сущности по ключу вида (IEntityRenderFactory)
         /// </summary>
         public override EntityRenderBase Create(string kind, EntityBase entity, ResourcesEntity resources)
         {
@@ -130,6 +134,7 @@ namespace Mvk.Engine.Games
                 EntityRenderKind.Animation => new EntityRenderAnimation((EntityLiving)entity, entities, resources),
                 EntityRenderKind.EyeMouth => new EntityRenderEyeMouth((EntityLiving)entity, entities, resources),
                 EntityRenderKind.Item => new EntityRenderItem(entity, entities),
+                EntityRenderKind.Particle => new EntityRenderParticle((EntityFX)entity, _Render().Particles),
                 _ => base.Create(kind, entity, resources)
             };
         }
@@ -213,6 +218,17 @@ namespace Mvk.Engine.Games
             render.WorldStarted(SkyFactory?.Invoke(Game, render) ?? new SkyRender(Game.Player, render));
             render.WorldRenderInitSetting();
         }
+        /// <summary>
+        /// Заспавнить частицу (WorldClient.SpawnParticle оригинала: Game.WorldRender.Particles.Spawn)
+        /// </summary>
+        public override void SpawnParticle(ushort particleId, Vector3 pos, Vector3 motion, int parameter)
+            => WorldRender?.Particles.Spawn(particleId, pos, motion, parameter);
+
+        /// <summary>
+        /// Игрок возродился в мире (WorldRender.RespawnInWorld)
+        /// </summary>
+        public override void OnRespawnInWorld() => WorldRender?.RespawnInWorld();
+
         public override void OnTick(float deltaTime)
         {
             WorldRender?.OnTick(deltaTime);

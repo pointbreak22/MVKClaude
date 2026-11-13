@@ -200,6 +200,9 @@ namespace Mvk.Engine.Renderer
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void BindTextureWidgets() => Texture.BindTexture(_textureWidgets);
 
+        /// <summary>Текстура частиц (Particles.png) для рендера частиц</summary>
+        public ITexture? TextureParticles => Texture.Get(_textureParticles);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void BindTextureParticles() => Texture.BindTexture(_textureParticles);
 

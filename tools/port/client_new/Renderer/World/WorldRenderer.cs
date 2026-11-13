@@ -16,7 +16,7 @@ namespace Mvk.Engine.Renderer.World
     /// Рендер мира на RHI. Перенос WorldRenderer оригинала: поток построения сеток, очереди,
     /// привязка сеток в кадре и проходы сплошных и альфа блоков.
     /// Небо и облака рисует SkyRender, его задаёт мод при создании настроек мира (WorldStarted).
-    /// Сущности рисует EntitiesRenderer. Пока без частиц, курсора и теней (следующие шаги этапа 5).
+    /// Сущности рисует EntitiesRenderer, частицы ParticlesRenderer. Пока без курсора и теней (следующие шаги этапа 5).
     /// </summary>
     public class WorldRenderer : IDisposable
     {
@@ -34,6 +34,10 @@ namespace Mvk.Engine.Renderer.World
         /// Рендер сущностей
         /// </summary>
         public readonly EntitiesRenderer Entities;
+        /// <summary>
+        /// Рендер частиц
+        /// </summary>
+        public readonly ParticlesRenderer Particles;
 
         /// <summary>Обзор в блоках</summary>
         public int OverviewBlock = 32;
@@ -70,6 +74,7 @@ namespace Mvk.Engine.Renderer.World
             ShsBlocks = new ShadersBlocks(context, shaderBlocksLow);
             Atlas = new BlockAtlasTextures(context.Device);
             Entities = new EntitiesRenderer(game, this, _arrayChunkRender, shaderEntityLow);
+            Particles = new ParticlesRenderer(game, this);
         }
 
         /// <summary>
@@ -90,6 +95,11 @@ namespace Mvk.Engine.Renderer.World
             _skyRender?.Dispose();
             _skyRender = skyRender;
         }
+
+        /// <summary>
+        /// Перезапуск мира (курсор чанков добавится вместе с курсором блока)
+        /// </summary>
+        public void RespawnInWorld() => Particles.Clear();
 
         /// <summary>
         /// Изменена опция теней (ModifyShadow оригинала). Тени ещё не перенесены (нужны кадровые буферы в RHI),
@@ -193,6 +203,14 @@ namespace Mvk.Engine.Renderer.World
             if (_game.World?.Settings != null)
             {
                 LightMap.Update(_game.World.Settings);
+            }
+
+            // Физика частичек, и их жизнь
+            Particles.OnTick(deltaTime);
+
+            // Считаем вектор, матрицы и прочее из календаря
+            if (_game.World?.Settings != null)
+            {
                 IEnvironment environment = _game.World.Settings.Environment;
                 Gi.ViewLightDir = environment.GetVectorLight();
                 ColorSky = environment.GetColorSky();
@@ -235,6 +253,8 @@ namespace Mvk.Engine.Renderer.World
             Entities.Draw(commands, timeIndex);
             // Прорисовка вид не с руки, а видим себя
             Entities.DrawOwner(commands, timeIndex);
+            // Частички
+            Particles.Draw(commands, timeIndex);
             // Прорисовка руки
             Entities.DrawOwnerEye(commands, timeIndex);
             // Облака и дождь
@@ -360,6 +380,7 @@ namespace Mvk.Engine.Renderer.World
             LightMap.Dispose();
             ShsBlocks.Dispose();
             Entities.Dispose();
+            Particles.Dispose();
             Atlas.Dispose();
         }
 

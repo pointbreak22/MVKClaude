@@ -291,6 +291,7 @@ namespace Mvk.Desktop
                     PngWriter.Write(screenshot, w, h, pixels);
                     Console.WriteLine($"Снимок {w}x{h}: {screenshot}");
                     if (app.Audio != null) Console.WriteLine("Звук (звучит/источников): " + app.App.debug.Audio);
+                    if (app.App.GameHost?.WorldRender != null) Console.WriteLine("Частицы: " + app.App.GameHost.WorldRender.Particles);
                     window.Close();
                     screenshot = null;
                 }
