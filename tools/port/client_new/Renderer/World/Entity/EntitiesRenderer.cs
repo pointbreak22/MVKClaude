@@ -19,7 +19,7 @@ namespace Mvk.Engine.Renderer.World.Entity
     /// <summary>
     /// Объект рендера всех сущностей на RHI. Перенос EntitiesRenderer оригинала:
     /// массивы текстур сущностей, сетки всех типов сущностей и предметов, проходы кадра.
-    /// Пока без хитбоксов (F-отладка), карты теней и предметов в GUI.
+    /// Пока без хитбоксов (F-отладка) и карты теней.
     /// </summary>
     public class EntitiesRenderer : IDisposable
     {
@@ -66,6 +66,19 @@ namespace Mvk.Engine.Renderer.World.Entity
         /// </summary>
         private EntityRender[] _itemRender = Array.Empty<EntityRender>();
         /// <summary>
+        /// Массив всех типов предметов для Gui
+        /// </summary>
+        private ItemRender[] _itemGuiRender = Array.Empty<ItemRender>();
+
+        /// <summary>
+        /// Отрисовка интерфейса, для предметов в GUI (задаёт хост клиента)
+        /// </summary>
+        public RenderMain? Gui
+        {
+            get => ShsEntity.Gui;
+            set => ShsEntity.Gui = value;
+        }
+        /// <summary>
         /// Массив маленьких текстур
         /// </summary>
         private ITexture? _textureSmall;
@@ -80,7 +93,8 @@ namespace Mvk.Engine.Renderer.World.Entity
             _worldRenderer = worldRenderer;
             Context = worldRenderer.Context;
             _arrayChunkRender = arrayChunkRender;
-            ShsEntity = new ShadersEntity(Context, shaderEntityLow);
+            // Имя шейдера GUI сущностей задано движком (RenderMain оригинала)
+            ShsEntity = new ShadersEntity(Context, shaderEntityLow, "EntityGui");
         }
 
         /// <summary>
@@ -132,6 +146,7 @@ namespace Mvk.Engine.Renderer.World.Entity
             // Буфер предмета не очищается (в оригинале BufferClear): игра может запуститься в процессе ещё раз.
             count = Ce.Items.Count;
             _itemRender = new EntityRender[count];
+            _itemGuiRender = new ItemRender[count];
             for (ushort id = 0; id < count; id++)
             {
                 VertexEntityBuffer? buffer = Ce.Items.ItemObjects[id].Buffer.GetBuffer();
@@ -140,6 +155,7 @@ namespace Mvk.Engine.Renderer.World.Entity
                     throw new Exception(ClientStrings.GetString(ClientStrings.BufferItemIsMissing, Ce.Items.ItemAlias[id]));
                 }
                 _itemRender[id] = new EntityRender(this, buffer);
+                _itemGuiRender[id] = new ItemRender(id, Gui!, ShsEntity, Ce.Items.ItemObjects[id].Buffer);
             }
             IsStarted = true;
         }
@@ -263,6 +279,11 @@ namespace Mvk.Engine.Renderer.World.Entity
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EntityRender GetItemRender(int indexEntity) => _itemRender[indexEntity];
+        /// <summary>
+        /// Получить объект рендера предмета для Gui по индексу
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ItemRender GetItemGuiRender(int indexEntity) => _itemGuiRender[indexEntity];
 
         /// <summary>
         /// Метод для прорисовки основного игрока, когда камера не с глаз
@@ -300,6 +321,7 @@ namespace Mvk.Engine.Renderer.World.Entity
             _textureBig = null;
             for (int i = 0; i < _entityRender.Length; i++) _entityRender[i]?.Dispose();
             for (int i = 0; i < _itemRender.Length; i++) _itemRender[i].Dispose();
+            for (int i = 0; i < _itemGuiRender.Length; i++) _itemGuiRender[i].Dispose();
             ShsEntity.Dispose();
             IsStarted = false;
         }

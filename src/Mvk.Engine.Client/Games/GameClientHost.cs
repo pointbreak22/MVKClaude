@@ -38,16 +38,28 @@ namespace Mvk.Engine.Games
         private readonly Dictionary<string, Func<EntityBase, EntitiesRenderer, ResourcesEntity, EntityRenderBase>> _entityRenders
             = new Dictionary<string, Func<EntityBase, EntitiesRenderer, ResourcesEntity, EntityRenderBase>>();
 
-        public GameClientHost(GameModServer modServer, IGraphicsDevice device, string shaderBlocksLow, string shaderEntityLow)
+        /// <param name="renderFactory">Отрисовка интерфейса мода (RenderMvk), по умолчанию RenderMain движка</param>
+        public GameClientHost(GameModServer modServer, IGraphicsDevice device, string shaderBlocksLow, string shaderEntityLow,
+            Func<RenderContext, RenderMain>? renderFactory = null)
             : base(modServer)
         {
             Context = new RenderContext(device);
-            Render = new RenderMain(Context);
+            Render = renderFactory?.Invoke(Context) ?? new RenderMain(Context);
             _shaderBlocksLow = shaderBlocksLow;
             _shaderEntityLow = shaderEntityLow;
         }
 
-        private WorldRenderer _Render() => WorldRender ??= new WorldRenderer(Game, Context, _shaderBlocksLow, _shaderEntityLow);
+        private WorldRenderer _Render()
+        {
+            if (WorldRender == null)
+            {
+                WorldRender = new WorldRenderer(Game, Context, _shaderBlocksLow, _shaderEntityLow);
+                // Предметы и сущности в GUI рисуются через RenderMain (в оригинале общий RenderMain окна)
+                WorldRender.Entities.Gui = Render;
+                Render.ShsEntity = WorldRender.Entities.ShsEntity;
+            }
+            return WorldRender;
+        }
 
         /// <summary>
         /// Зарегистрировать рендер сущности мода (в оригинале мод создавал его сам в InitRender сущности)
@@ -84,9 +96,9 @@ namespace Mvk.Engine.Games
 
         /// <summary>
         /// Отрисовка интерфейса: шрифты, текстуры GUI, шейдеры GuiColor и GuiLine.
-        /// Мод может заменить своим наследником (RenderMvk) до запуска игры.
+        /// Мод задаёт своего наследника (RenderMvk) фабрикой в конструкторе.
         /// </summary>
-        public RenderMain Render { get; set; }
+        public RenderMain Render { get; }
         /// <summary>
         /// Строки чата для HUD (в оригинале Player.Chat), создаётся с основным шрифтом при запуске игры
         /// </summary>

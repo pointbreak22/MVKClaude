@@ -42,8 +42,11 @@ namespace Mvk.Engine.Renderer
         private readonly float[] _ortho2D = new float[16];
         /// <summary>Глубина включена (в оригинале после мира тест и запись глубины включены)</summary>
         private bool _depth = true;
-        /// <summary>Выбранный шейдер: 0 нет, 1 GuiColor, 2 GuiLine</summary>
-        private int _bound;
+        /// <summary>
+        /// Конвейеры последнего выбранного шейдера [глубина выключена, включена]. В оригинале глубина —
+        /// общее состояние GL и действует на любой шейдер, в том числе сущностей в GUI.
+        /// </summary>
+        private IPipeline[]? _current;
 
         public RenderMain(RenderContext context)
         {
@@ -87,7 +90,7 @@ namespace Mvk.Engine.Renderer
             Commands = commands;
             Frame++;
             _depth = true;
-            _bound = 0;
+            _current = null;
             Glm.Ortho(0, Gi.Width, Gi.Height, 0, 0, 1).ConvArray(_ortho2D);
         }
 
@@ -99,10 +102,7 @@ namespace Mvk.Engine.Renderer
             Context.Device.Submit(Commands);
             Commands.Reset();
             Frame++;
-            int bound = _bound;
-            _bound = 0;
-            if (bound == 1) _BindPipeline(1);
-            else if (bound == 2) _BindPipeline(2);
+            if (_current != null) Commands.SetPipeline(_current[_depth ? 1 : 0]);
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace Mvk.Engine.Renderer
 
         public void ShaderBindGuiLine(float posX, float posY)
         {
-            _BindPipeline(2);
+            BindPipelines(_pipeLine);
             Commands.SetUniformMatrix4(_lineProjview, _ortho2D);
             Commands.SetUniform(_linePos, posX, posY);
         }
@@ -129,16 +129,18 @@ namespace Mvk.Engine.Renderer
 
         public void ShaderBindGuiColor(float posX, float posY)
         {
-            _BindPipeline(1);
+            BindPipelines(_pipeColor);
             Commands.SetUniformMatrix4(_colorProjview, _ortho2D);
             Commands.SetUniform(_colorPos, posX, posY);
         }
 
-        private void _BindPipeline(int shader)
+        /// <summary>
+        /// Выбрать шейдер: пара конвейеров [без глубины, с глубиной], берётся по текущему состоянию глубины
+        /// </summary>
+        public void BindPipelines(IPipeline[] pipelines)
         {
-            _bound = shader;
-            int d = _depth ? 1 : 0;
-            Commands.SetPipeline(shader == 1 ? _pipeColor[d] : _pipeLine[d]);
+            _current = pipelines;
+            Commands.SetPipeline(pipelines[_depth ? 1 : 0]);
         }
 
         /// <summary>
@@ -147,7 +149,7 @@ namespace Mvk.Engine.Renderer
         public void DepthOff()
         {
             _depth = false;
-            if (_bound != 0) _BindPipeline(_bound);
+            if (_current != null) Commands.SetPipeline(_current[0]);
         }
 
         /// <summary>
@@ -156,13 +158,18 @@ namespace Mvk.Engine.Renderer
         public void DepthOn()
         {
             _depth = true;
-            if (_bound != 0) _BindPipeline(_bound);
+            if (_current != null) Commands.SetPipeline(_current[1]);
         }
 
         /// <summary>
-        /// Шейдер выбран не через RenderMain (например, шейдер сущностей в GUI): забыть текущий
+        /// Сам объект: в оригинале GetOpenGL отдавал GL, им создавались сетки GUI
         /// </summary>
-        public void ShaderUnbound() => _bound = 0;
+        public RenderMain GetOpenGL() => this;
+
+        /// <summary>
+        /// Шейдер сущностей (в оригинале RenderMain.ShsEntity), задаёт хост при создании рендера мира
+        /// </summary>
+        public Mvk.Engine.Renderer.Shaders.ShadersEntity? ShsEntity { get; set; }
 
         #endregion
 

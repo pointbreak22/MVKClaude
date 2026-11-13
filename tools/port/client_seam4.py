@@ -4,7 +4,8 @@
 - Чат: в оригинале ChatList жил в игроке (Player.Chat), в порте его держит хост клиента (ChatList),
   логика игрока не знает о шрифтах.
 - FontBase.CreateMesh без GL: сетка от RenderMain шрифта.
-- HudDebug: карта света в отладке берётся текстурой RHI рендера мира."""
+- HudDebug: карта света в отладке берётся текстурой RHI рендера мира.
+- ItemRender: сетка от RenderMain вместо GL, строка ошибки из ClientStrings."""
 import os
 from portlib import load, save, rep, add_using, ROOT
 C = os.path.join(ROOT, r"src\Mvk.Engine.Client")
@@ -33,5 +34,11 @@ save(rel, t, C)
 rel = r"Gui\Huds\HudDebug.cs"
 t = load(rel, C)
 t = rep(t, "Render.LightMap.BindTexture2dGui();", "Render.BindTexture(Host.WorldRender.LightMap.Texture);", rel, 1)
+save(rel, t, C)
+rel = r"Renderer\World\ItemRender.cs"
+t = load(rel, C)
+t = rep(t, "public ItemRender(int id, GL gl, ShadersEntity shader, ItemRenderBuffer renderBuffer)",
+        "public ItemRender(int id, RenderMain gl, ShadersEntity shader, ItemRenderBuffer renderBuffer)", rel, 1)
+t = rep(t, "Sr.GetString(Sr.BufferItemIsMissing,", "ClientStrings.GetString(ClientStrings.BufferItemIsMissing,", rel, 1)
 save(rel, t, C)
 print("client_seam4 ok")

@@ -26,6 +26,8 @@ FILES = [
     "Renderer/Font/EnumFontFX.cs", "Renderer/Font/FontBase.cs", "Renderer/Font/FontStyle.cs",
     "Renderer/Font/Symbol.cs", "Renderer/Font/TransferText.cs", "Realms/ChatList.cs",
     "Gui/Huds/HudBase.cs", "Gui/Huds/HudDebug.cs", "Gui/Huds/PartHubChat.cs",
+    # Предмет в GUI (сетка MeshGuiEntity и шейдер EntityGui клиента)
+    "Renderer/World/ItemRender.cs",
 ]
 
 n = 0

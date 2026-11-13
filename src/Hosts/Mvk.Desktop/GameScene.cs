@@ -57,7 +57,8 @@ namespace Mvk.Desktop
             MvkClient.Initialize(assets, false);
             _SetSize(width, height);
 
-            _host = new GameClientHost(debugCommands ? new GameModServerDebug() : new GameModServerMvk(), device, MvkClient.ShaderBlocksLow, MvkClient.ShaderEntityLow);
+            _host = new GameClientHost(debugCommands ? new GameModServerDebug() : new GameModServerMvk(), device, MvkClient.ShaderBlocksLow, MvkClient.ShaderEntityLow,
+                MvkClient.CreateRender);
             _skyTextures = new SkyTexturesMvk(device);
             MvkClient.SetupHost(_host, _skyTextures);
             _host.CursorShowHandler = show =>
@@ -119,6 +120,8 @@ namespace Mvk.Desktop
             Gi.Width = width;
             Gi.Height = height;
             Gi.UpdateSizeInterface();
+            // Матрица GUI сущностей и предметов (WindowMain.OnResized оригинала: Gi.UpOrtho)
+            Gi.UpOrtho();
         }
 
         /// <summary>

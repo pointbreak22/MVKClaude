@@ -4,6 +4,8 @@ using Mvk.Engine.Games;
 using Mvk.Engine.Renderer.World;
 using Mvk.Engine.Entity.Player;
 using Mvk.Game.Client.Entity.Render;
+using Mvk.Engine.Renderer;
+using Mvk.Game.Client.Gui;
 using Mvk.Game.Client.Renderer;
 using Mvk.Game.World;
 using Mvk.Engine.Audio;
@@ -60,11 +62,18 @@ namespace Mvk.Game.Client
         }
 
         /// <summary>
+        /// Отрисовка интерфейса Малювек для GameClientHost (RenderMvk оригинала)
+        /// </summary>
+        public static RenderMain CreateRender(RenderContext context) => new RenderMvk(context);
+
+        /// <summary>
         /// Подключить рендер мира Малювек к хосту клиента: небо острова и рендеры сущностей мода
         /// </summary>
         public static void SetupHost(GameClientHost host, SkyTexturesMvk skyTextures)
         {
             host.SkyFactory = SkyFactory(skyTextures);
+            // HUD Малювек (GameModClientMvk.CreateHud оригинала)
+            host.HudFactory = game => new HudMvk(game, (RenderMvk)host.Render);
             host.RegisterEntityRender(EntityRenderKindMvk.Owner, (entity, entities, resources)
                 => new EntityRenderOwner((PlayerClientOwner)entity, entities, resources));
         }

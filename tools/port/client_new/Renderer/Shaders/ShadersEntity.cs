@@ -10,8 +10,8 @@ namespace Mvk.Engine.Renderer.Shaders
     /// Шейдер сущностей и его конвейер на RHI. Перенос ShadersEntity оригинала.
     /// Методы с теми же именами и параметрами, что в оригинале (UniformData и BindUniform*), чтобы
     /// перенесённые без изменений рендеры сущностей писали юниформы так же; запись идёт в список команд кадра.
-    /// В оригинале четыре программы: Gui, Low, High (тени) и DepthMap. Пока перенесён только Low;
-    /// High и DepthMap появятся с кадровыми буферами в RHI, Gui вместе с GUI.
+    /// В оригинале четыре программы: Gui, Low, High (тени) и DepthMap. Перенесены Low и Gui;
+    /// High и DepthMap появятся с кадровыми буферами в RHI.
     /// </summary>
     public sealed class ShadersEntity : IDisposable
     {
@@ -50,10 +50,22 @@ namespace Mvk.Engine.Renderer.Shaders
         public CommandList Commands { get; private set; } = new CommandList();
 
         private readonly IShader _shader;
+        /// <summary>Шейдер сущностей и предметов в GUI (EntityGui)</summary>
+        private readonly IShader _shaderGui;
+        /// <summary>Конвейеры GUI [глубина выключена, включена], глубину выбирает RenderMain</summary>
+        private readonly IPipeline[] _pipeGui = new IPipeline[2];
+        private readonly UniformHandle _guiView, _guiBrightness, _guiDepth, _guiLightDir, _guiScale, _guiPos;
+        /// <summary>Текстуры последнего прохода сущностей: для GUI привязываются заново (слот 0 занят GUI)</summary>
+        private ITexture? _small, _big, _atlas;
+
+        /// <summary>
+        /// Отрисовка интерфейса: через неё выбираются конвейеры GUI с текущим состоянием глубины
+        /// </summary>
+        public RenderMain? Gui { get; set; }
         private readonly UniformHandle _view, _scale, _brightness, _lightDir, _pos, _depth, _anim,
             _eyeMouth, _light, _elementTransforms;
 
-        public ShadersEntity(RenderContext context, string nameLow)
+        public ShadersEntity(RenderContext context, string nameLow, string nameGui)
         {
             IGraphicsDevice device = context.Device;
             _shader = device.CreateShader(new ShaderDescription(nameLow,
@@ -78,6 +90,30 @@ namespace Mvk.Engine.Renderer.Shaders
                 Raster = RasterState.Default with { Cull = CullMode.Back },
                 Blend = BlendState.Alpha
             });
+
+            _shaderGui = device.CreateShader(new ShaderDescription(nameGui,
+                FileAssets.ReadStringToShader(nameGui + ".vsh"),
+                FileAssets.ReadStringToShader(nameGui + ".fsh"),
+                new[] { "v_position", "v_normal", "v_texCoord" },
+                new[] { "sampler_small", "sampler_big", "atlas" }));
+            _guiView = _shaderGui.GetUniform("view");
+            _guiBrightness = _shaderGui.GetUniform("brightness");
+            _guiDepth = _shaderGui.GetUniform("depth");
+            _guiLightDir = _shaderGui.GetUniform("lightDir");
+            _guiScale = _shaderGui.GetUniform("scale");
+            _guiPos = _shaderGui.GetUniform("pos");
+            for (int i = 0; i < 2; i++)
+            {
+                _pipeGui[i] = device.CreatePipeline(new PipelineDescription(_shaderGui, LayoutFloats)
+                {
+                    Raster = RasterState.Default with
+                    {
+                        Cull = CullMode.Back, DepthTest = i == 1, DepthWrite = i == 1,
+                        DepthFunc = i == 1 ? CompareFunc.LessEqual : CompareFunc.Always
+                    },
+                    Blend = BlendState.Alpha
+                });
+            }
         }
 
         #region Bind Uniform
@@ -97,6 +133,9 @@ namespace Mvk.Engine.Renderer.Shaders
         private void _Begin(CommandList commands, ITexture small, ITexture big, ITexture atlas, ITexture lightMap, float[] view)
         {
             Commands = commands;
+            _small = small;
+            _big = big;
+            _atlas = atlas;
             commands.SetPipeline(Pipeline);
             commands.SetTexture(SlotSamplerSmall, small);
             commands.SetTexture(SlotSamplerBig, big);
@@ -150,10 +189,54 @@ namespace Mvk.Engine.Renderer.Shaders
         public void UniformData(float[] elementTransforms)
             => Commands.SetUniformMatrix4x3(_elementTransforms, elementTransforms, Ce.MaxAnimatedBones);
 
+        /// <summary>
+        /// Занести начальные юниформы для GUI (BindUniformBeginGui оригинала)
+        /// </summary>
+        public void BindUniformBeginGui()
+        {
+            Commands = Gui!.Commands;
+            Gui.BindPipelines(_pipeGui);
+            if (_small != null) Commands.SetTexture(SlotSamplerSmall, _small);
+            if (_big != null) Commands.SetTexture(SlotSamplerBig, _big);
+            if (_atlas != null) Commands.SetTexture(SlotAtlas, _atlas);
+            Commands.SetUniformMatrix4(_guiView, Gi.Ortho);
+            Commands.SetUniform(_guiBrightness, Gi.EntityBrightness);
+            // Нужен когда хотим сущность продемонстрировать
+            Commands.SetUniform(_guiDepth, -1f);
+            UniformVolumeGui(true);
+        }
+
+        /// <summary>
+        /// Внести позицию для претмета Gui
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void UniformPosGui(float x, float y) => Commands.SetUniform(_guiPos, x, y);
+
+        /// <summary>
+        /// Внести значение объёмный ли предмет или нет
+        /// </summary>
+        public void UniformVolumeGui(bool volume = false)
+        {
+            if (volume)
+            {
+                // -5, -1, -5 нормализован
+                Commands.SetUniform(_guiLightDir, -.700140059f, -.140028015f, -.700140059f);
+                Commands.SetUniform(_guiScale, -(float)Gi.Si);
+            }
+            else
+            {
+                Commands.SetUniform(_guiLightDir, 0, 0, -1);
+                Commands.SetUniform(_guiScale, (float)Gi.Si);
+            }
+        }
+
         #endregion
 
         public void Dispose()
         {
+            _pipeGui[0].Dispose();
+            _pipeGui[1].Dispose();
+            _shaderGui.Dispose();
             Pipeline.Dispose();
             _shader.Dispose();
         }

@@ -2,6 +2,23 @@
 
 Новые записи сверху. Изменения поведения относительно оригинала помечаются `[ПОВЕДЕНИЕ]`.
 
+## 2026-11-13: этап 5.3, часть 2: HUD Малювек и предметы в GUI
+Сделано:
+- `ShadersEntity`: GUI-проход (шейдер `EntityGui` оригинала, `BindUniformBeginGui`, `UniformPosGui`,
+  `UniformVolumeGui`); `MeshGuiEntity`; `ItemRender` переносится скриптом (`client_seam4.py`);
+  `EntitiesRenderer.GetItemGuiRender`.
+- `RenderMain.DepthOn/Off` переключает глубину у последнего выбранного шейдера (GUI или сущностей),
+  как общее состояние GL в оригинале.
+- `Mvk.Game.Client`: `RenderMvk` (шрифты Small и Large, текстуры окон, HUD, инвентаря, меток предметов;
+  порядок загрузки как `LoadingMvk`), `HudMvk` и `RenderSlots` (перенос из Mvk2 без изменения логики).
+  Хост получает `RenderMvk` фабрикой, HUD фабрикой `HudMvk` (`GameModClientMvk.CreateHud`).
+- `Mvk.Desktop`: `Gi.UpOrtho()` при старте и ресайзе (матрица GUI сущностей, как `WindowMain.OnResized`).
+- Снимок `docs/img/stage5-hud-mvk.png`: панель правой руки с выбранным и заблокированными слотами,
+  левая рука с молотом и полоской износа, прицел, чат.
+- Полная пересборка: 0 ошибок, 0 предупреждений. `dotnet test`: 253 из 253.
+
+Дальше: экраны и меню (`ScreenBase`, виджеты, главное меню, пауза, чат с вводом, инвентарь).
+
 ## 2026-11-13: этап 5.3, часть 1: шрифты, чат и HUD движка на RHI
 Сделано:
 - Инфраструктура GUI на RHI (`tools/port/client_new`): `RenderMain` (шейдеры `GuiColor` и `GuiLine` оригинала,
