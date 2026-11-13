@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using Mvk.Core.Util;
 
 namespace Mvk.Core.Json
@@ -41,6 +42,7 @@ namespace Mvk.Core.Json
             if (File.Exists(fileName))
             {
                 // Получить доступ к существующему либо создать новый
+                StringBuilder body = new StringBuilder();
                 using (StreamReader file = new StreamReader(fileName))
                 {
                     while (true)
@@ -54,13 +56,13 @@ namespace Mvk.Core.Json
                         // комментарий
                         if (Sundry.ChekComment(strLine)) continue;
 
-                        _body += strLine + " ";
+                        body.Append(strLine).Append(' ');
                     }
                 }
-                if (_body != "")
+                if (body.Length > 0)
                 {
-                    _finishIndex = _body.Length;
-                    _body += " ";
+                    _finishIndex = body.Length;
+                    _body = body.Append(' ').ToString();
                     _index = 0;
                     Compound = new JsonCompound(_FindCompound());
                     IsThereFile = true;
@@ -72,16 +74,17 @@ namespace Mvk.Core.Json
         {
             _fileName = name;
             string[] lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            StringBuilder body = new StringBuilder(text.Length + lines.Length + 1);
             foreach(string strLine in lines)
             {
                 // комментарий
                 if (Sundry.ChekComment(strLine)) continue;
-                _body += strLine + " ";
+                body.Append(strLine).Append(' ');
             }
-            if (_body != "")
+            if (body.Length > 0)
             {
-                _finishIndex = _body.Length;
-                _body += " ";
+                _finishIndex = body.Length;
+                _body = body.Append(' ').ToString();
                 _index = 0;
                 Compound = new JsonCompound(_FindCompound());
                 IsThereFile = true;

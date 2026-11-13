@@ -41,6 +41,7 @@ namespace Mvk.Desktop
             List<string> commands = new List<string>();
             float[]? look = null;
             int view = 0;
+            bool profile = false;
             int[]? size = null;
             int[]? resize = null;
             for (int i = 0; i < args.Length; i++)
@@ -55,6 +56,7 @@ namespace Mvk.Desktop
                 else if (args[i] == "--cmd" && i + 1 < args.Length) commands.Add(args[++i]);
                 else if (args[i] == "--size" && i + 1 < args.Length) size = _Size(args[++i]);
                 else if (args[i] == "--resize" && i + 1 < args.Length) resize = _Size(args[++i]);
+                else if (args[i] == "--profile") profile = true;
                 else if (args[i] == "--view" && i + 1 < args.Length) view = int.Parse(args[++i]);
                 else if (args[i] == "--look" && i + 1 < args.Length)
                 {
@@ -70,7 +72,7 @@ namespace Mvk.Desktop
                 Console.Error.WriteLine("Не найдена папка Assets. Укажите её: --assets <путь>");
                 return 2;
             }
-            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize);
+            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile);
 
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -182,10 +184,11 @@ namespace Mvk.Desktop
         /// С --screenshot ждёт входа в мир и ещё shotAfter секунд построения сеток, сохраняет кадр и выходит.
         /// --cmd отправляет команды чата после входа в мир (и включает отладочную /summon), --look задаёт
         /// взгляд, --view переключает камеру как F5, --size задаёт размер окна при старте, --resize меняет
-        /// его на половине ожидания снимка (для снимков без человека).
+        /// его на половине ожидания снимка, --profile печатает аллокации и время кадра и такта
+        /// во второй половине ожидания (для снимков и замеров без человека).
         /// </summary>
         private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe,
-            List<string> commands, float[]? look, int view, int[]? size, int[]? resize)
+            List<string> commands, float[]? look, int view, int[]? size, int[]? resize, bool profile)
         {
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude",
                 size?[0] ?? 1280, size?[1] ?? 720);
@@ -193,6 +196,7 @@ namespace Mvk.Desktop
             GameScene? scene = null;
             IInputContext? input = null;
             Stopwatch? sinceStart = null;
+            FrameProfiler? profiler = profile ? new FrameProfiler() : null;
             int result = 0;
 
             window.Load += () =>
@@ -231,7 +235,9 @@ namespace Mvk.Desktop
             window.Update += _ =>
             {
                 if (scene == null) return;
+                profiler?.Begin();
                 scene.Update();
+                if (profiler is { Running: true }) profiler.EndUpdate();
                 if (scene.Error != null)
                 {
                     Console.Error.WriteLine("Ошибка игры: " + scene.Error);
@@ -252,7 +258,13 @@ namespace Mvk.Desktop
                 int h = window.FramebufferSize.Y;
                 // Свёрнутое окно не рисуем
                 if (w <= 0 || h <= 0) return;
+                profiler?.Begin();
                 scene.Render(w, h);
+                if (profiler is { Running: true }) profiler.EndRender();
+                if (profiler is { Running: false } && sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter / 2)
+                {
+                    profiler.Start();
+                }
                 if (scene.Started && sinceStart == null)
                 {
                     sinceStart = Stopwatch.StartNew();
@@ -274,6 +286,7 @@ namespace Mvk.Desktop
                         device.ReadPixels(0, 0, w, h, pixels);
                         PngWriter.Write(screenshot, w, h, pixels);
                         Console.WriteLine($"Снимок {w}x{h}: {screenshot}");
+                        if (profiler != null) Console.WriteLine(profiler.Report());
                         window.Close();
                     }
                 }

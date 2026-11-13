@@ -185,16 +185,16 @@ namespace Mvk.Engine.Entity.Animation
                 if (boneAnimationChannel.IsAnimation)
                 {
                     // Получаем среднее значение позиции кости в текущий момент времени
-                    BoneAnimationFrame position
-                        = _GetMixedAdjacentFrames(boneAnimationChannel.PositionFrames);
+                    _GetMixedAdjacentFrames(boneAnimationChannel.PositionFrames,
+                        out float positionX, out float positionY, out float positionZ);
 
                     // Получаем среднее значение ориентации кости в текущий момент времени
-                    BoneAnimationFrame rotation
-                        = _GetMixedAdjacentFrames(boneAnimationChannel.OrientationFrames);
+                    _GetMixedAdjacentFrames(boneAnimationChannel.OrientationFrames,
+                        out float rotationX, out float rotationY, out float rotationZ);
 
                     CurrentPoseBones[i].SetPositionRotation(
-                        position.X, position.Y, position.Z,
-                        rotation.X, rotation.Y, rotation.Z
+                        positionX, positionY, positionZ,
+                        rotationX, rotationY, rotationZ
                         );
                 }
             }
@@ -215,40 +215,49 @@ namespace Mvk.Engine.Entity.Animation
         /// <summary>
         /// Получает среднее значение позиции
         /// </summary>
-        private BoneAnimationFrame _GetMixedAdjacentFrames(BoneAnimationFrame[] positionFrames)
+        private void _GetMixedAdjacentFrames(BoneAnimationFrame[] positionFrames, out float x, out float y, out float z)
         {
+            BoneAnimationFrame frame;
             if (positionFrames.Length == 0)
             {
-                return _boneAnimationFrameNull;
+                frame = _boneAnimationFrameNull;
             }
-            if (positionFrames.Length == 1)
+            else if (positionFrames.Length == 1)
             {
-                return positionFrames[0];
+                frame = positionFrames[0];
             }
-
-            // Ищем ближайшие кадры
-            BoneAnimationFrame frame;
-            for (int i = 0; i < positionFrames.Length; i++)
+            else
             {
-                frame = positionFrames[i];
-                if (frame.Time == _currentTime)
+                // Ищем ближайшие кадры
+                frame = positionFrames[positionFrames.Length - 1];
+                for (int i = 0; i < positionFrames.Length; i++)
                 {
-                    return frame;
-                }
-                if (frame.Time > _currentTime)
-                {
-                    if (i > 0)
+                    BoneAnimationFrame to = positionFrames[i];
+                    if (to.Time == _currentTime)
                     {
-                        return BoneAnimationFrame.Lerp(positionFrames[i - 1], frame, _currentTime);
+                        frame = to;
+                        break;
                     }
-                    else
+                    if (to.Time > _currentTime)
                     {
-                        //return _boneAnimationFrameNull;
-                        return positionFrames[0]; // ??
+                        if (i > 0)
+                        {
+                            // BoneAnimationFrame.Lerp без нового объекта, коэффициент в диапазоне 0 .. 1
+                            BoneAnimationFrame from = positionFrames[i - 1];
+                            float timeIndex = (_currentTime - from.Time) / (to.Time - from.Time);
+                            x = from.X + (to.X - from.X) * timeIndex;
+                            y = from.Y + (to.Y - from.Y) * timeIndex;
+                            z = from.Z + (to.Z - from.Z) * timeIndex;
+                            return;
+                        }
+                        frame = positionFrames[0]; // ??
+                        break;
                     }
                 }
             }
-            return positionFrames[positionFrames.Length - 1];
+            x = frame.X;
+            y = frame.Y;
+            z = frame.Z;
         }
     }
 }
