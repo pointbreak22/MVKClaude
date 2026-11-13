@@ -7,11 +7,19 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      # Ассеты и эталоны тесты берут из оригинала (original/ не хранится в git)
+      - name: Checkout original (SuperAnt30/Vge @ dfbd814)
+        uses: actions/checkout@v4
+        with:
+          repository: SuperAnt30/Vge
+          ref: dfbd814e47ed0e24e80f95e97f2d24e1d8bb182a
+          path: original
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
