@@ -55,8 +55,7 @@ namespace Mvk.Desktop
         {
             _device = device;
             MvkClient.Initialize(assets, false);
-            Gi.Width = width;
-            Gi.Height = height;
+            _SetSize(width, height);
 
             _host = new GameClientHost(debugCommands ? new GameModServerDebug() : new GameModServerMvk(), device, MvkClient.ShaderBlocksLow, MvkClient.ShaderEntityLow);
             _skyTextures = new SkyTexturesMvk(device);
@@ -94,8 +93,6 @@ namespace Mvk.Desktop
         /// </summary>
         public void Render(int width, int height)
         {
-            Gi.Width = width;
-            Gi.Height = height;
             // Дельта кадра в мс для анимации сущностей (DeltaTimeFrame окна оригинала)
             double now = _clock.Elapsed.TotalMilliseconds;
             _host.DeltaTimeFrame = (float)(now - _lastFrameMs);
@@ -104,6 +101,24 @@ namespace Mvk.Desktop
             _commands.SetViewport(0, 0, width, height);
             _host.Draw(_commands, (float)(_accumulatorMs / TickMs));
             _device.Submit(_commands);
+        }
+
+        /// <summary>
+        /// Изменён размер окна (OnResized окна оригинала): размер вида, размер интерфейса, игра.
+        /// Нулевой размер (окно свёрнуто) пропускается: на него делят координаты мыши и строят проекцию.
+        /// </summary>
+        public void Resized(int width, int height)
+        {
+            if (width <= 0 || height <= 0) return;
+            _SetSize(width, height);
+            _game.OnResized(width, height);
+        }
+
+        private static void _SetSize(int width, int height)
+        {
+            Gi.Width = width;
+            Gi.Height = height;
+            Gi.UpdateSizeInterface();
         }
 
         /// <summary>

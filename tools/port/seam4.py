@@ -65,7 +65,10 @@ t = rep(t, "window.SetCursorPosition(", "Host.SetCursorPosition(", rel)
 t = sub(t, r"public override void (On\w+)\(", r"public virtual void \1(", rel)
 t = rep(t, "WorldRender.OnTick(deltaTime);", "Host.OnTick(deltaTime);", rel)
 t = sub(t, r"\n[ \t]*// Тут индикация если имеется\n[ \t]*Hud\?\.OnTick\(deltaTime\);\n", "\n", rel)
-t = remove_member(t, "public void OnResized(int width, int height)", rel)
+t = rep(t, """            if (Hud != null)
+            {
+                Hud.OnResized(width, height);
+            }""", "            Host.OnResized(width, height);", rel)
 t = remove_member(t, "public override void Draw(float timeIndex)", rel)
 t = rep(t, "window.PlaySound(", "Host.PlaySound(", rel)
 t = sub(t, r"public override void Dispose\(\)\n\s*\{.*?WorldRender\.Dispose\(\);\n\s*\}",

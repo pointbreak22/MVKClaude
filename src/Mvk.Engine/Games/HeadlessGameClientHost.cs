@@ -60,6 +60,7 @@ namespace Mvk.Engine.Games
         public virtual void OnWorldSettings() { }
         public virtual void OnRespawnInWorld() { }
         public virtual void OnModifyOverviewChunk() { }
+        public virtual void OnResized(int width, int height) { }
         public void DebugToggle(EnumDebugToggle toggle) { }
         public virtual string ToDebugString() => "headless";
         public virtual void DisposeGame() { }

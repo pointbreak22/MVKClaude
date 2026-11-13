@@ -118,6 +118,8 @@ namespace Mvk.Engine.Games
         void OnRespawnInWorld();
         /// <summary>Изменился обзор чанков (WorldRender.ModifyOverviewChunk)</summary>
         void OnModifyOverviewChunk();
+        /// <summary>Изменён размер окна (Hud.OnResized)</summary>
+        void OnResized(int width, int height);
         /// <summary>Переключить отладочное отображение (F3+клавиша)</summary>
         void DebugToggle(EnumDebugToggle toggle);
         /// <summary>Отладочный текст рендера мира</summary>

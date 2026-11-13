@@ -422,6 +422,15 @@ namespace Mvk.Engine.Games
         /// </summary>
        // public void SetTickCounter(uint time) => TickCounter = time;
 
+        /// <summary>
+        /// Изменён размер окна
+        /// </summary>
+        public void OnResized(int width, int height)
+        {
+            // Тут индикация если имеется
+            Host.OnResized(width, height);
+        }
+
         #endregion
 
         #region Effect, sound particles

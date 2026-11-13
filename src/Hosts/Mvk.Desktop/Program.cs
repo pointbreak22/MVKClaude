@@ -8,6 +8,7 @@ using Mvk.Platform.Input;
 using Mvk.Rendering;
 using Mvk.Rendering.OpenGL;
 using Silk.NET.Input;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 
@@ -40,6 +41,8 @@ namespace Mvk.Desktop
             List<string> commands = new List<string>();
             float[]? look = null;
             int view = 0;
+            int[]? size = null;
+            int[]? resize = null;
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i] == "--assets" && i + 1 < args.Length) assets = args[++i];
@@ -50,6 +53,8 @@ namespace Mvk.Desktop
                 else if (args[i] == "--slot" && i + 1 < args.Length) slot = int.Parse(args[++i]);
                 else if (args[i] == "--seed" && i + 1 < args.Length) seed = long.Parse(args[++i]);
                 else if (args[i] == "--cmd" && i + 1 < args.Length) commands.Add(args[++i]);
+                else if (args[i] == "--size" && i + 1 < args.Length) size = _Size(args[++i]);
+                else if (args[i] == "--resize" && i + 1 < args.Length) resize = _Size(args[++i]);
                 else if (args[i] == "--view" && i + 1 < args.Length) view = int.Parse(args[++i]);
                 else if (args[i] == "--look" && i + 1 < args.Length)
                 {
@@ -65,7 +70,7 @@ namespace Mvk.Desktop
                 Console.Error.WriteLine("Не найдена папка Assets. Укажите её: --assets <путь>");
                 return 2;
             }
-            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view);
+            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize);
 
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -176,12 +181,14 @@ namespace Mvk.Desktop
         /// Локальная игра: остров в слоте, обзор мышью (щелчок по окну), WASD, пробел, F3+клавиши отладки.
         /// С --screenshot ждёт входа в мир и ещё shotAfter секунд построения сеток, сохраняет кадр и выходит.
         /// --cmd отправляет команды чата после входа в мир (и включает отладочную /summon), --look задаёт
-        /// взгляд, --view переключает камеру как F5 (для снимков без человека).
+        /// взгляд, --view переключает камеру как F5, --size задаёт размер окна при старте, --resize меняет
+        /// его на половине ожидания снимка (для снимков без человека).
         /// </summary>
         private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe,
-            List<string> commands, float[]? look, int view)
+            List<string> commands, float[]? look, int view, int[]? size, int[]? resize)
         {
-            using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
+            using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude",
+                size?[0] ?? 1280, size?[1] ?? 720);
             IGraphicsDevice? device = null;
             GameScene? scene = null;
             IInputContext? input = null;
@@ -219,6 +226,8 @@ namespace Mvk.Desktop
                 };
             };
 
+            window.FramebufferResize += fb => scene?.Resized(fb.X, fb.Y);
+
             window.Update += _ =>
             {
                 if (scene == null) return;
@@ -241,6 +250,8 @@ namespace Mvk.Desktop
                 if (device == null || scene == null) return;
                 int w = window.FramebufferSize.X;
                 int h = window.FramebufferSize.Y;
+                // Свёрнутое окно не рисуем
+                if (w <= 0 || h <= 0) return;
                 scene.Render(w, h);
                 if (scene.Started && sinceStart == null)
                 {
@@ -249,6 +260,12 @@ namespace Mvk.Desktop
                     scene.ViewCameraNext(view);
                 }
                 if (look != null && screenshot != null && scene.Started) scene.Look(look[0], look[1]);
+                if (resize != null && sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter / 2)
+                {
+                    // Ресайз в середине ожидания: игрок уже стоит, камера сама не обновляется
+                    window.Size = new Vector2D<int>(resize[0], resize[1]);
+                    resize = null;
+                }
                 if (screenshot != null && sinceStart != null)
                 {
                     if (sinceStart.Elapsed.TotalSeconds >= shotAfter)
@@ -296,6 +313,12 @@ namespace Mvk.Desktop
                 dir = dir.Parent;
             }
             return null;
+        }
+
+        private static int[] _Size(string value)
+        {
+            string[] parts = value.Split('x', 'X');
+            return new[] { int.Parse(parts[0]), int.Parse(parts[1]) };
         }
 
         private static float _Deg(string value)
