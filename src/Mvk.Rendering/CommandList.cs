@@ -17,6 +17,7 @@ namespace Mvk.Rendering
         UniformInt,
         UniformFloat,
         UniformMatrix4,
+        UniformMatrix4x3,
         Draw,
         DrawIndexed
     }
@@ -151,6 +152,19 @@ namespace Mvk.Rendering
             int off = AddData(16);
             m16.Slice(0, 16).CopyTo(_data.AsSpan(off, 16));
             Add(CommandType.UniformMatrix4, u.Location, off, 1, 0, null);
+        }
+
+        /// <summary>
+        /// Массив матриц 4x3 (4 столбца по 3 числа, как glUniformMatrix4x3fv): count матриц, 12 чисел на каждую.
+        /// Кости анимированных моделей (elementTransforms оригинала).
+        /// </summary>
+        public void SetUniformMatrix4x3(UniformHandle u, ReadOnlySpan<float> data, int count)
+        {
+            if (!u.IsValid || count <= 0) return;
+            int n = count * 12;
+            int off = AddData(n);
+            data.Slice(0, n).CopyTo(_data.AsSpan(off, n));
+            Add(CommandType.UniformMatrix4x3, u.Location, off, count, 0, null);
         }
 
         /// <summary>Рисовать без индексов</summary>

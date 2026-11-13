@@ -1,0 +1,755 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using Mvk.Engine.Entity.Animation;
+using Mvk.Engine.Entity.Layer;
+using Mvk.Engine.Entity.Shape;
+using Mvk.Engine.Item;
+using Mvk.Engine.Item.List;
+using Mvk.Engine.Renderer.World.Entity;
+using Mvk.Core.Util;
+using Mvk.Engine.Util;
+using Mvk.Engine.World;
+using Mvk.Core.Maths;
+
+namespace Mvk.Engine.Entity.Render
+{
+    /// <summary>
+    /// Объект рендера сущности, хранящий данные рендера, с АНИМАЦИЕЙ. Только для клиента
+    /// </summary>
+    public class EntityRenderAnimation : EntityRenderClient
+    {
+        /// <summary>
+        /// Название клипа для того чтоб держать предмет в правой руке, 
+        /// по умолчанию если не выбран параметр Hold в предмете.
+        /// </summary>
+        public const string HoldRight = "HoldRight";
+        /// <summary>
+        /// Название клипа для того чтоб держать предмет в левой руке
+        /// </summary>
+        public const string HoldLeft = "HoldLeft";
+        /// <summary>
+        /// Префикс названий клипов которые держат предмет, для массового удаления при смене предмета
+        /// </summary>
+        private const string _prefixHold = "Hold";
+        /// <summary>
+        /// Количество символов в префиксе
+        /// </summary>
+        private static int _prefixHoldLeght = _prefixHold.Length;
+
+        /// <summary>
+        /// Буфер для шейдера матриц скелетной анимации, на 24 кости (матрица 4*3 и 24 кости)
+        /// struct AnimationMatrixPalette - https://habr.com/ru/articles/501212/
+        /// </summary>
+        protected float[] _bufferBonesTransforms = new float[12 * Ce.MaxAnimatedBones];
+
+        /// <summary>
+        /// Массив отдельных анимационных клипов
+        /// </summary>
+        private readonly ListMessy<string> _animationClips = new ListMessy<string>();
+        /// <summary>
+        /// Карта всех клипов данной сущности
+        /// </summary>
+        private readonly Dictionary<string, AnimationClip> _animations = new Dictionary<string, AnimationClip>();
+        /// <summary>
+        /// Карта всех клипов данной сущности
+        /// </summary>
+        private readonly Dictionary<EnumEntityActivity, string> _animationsActivity = new Dictionary<EnumEntityActivity, string>();
+        /// <summary>
+        /// Массив костей в заданный момент времени
+        /// </summary>
+        protected readonly BonePose[] _bones;
+        /// <summary>
+        /// Массив костей которые менялись
+        /// </summary>
+        protected readonly bool[] _bonesFlagModify;
+        /// <summary>
+        /// Матрицы трансформации кости
+        /// </summary>
+        protected readonly Mat4[] _bonesTransforms;
+        /// <summary>
+        /// Количество костей
+        /// </summary>
+        protected readonly byte _countBones;
+        /// <summary>
+        /// Анимационный триггер для сущности
+        /// </summary>
+        private readonly TriggerAnimation _trigger = new TriggerAnimation();
+
+        /// <summary>
+        /// Имя текущего клипа, чтоб можно было закрыть
+        /// </summary>
+        private string _activeClip;
+        /// <summary>
+        /// Активирован ли клип по коду
+        /// </summary>
+        private bool _isActiveClipCode;
+
+        /// <summary>
+        /// Текущий триггерный активотора
+        /// </summary>
+        private EnumEntityActivity _activity;
+        /// <summary>
+        /// Массив позиций предметов
+        /// </summary>
+        private readonly PositionItemBone[] _positionItems;
+        /// <summary>
+        /// Объект слоёв одежды
+        /// </summary>
+        private readonly ShapeLayers _shapeLayers;
+        /// <summary>
+        /// Счётчик левитации, запрет на мгновеную левитацию, включатся будет через определённое количество тактов
+        /// </summary>
+        private int _countLevitate = 0;
+        /// <summary>
+        /// Задержка левитации, через сколько таков включится когда нет земли под ногами
+        /// </summary>
+        protected readonly int _deleayLevitate = 5;
+
+        /// <summary>
+        /// Объект живой сущности, моб или игрок
+        /// </summary>
+        protected readonly EntityLiving _entityLiving;
+        /// <summary>
+        /// Объект для рендера слоёв (предметов или одежды) на сущности
+        /// </summary>
+        protected readonly EntityLayerRender _entityLayerRender;
+
+        public EntityRenderAnimation(EntityLiving entity, EntitiesRenderer entities, ResourcesEntity resourcesEntity) 
+            : base(entity, entities, resourcesEntity)
+        {
+            _entityLiving = entity;
+            if (resourcesEntity.NameShapeLayers != "")
+            {
+                // Имеется одежда для этой сущности
+                _entityLayerRender = new EntityLayerRender(entities);
+                try
+                {
+                    _shapeLayers = EntitiesReg.GetShapeLayers(resourcesEntity.NameShapeLayers);
+                }
+                catch
+                {
+                    // Отсутствует объект слоёв одежды у сущности
+                    throw new Exception(ClientStrings.GetString(ClientStrings.EntityClothingLayersObjectIsMissing, 
+                        resourcesEntity.NameShapeLayers, resourcesEntity.Alias));
+                }
+            }
+            _countBones = (byte)_resourcesEntity.Bones.Length;
+            _bones = new BonePose[_countBones];
+            _bonesFlagModify = new bool[_countBones];
+            _bonesTransforms = new Mat4[_countBones];
+
+            // Создаём количество возможных ячеек для держания предмета, не одежды
+            _positionItems = new PositionItemBone[_resourcesEntity.CountPositionItem];
+            Bone bone;
+            for (byte i = 0; i < _countBones; i++)
+            {
+                bone = _resourcesEntity.Bones[i];
+                if (bone.NumberHold > 0)
+                {
+                    // Кость которая для держания предмета
+                    _positionItems[bone.NumberHold - 1] = new PositionItemBone(i, bone.OriginX, bone.OriginY, bone.OriginZ);
+                }
+                _bones[i] = bone.CreateBonePose();
+                _bonesTransforms[i] = Mat4.Identity();
+            }
+
+            foreach(ModelAnimationClip clip in _resourcesEntity.ModelAnimationClips)
+            {
+                AnimationClip animationClip = new AnimationClip(_resourcesEntity, clip);
+                _animations.Add(clip.Code, animationClip);
+                if (clip.Activity != EnumEntityActivity.None)
+                {
+                    _animationsActivity.Add(clip.Activity, clip.Code);
+                }
+            }
+
+            // Запускаем анимацию бездействия
+            AddClipActivity(EnumEntityActivity.Idle);
+        }
+
+        /// <summary>
+        /// Добавить клип по триггерному активатору
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddClipActivity(EnumEntityActivity activity, float speed = 1)
+        {
+            _activity = activity;
+            _activeClip = _animationsActivity.ContainsKey(activity)
+                ? _animationsActivity[activity] : Ce.MandatoryAnimationClipIdle;
+
+            AddClip(_activeClip, speed);
+        }
+
+        /// <summary>
+        /// Добавить клип
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void AddClip(string key, float speed = 1)
+        {
+            if (_animationClips.Contains(key))
+            {
+                _animations[key].ResetStop();
+            }
+            else// if (_animations.ContainsKey(key)) // TODO::2025-07-30 надо продумать, чтоб тут всегда было
+            {
+                _animationClips.Add(key);
+                _animations[key].Reset(speed);
+            }
+        }
+
+        /// <summary>
+        /// Остановить клип
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void StopingClip(string key) => _animations[key].Stoping();
+
+        /// <summary>
+        /// Остоновить все клипы которые держим
+        /// </summary>
+        private void _StopingClipsHold()
+        {
+            string s;
+            for (int i = 0; i < _animationClips.Count; i++)
+            {
+                s = _animationClips[i];
+                if (s.Length >= _prefixHoldLeght && s.Substring(0, 4) == _prefixHold)
+                {
+                    // Этот надо остановить
+                    _animations[s].Stoping();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Игровой такт на клиенте
+        /// </summary>
+        /// <param name="deltaTime">Дельта последнего тика в mc</param>
+        public override void UpdateClient(WorldClient world, float deltaTime)
+        {
+            base.UpdateClient(world, deltaTime);
+
+            if (_trigger.Changed)
+            {
+               // SetEyeOpen(!_trigger.IsSneak());
+
+                if (!Entity.OnGround)
+                {
+                    SetMouthState(EnumMouthState.Open);
+                }
+                else
+                {
+                    SetMouthState(_trigger.IsSneak() ? EnumMouthState.Speaks :
+                        _trigger.IsSprinting() ? EnumMouthState.Smile : EnumMouthState.Close);
+                }
+            }
+
+            // Анимация целного клипа, не от движения, для мобов в большей части
+            _AnimationByCode();
+
+            if (!_isActiveClipCode)
+            {
+                // Анимация по движению
+                _AnimationByMotion();
+            }
+
+            // Дополнительная анимация
+            if (AnimationCodeAdd != "")
+            {
+                AddClip(AnimationCodeAdd, SpeedAnimationCodeAdd);
+                AnimationCodeAdd = "";
+            }
+
+            int count = _animationClips.Count - 1;
+            string nameClip;
+            bool addIdle = false;
+            for (int i = count; i >= 0; i--)
+            {
+                nameClip = _animationClips[i];
+                if (_animations[nameClip].IsStoped())
+                {
+                    _animationClips.RemoveAt(i);
+                    if (_isActiveClipCode && nameClip == _activeClip)
+                    {
+                        _isActiveClipCode = false;
+                        addIdle = true;
+                    }
+                }
+            }
+            if (addIdle)
+            {
+                // Надо включить Idle, закончился клип по коду
+                AddClipActivity(EnumEntityActivity.Idle);
+            }
+        }
+
+        /// <summary>
+        /// Анимация вызванная по коду
+        /// </summary>
+        private void _AnimationByCode()
+        {
+            if (AnimationCode != "")
+            {
+                // вызвал анимацию
+                _isActiveClipCode = true;
+                StopingClip(_activeClip);
+                _activeClip = AnimationCode;
+                AddClip(_activeClip, SpeedAnimationCode);
+                AnimationCode = "";
+            }
+        }
+
+        /// <summary>
+        /// Анимация по движению
+        /// </summary>
+        private void _AnimationByMotion()
+        {
+            //== Сразу определяем смену доп параметров сущности
+
+            if (_trigger.Levitate)
+            {
+                if (Entity.OnGround)
+                {
+                    _trigger.SetLevitate(false);
+                    _countLevitate = 0;
+                }
+            }
+            else
+            {
+                if (Entity.OnGround)
+                {
+                    _countLevitate = 0;
+                }
+                else
+                {
+                    _countLevitate++;
+                    if (_countLevitate > _deleayLevitate)
+                    {
+                        _trigger.SetLevitate(true);
+                    }
+                }
+            }
+
+            _trigger.SetClimb(_entityLiving.IsClimb());
+            _trigger.SetInLiquid(_entityLiving.IsInLiquid());
+            _trigger.SetDead(_entityLiving.IsDying());
+            
+            // Если было изменение
+            if (_trigger.Changed)
+            {
+                // Проверяем текущее состояние
+                EnumEntityActivity clip;
+
+                if (_trigger.Dead)
+                {
+                    clip = EnumEntityActivity.Dead;
+                }
+                else
+                {
+                    if (_trigger.IsMove())
+                    {
+                        // Что-то имеется, проверяем сразу на движение
+                        if (_resourcesEntity.OnlyMove)
+                        {
+                            // Только движение
+                            clip = EnumEntityActivity.Move;
+                        }
+                        else
+                        {
+                            if (_trigger.IsMovingStrafe())
+                            {
+                                // Только стрейф
+                                clip = _trigger.IsStrafeLeft() ? EnumEntityActivity.Left : EnumEntityActivity.Right;
+                            }
+                            else
+                            {
+                                // Вперёд и назад
+                                clip = _trigger.IsForward() ? EnumEntityActivity.Forward : EnumEntityActivity.Back;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        clip = EnumEntityActivity.Idle;
+                    }
+
+                    if (_trigger.Climb)
+                    {
+                        // Если пробует лазить
+                        EnumEntityActivity clipClimb = EnumEntityActivity.None;
+                        // Проверяем движение вверх или вниз
+                        if (_trigger.IsSneak() || _trigger.IsJump())
+                        {
+                            clipClimb = EnumEntityActivity.Move;
+                        }
+                        // Проверяем состояние ливитации
+                        if (_trigger.Levitate)
+                        {
+                            clipClimb |= EnumEntityActivity.Levitate;
+                        }
+                        if (clipClimb != EnumEntityActivity.None)
+                        {
+                            clip = EnumEntityActivity.Climb | clipClimb;
+                        }
+                    }
+                    else
+                    {
+                        if (_trigger.IsSprinting()) clip |= EnumEntityActivity.Sprint;
+                        if (_trigger.Levitate) clip |= EnumEntityActivity.Levitate;
+                        else if (_trigger.IsSneak())
+                        {
+                            // У ливитации положения сидя не должно быть
+                            clip |= EnumEntityActivity.Sneak;
+                        }
+                        if (_trigger.InLiquid) clip |= EnumEntityActivity.InLiquid;
+                    }
+                }
+
+                // Если клип поменялся
+                if (clip != _activity)
+                {
+                    StopingClip(_activeClip);
+                    AddClipActivity(clip);
+                }
+                // Обновить данные в конце после отправки данных игрового такта
+                _trigger.Done();
+            }
+        }
+
+        /// <summary>
+        /// Обновить рассчитать матрицы для кадра
+        /// </summary>
+        /// <param name="timeIndex">коэффициент времени от прошлого TPS клиента в диапазоне 0 .. 1</param>
+        /// <param name="deltaTime">Дельта последнего кадра в mc</param>
+        public override void UpdateMatrix(float timeIndex, float deltaTime)
+        {
+            base.UpdateMatrix(timeIndex, deltaTime);
+
+            if (_resourcesEntity.IsAnimation)
+            {
+                // Увеличивает счётчик прошедшего с начала анимации времени
+                _IncreaseCurrentTime(deltaTime);
+
+                float yaw;// = 0;
+                float yawBody;
+                float pitch;// = 0;
+                if (Entity is EntityLiving entityLiving)
+                {
+                    yaw = entityLiving.GetRotationFrameYaw(timeIndex);
+                    yawBody = entityLiving.SolidHeadWithBody
+                        ? yaw : entityLiving.GetRotationFrameYawBody(timeIndex);
+                    pitch = entityLiving.GetRotationFramePitch(timeIndex);
+                }
+                else
+                {
+                    float x = Entity.PosX - _entities.Player.PosFrameX;
+                    float y = Entity.PosY - _entities.Player.PosFrameY;
+                    float z = Entity.PosZ - _entities.Player.PosFrameZ;
+                    yawBody = yaw = Glm.Atan2(z, x) - Glm.Pi90;
+                    pitch = -Glm.Atan2(y, Mth.Sqrt(x * x + z * z));
+                    //pitch = 0;
+                }
+
+                // Возвращаем значения костей в исходное положение, Оригинал
+                for (byte i = 0; i < _countBones; i++)
+                {
+                    if (_bonesFlagModify[i])
+                    {
+                        _resourcesEntity.Bones[i].SetBonePose(ref _bones[i]);
+                        _bonesFlagModify[i] = false;
+                    }
+                }
+
+                // Генерируем кости текущих поз из анимации
+                _GenBoneCurrentPoses();
+                // Собираем конечные матрицы
+                _GetMatrixPalette(yaw, yawBody, pitch);
+            }
+        }
+
+        /// <summary>
+        /// Метод для прорисовки
+        /// </summary>
+        /// <param name="timeIndex">коэффициент времени от прошлого TPS клиента в диапазоне 0 .. 1</param>
+        /// <param name="deltaTime">Дельта последнего кадра в mc</param>
+        public override void Draw(float timeIndex, float deltaTime)
+        {
+            // Заносим в шейдор
+            _entities.ShsEntity.UniformData(
+                Entity.GetPosFrameX(timeIndex) - _entities.Player.PosFrameX,
+                Entity.GetPosFrameY(timeIndex) - _entities.Player.PosFrameY,
+                Entity.GetPosFrameZ(timeIndex) - _entities.Player.PosFrameZ,
+                _lightBlock, _lightSky,
+                _resourcesEntity.GetDepthTextureAndSmall(),
+                _resourcesEntity.GetIsAnimation(), GetEyeMouth()
+                );
+
+            _entities.ShsEntity.UniformData(_bufferBonesTransforms);
+            // Рисуем основную сетку сущности
+            _entityRender?.MeshDraw();
+
+            // Если имеются слои, рисуем сетку слоёв
+            _entityLayerRender?.MeshDraw();
+        }
+
+        /// <summary>
+        /// Получить параметр для шейдора, на состояния глаз и рта
+        /// Значение 1 это открыты глаза, закрыт рот.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual int GetEyeMouth() => 1;
+
+        #region Skeletion Matrix
+
+        /// <summary>
+        /// Увеличивает счётчик прошедшего с начала анимации времени:
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void _IncreaseCurrentTime(float delta)
+        {
+            for (int i = 0; i < _animationClips.Count; i++)
+            {
+                _animations[_animationClips[i]].IncreaseCurrentTime(delta);
+            }
+        }
+
+        /// <summary>
+        /// Генерируем кости текущих поз
+        /// </summary>
+        protected void _GenBoneCurrentPoses()
+        {
+            int ai;
+            int count = _animationClips.Count;
+            AnimationClip animationClip;
+            // Бежим по костям
+            float weightAll;
+            for (byte i = 0; i < _countBones; i++)
+            {
+                if (count > 1)
+                {
+                    weightAll = 0;
+                    // Надо найти сумму веса в текущей кости
+                    for (ai = 0; ai < count; ai++)
+                    {
+                        animationClip = _animations[_animationClips[ai]];
+                        if (animationClip.IsAnimation(i))
+                        {
+                            weightAll += animationClip.GetWeight(i);
+                        }
+                    }
+                    // Смешивание кости boneIndex из клипа animationClip с весом
+                    for (ai = 0; ai < count; ai++)
+                    {
+                        animationClip = _animations[_animationClips[ai]];
+                        if (animationClip.IsAnimation(i))
+                        {
+                            if (weightAll > 0)
+                            {
+                                _MixBoneClip(animationClip, i, animationClip.GetWeight(i) / weightAll);
+                            }
+                            else
+                            {
+                                _MixBoneClip(animationClip, i, 1f);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    animationClip = _animations[_animationClips[0]];
+                    if (animationClip.IsAnimation(i))
+                    {
+                        _MixBoneClip(animationClip, i, 1f);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Смешивание кости boneIndex из клипа animationClip с весом weight 0..1.0
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void _MixBoneClip(AnimationClip animationClip, byte boneIndex, float weight)
+        {
+            animationClip.GenBoneCurrentPose();
+            _bonesFlagModify[boneIndex] = true;
+            // Смешивание загрузки и выгрузки! коэффициент, 0..1  и умножим вес
+            float mix = animationClip.GetCoefMix() * weight;
+
+           
+
+            if (mix == 1)
+            {
+                _bones[boneIndex].Add(animationClip.CurrentPoseBones[boneIndex]);
+            }
+            else
+            {
+                _bones[boneIndex].Add(animationClip.CurrentPoseBones[boneIndex], mix);
+            }
+        }
+
+        /// <summary>
+        /// Получение матричной палитры для позы
+        /// </summary>
+        private void _GetMatrixPalette(float yaw, float yawBody, float pitch)
+        {
+            // Корневая кость
+            _bonesTransforms[0].Clear();
+            if (yawBody != 0)
+            {
+                _bonesTransforms[0].RotateY(-yawBody);
+            }
+            
+            // У корневой кости нет родительской матрицы, поэтому заносим в матричную палитру матрицу перехода как есть
+            _bonesTransforms[0].Multiply(_bones[0].GetBoneMatrix());
+            _bonesTransforms[0].Multiply(_resourcesEntity.Bones[0].MatrixInverse);
+            _bonesTransforms[0].ConvArray4x3(_bufferBonesTransforms, 0);
+
+            Bone bone;
+            // Пользуясь порядком хранения, проходим по всем локальным позам и выполняем умножения на родительские матрицы и обратные
+            for (int i = 1; i < _countBones; i++)
+            {
+                // Перемножаем матрицы в положение как выставленно в Blockbench
+                bone = _resourcesEntity.Bones[i];
+
+                _bonesTransforms[bone.ParentIndex].Copy(_bonesTransforms[i]);
+                _bonesTransforms[i].Multiply(_bones[i].GetBoneMatrix());
+
+                // Если надо вращаем Pitch, голова
+                if (bone.IsHead)
+                {
+                    yaw -= yawBody;
+                    if (yaw != 0)
+                    {
+                        _bonesTransforms[i].RotateY(-yaw);
+                    }
+                    if (pitch != 0)
+                    {
+                        _bonesTransforms[i].RotateX(pitch);
+                    }
+                }
+
+                // Умножаем обратную матрицу
+                _bonesTransforms[i].Multiply(bone.MatrixInverse);
+                // Отправляем в кеш
+                _bonesTransforms[i].ConvArray4x3(_bufferBonesTransforms, i * 12);
+            }
+        }
+
+        #endregion
+
+        string _holdRightPrev = "";
+        string _holdLeftPrev = "";
+
+        /// <summary>
+        /// Изменён предмет внешности (что в руках и одежда)
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void OutsideItemChanged()
+        {
+            if (_entityLayerRender != null && _shapeLayers != null && Entity is EntityLiving entityLiving)
+            {
+                // Скрыта левая рука
+                bool ifHiddenLeft = false;
+                // Блок защиты от дублирования выбора однотипного предмета
+                string holdRight = "";
+                string holdLeft = "";
+
+                ItemStack itemStack = entityLiving.Inventory.GetOutside(0);
+                if (itemStack != null)
+                {
+                    ifHiddenLeft = itemStack.Item.Two;
+                    holdRight = itemStack.Item.Hold != "" ? itemStack.Item.Hold : HoldRight;
+                }
+                if (!ifHiddenLeft)
+                {
+                    itemStack = entityLiving.Inventory.GetCurrentLeftItem();
+                    if (itemStack != null &&
+                        Mth.Min(entityLiving.Inventory.OutsideCount, _resourcesEntity.CountPositionItem) > 0)
+                    {
+                        // Левая рука, только держим предмет
+                        holdLeft = HoldLeft;
+                    }
+                }
+
+                // Корректировка одевания слоёв
+                if (_holdLeftPrev != holdLeft || _holdRightPrev != holdRight)
+                {
+                    _holdLeftPrev = holdLeft;
+                    _holdRightPrev = holdRight;
+                    _StopingClipsHold();
+                    if (holdRight != "") AddClip(holdRight);
+                    if (holdLeft != "") AddClip(holdLeft);
+                }
+
+                ifHiddenLeft = false;
+                for (int i = 0; i < entityLiving.Inventory.OutsideCount; i++)
+                {
+                    itemStack = entityLiving.Inventory.GetOutside(i);
+                    if (itemStack != null)
+                    {
+                        if (i < _resourcesEntity.CountPositionItem)
+                        {
+                            if (!ifHiddenLeft)
+                            {
+                                // Предмет в руках
+
+                                _entityLayerRender.AddRangeBuffer(itemStack.Item.Buffer.GetBufferHold()
+                                    .CreateBufferMeshItem(_positionItems[i].Index, _positionItems[i].X, _positionItems[i].Y, _positionItems[i].Z));
+
+                                if (i == 0)
+                                {
+                                    ifHiddenLeft = itemStack.Item.Two;
+                                }
+                            }
+                        }
+                        else
+                        
+                        if (itemStack.Item is ItemCloth itemCloth)
+                        {
+                            // Одежда
+                            LayerBuffer layer = _shapeLayers.GetLayer(itemCloth.PutOnBody, 
+                                itemCloth.GetNameLayer(entityLiving.Inventory.GetOutsideSlotKey(i)));
+                            _entityLayerRender.AddRangeBuffer(layer.BufferMesh.CopyBufferMesh(_resourcesEntity.Scale));
+                        }
+                    }
+                }
+                _entityLayerRender.Reload();
+            }
+        }
+
+        /// <summary>
+        /// Задать байт флагов анимации движения
+        /// FBLRSnSp
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void SetMovingFlags(byte moving) => _trigger.SetMovingFlags(moving);
+
+        /// <summary>
+        /// Имеется ли сейчас движение только стрейф, без движения вперёд или назад или бездействия
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override bool IsMovingStrafe() => _trigger.IsMovingStrafe();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void Dispose() => _entityLayerRender?.Dispose();
+
+
+        public override string ToString()
+        {
+            // Отладка, какие клипы сейчас отрабатывают
+            // цифра = EnumEntityActivity
+
+            string r = "";// _animationClips.Count.ToString();
+            string s = "";
+            for(int i = 0; i < _animationClips.Count; i++)
+            {
+                s = _animationClips[i];
+                if (r != "") r += ", " + s;
+                else r += s;
+            }
+
+            return r + " Tr:" + _trigger.ToString();
+        }
+    }
+}

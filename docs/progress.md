@@ -2,6 +2,37 @@
 
 Новые записи сверху. Изменения поведения относительно оригинала помечаются `[ПОВЕДЕНИЕ]`.
 
+## 2026-11-13: этап 5.2, пункт 2: рендер игрока и мобов
+Сделано:
+- RHI: массив матриц `mat4x3` (`CommandList.SetUniformMatrix4x3`, кости моделей, `elementTransforms[24]`),
+  загрузка прямоугольника в слой текстуры (`ITexture.SetSubData`, картинки сущностей меньше слоя массива),
+  признак массива текстур `TextureDescription.IsArray` (массив из одного слоя для `sampler2DArray`).
+  Тест `Matrix4x3ArrayCopiesCountMatrices`.
+- Классы рендера сущностей переносятся скриптом без изменений логики (`port_client.py` +
+  `client_seam3.py`): `EntityRenderAbstract` (свет блока под сущностью), `EntityRenderClient`,
+  `EntityRenderAnimation` (клипы, смешивание костей, триггеры движения, одежда и предметы в руках),
+  `EntityRenderEyeMouth` (моргание, рот), `EntityRenderItem`.
+- Новые на RHI (`tools/port/client_new`): `ShadersEntity` (шейдер `EntityLow` оригинала, методы
+  `UniformData`/`BindUniform*` с теми же параметрами), `MeshEntity`, `EntityRender`, `EntityLayerRender`,
+  `EntitiesRenderer` (массивы текстур сущностей, сетки всех типов сущностей и предметов, проходы:
+  сущности, предметы, игрок со стороны, рука с глаз). Порядок кадра как в оригинале: небо, сплошные
+  блоки, сущности, игрок, рука, облака и дождь, альфа-блоки.
+- `GameClientHost.Create` создаёт рендер по ключу вида (`IEntityRenderFactory`), мод добавляет свои
+  виды через `RegisterEntityRender`: `MvkClient.SetupHost` регистрирует `EntityRenderOwner` (перенос из Mvk2,
+  `src/Mvk.Game.Client/Entity/Render`). `HeadlessGameClientHost.Create` стал виртуальным.
+- `Mvk.Desktop`: дельта кадра в мс для анимации (`DeltaTimeFrame`), ключ `--view N` (как F5),
+  отладочная серверная команда `/summon [кол-во] [расстояние]` (куры перед игроком), включается только с `--cmd`.
+- Снимки: `docs/img/stage5-entities.png` (игрок в одежде сзади и спереди, куры),
+  `docs/img/stage5-hand.png` (вид с глаз: рука с предметом, куры).
+- Полная пересборка: 0 ошибок, 0 предупреждений. `dotnet test`: 236 из 236.
+  `run_all.py`, `run_game.py`, `run_client.py` воспроизводят исходники без расхождений.
+
+Не сделано на этом шаге:
+- Сущность в GUI (`EntityRenderAnimation.DrawGui`) и предметы в GUI (`ItemRender`): вместе с GUI.
+- Частицы (`EntityRenderParticle`, `ParticlesRenderer`), хитбоксы (отладка), сущности в карте теней.
+- Наблюдение: у берега видна изогнутая тёмная полоса между водой и песком (волновая анимация воды
+  шейдера блоков, было и в 5.1). Сравнить с оригиналом при переносе теней и воды.
+
 ## 2026-11-13: этап 5.2, пункт 1: небо острова на RHI
 Сделано:
 - `SkyRender` (Vge) → `src/Mvk.Engine.Client/Renderer/World/SkyRender.cs` (новый файл в

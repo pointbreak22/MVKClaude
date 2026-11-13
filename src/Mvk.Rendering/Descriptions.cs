@@ -45,10 +45,11 @@ namespace Mvk.Rendering
     }
 
     /// <summary>
-    /// Описание текстуры. Layers = 1 обычная 2D, больше 1 массив 2D-текстур.
+    /// Описание текстуры. Массив 2D-текстур, если IsArray или Layers больше 1
+    /// (массив из одного слоя нужен шейдеру с sampler2DArray).
     /// </summary>
     public readonly record struct TextureDescription(
-        int Width, int Height, int Layers, int MipLevels, SamplerState Sampler)
+        int Width, int Height, int Layers, int MipLevels, SamplerState Sampler, bool IsArray = false)
     {
         /// <summary>2D-текстура без мипмапов</summary>
         public static TextureDescription Texture2D(int width, int height, SamplerState sampler)
@@ -56,7 +57,7 @@ namespace Mvk.Rendering
 
         /// <summary>Массив 2D-текстур без мипмапов</summary>
         public static TextureDescription Texture2DArray(int width, int height, int layers, SamplerState sampler)
-            => new(width, height, layers, 1, sampler);
+            => new(width, height, layers, 1, sampler, true);
     }
 
     /// <summary>

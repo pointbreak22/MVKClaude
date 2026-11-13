@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using Mvk.Engine.Games;
 using Mvk.Engine.Renderer.World;
+using Mvk.Engine.Entity.Player;
+using Mvk.Game.Client.Entity.Render;
 using Mvk.Game.Client.Renderer;
 using Mvk.Game.World;
 using Mvk.Engine.Audio;
@@ -27,6 +29,8 @@ namespace Mvk.Game.Client
     {
         /// <summary>Шейдер блоков без теней</summary>
         public const string ShaderBlocksLow = "BlocksLow";
+        /// <summary>Шейдер сущностей без теней</summary>
+        public const string ShaderEntityLow = "EntityLow";
 
         /// <summary>
         /// Задать папку Assets, прочитать настройки и заполнить реестры блоков, предметов и сущностей.
@@ -53,6 +57,16 @@ namespace Mvk.Game.Client
             EntitiesFXReg.Initialization();
             EntitiesFXRegMvk.Initialization();
             EntitiesReg.TextureManagerRun();
+        }
+
+        /// <summary>
+        /// Подключить рендер мира Малювек к хосту клиента: небо острова и рендеры сущностей мода
+        /// </summary>
+        public static void SetupHost(GameClientHost host, SkyTexturesMvk skyTextures)
+        {
+            host.SkyFactory = SkyFactory(skyTextures);
+            host.RegisterEntityRender(EntityRenderKindMvk.Owner, (entity, entities, resources)
+                => new EntityRenderOwner((PlayerClientOwner)entity, entities, resources));
         }
 
         /// <summary>

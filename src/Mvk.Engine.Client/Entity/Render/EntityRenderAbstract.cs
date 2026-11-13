@@ -1,0 +1,89 @@
+﻿using Mvk.Engine.Renderer.World.Entity;
+using Mvk.Engine.World;
+using Mvk.Engine.World.Block;
+using Mvk.Engine.World.Chunk;
+
+namespace Mvk.Engine.Entity.Render
+{
+    /// <summary>
+    /// Абстрактный объект рендера сущности, хранящий данные рендера, без анимации. Только для клиента
+    /// </summary>
+    public abstract class EntityRenderAbstract : EntityRenderBase
+    {
+        /// <summary>
+        /// Сущность к которой прекреплена физика
+        /// </summary>
+        public readonly EntityBase Entity;
+
+        /// <summary>
+        /// Статичный объект сетки типа сущности, не меняется
+        /// </summary>
+        protected IEntityRender _entityRender;
+        /// <summary>
+        /// Освещёность блочного света
+        /// </summary>
+        protected float _lightBlock;
+        /// <summary>
+        /// Освещёность небесного света
+        /// </summary>
+        protected float _lightSky;
+
+        public EntityRenderAbstract(EntityBase entity) => Entity = entity;
+
+        /// <summary>
+        /// Игровой такт на клиенте
+        /// </summary>
+        /// <param name="deltaTime">Дельта последнего тика в mc</param>
+        public override void UpdateClient(WorldClient world, float deltaTime)
+        {
+            // Проверяем освещение
+            _BrightnessForRender(world);
+        }
+
+        /// <summary>
+        /// Получить яркость для рендера 0.0 - 1.0
+        /// </summary>
+        private void _BrightnessForRender(WorldClient world)
+        {
+            BlockPos blockPos = new BlockPos(Entity.PosX, Entity.PosY + Entity.Size.GetHeight() * .85f, Entity.PosZ);
+            if (blockPos.IsValid(world.ChunkPr.Settings))
+            {
+                ChunkBase chunk = world.GetChunk(blockPos.GetPositionChunk());
+                if (chunk != null)
+                {
+                    ChunkStorage chunkStorage = chunk.StorageArrays[blockPos.Y >> 4];
+                    int index = (blockPos.Y & 15) << 8 | (blockPos.Z & 15) << 4 | (blockPos.X & 15);
+                    if (chunkStorage.Light[index] == 0)
+                    {
+                        if (blockPos.Y > 1 && blockPos.Y < chunk.Settings.NumberMaxBlock)
+                        {
+                            int index2 = ((blockPos.Y - 1) & 15) << 8 | (blockPos.Z & 15) << 4 | (blockPos.X & 15);
+                            if (chunkStorage.Light[index] != 0)
+                            {
+                                index = index2;
+                            }
+                            else
+                            {
+                                index = ((blockPos.Y + 1) & 15) << 8 | (blockPos.Z & 15) << 4 | (blockPos.X & 15);
+                            }
+                        }
+                    }
+                    _lightBlock = (chunkStorage.Light[index] >> 4) / 16f + .03125f;
+                    _lightSky = (chunkStorage.Light[index] & 15) / 16f + .03125f;
+                }
+                else
+                {
+                    // Если блок не определён
+                    _lightBlock = .03125f;
+                    _lightSky = .96875f;
+                }
+            }
+            else
+            {
+                // Если блок не определён
+                _lightBlock = .03125f;
+                _lightSky = .96875f;
+            }
+        }
+    }
+}

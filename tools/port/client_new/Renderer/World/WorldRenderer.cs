@@ -7,6 +7,7 @@ using Mvk.Core.Util;
 using Mvk.Engine.Games;
 using Mvk.Engine.Renderer.Shaders;
 using Mvk.Engine.World.Environment;
+using Mvk.Engine.Renderer.World.Entity;
 using Mvk.Rendering;
 
 namespace Mvk.Engine.Renderer.World
@@ -15,7 +16,7 @@ namespace Mvk.Engine.Renderer.World
     /// Рендер мира на RHI. Перенос WorldRenderer оригинала: поток построения сеток, очереди,
     /// привязка сеток в кадре и проходы сплошных и альфа блоков.
     /// Небо и облака рисует SkyRender, его задаёт мод при создании настроек мира (WorldStarted).
-    /// Пока без сущностей, частиц, курсора и теней (следующие шаги этапа 5).
+    /// Сущности рисует EntitiesRenderer. Пока без частиц, курсора и теней (следующие шаги этапа 5).
     /// </summary>
     public class WorldRenderer : IDisposable
     {
@@ -29,6 +30,10 @@ namespace Mvk.Engine.Renderer.World
         public readonly ShadersBlocks ShsBlocks;
         /// <summary>Текстуры атласа блоков</summary>
         public readonly BlockAtlasTextures Atlas;
+        /// <summary>
+        /// Рендер сущностей
+        /// </summary>
+        public readonly EntitiesRenderer Entities;
 
         /// <summary>Обзор в блоках</summary>
         public int OverviewBlock = 32;
@@ -56,7 +61,7 @@ namespace Mvk.Engine.Renderer.World
         /// <summary>Время мс на рендер чанков</summary>
         private int _batchChunksTime;
 
-        public WorldRenderer(GameBase game, RenderContext context, string shaderBlocksLow)
+        public WorldRenderer(GameBase game, RenderContext context, string shaderBlocksLow, string shaderEntityLow)
         {
             _game = game;
             Context = context;
@@ -64,6 +69,7 @@ namespace Mvk.Engine.Renderer.World
             LightMap = new TextureLightMap(context.Device);
             ShsBlocks = new ShadersBlocks(context, shaderBlocksLow);
             Atlas = new BlockAtlasTextures(context.Device);
+            Entities = new EntitiesRenderer(game, this, _arrayChunkRender, shaderEntityLow);
         }
 
         /// <summary>
@@ -210,10 +216,21 @@ namespace Mvk.Engine.Renderer.World
             // Биндим чанки вокселей и готовим массив чанков
             _BindChunkVoxel();
 
+            // Текстуры и сетки сущностей создаются в первом кадре мира: к этому времени
+            // мод зарегистрировал все сущности и предметы (в оригинале WorldRenderer.GameStarting)
+            if (!Entities.IsStarted) Entities.GameStarting();
+            Entities.UpdateMatrix(timeIndex);
+
             // Небо
             _skyRender!.DrawSky(commands, timeIndex);
             // Рисуем воксели сплошных и уникальных блоков
             _DrawVoxelDense(commands);
+            // Сущности
+            Entities.Draw(commands, timeIndex);
+            // Прорисовка вид не с руки, а видим себя
+            Entities.DrawOwner(commands, timeIndex);
+            // Прорисовка руки
+            Entities.DrawOwnerEye(commands, timeIndex);
             // Облака и дождь
             _skyRender.DrawCloudsRain(commands, timeIndex);
             // Рисуем воксели альфа
@@ -336,6 +353,7 @@ namespace Mvk.Engine.Renderer.World
             Mesher.Dispose();
             LightMap.Dispose();
             ShsBlocks.Dispose();
+            Entities.Dispose();
             Atlas.Dispose();
         }
 

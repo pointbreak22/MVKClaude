@@ -1,5 +1,10 @@
 #nullable enable
+using System;
+using System.Collections.Generic;
+using Mvk.Engine.Entity;
+using Mvk.Engine.Entity.Render;
 using Mvk.Engine.Renderer;
+using Mvk.Engine.Renderer.World.Entity;
 using Mvk.Engine.Renderer.World;
 using Mvk.Engine.World;
 using Mvk.Engine.World.Chunk;
@@ -24,15 +29,45 @@ namespace Mvk.Engine.Games
         public WorldRenderer? WorldRender { get; private set; }
 
         private readonly string _shaderBlocksLow;
+        private readonly string _shaderEntityLow;
+        /// <summary>
+        /// Рендеры сущностей, которые добавил мод (ключ вида рендера → создание)
+        /// </summary>
+        private readonly Dictionary<string, Func<EntityBase, EntitiesRenderer, ResourcesEntity, EntityRenderBase>> _entityRenders
+            = new Dictionary<string, Func<EntityBase, EntitiesRenderer, ResourcesEntity, EntityRenderBase>>();
 
-        public GameClientHost(GameModServer modServer, IGraphicsDevice device, string shaderBlocksLow)
+        public GameClientHost(GameModServer modServer, IGraphicsDevice device, string shaderBlocksLow, string shaderEntityLow)
             : base(modServer)
         {
             Context = new RenderContext(device);
             _shaderBlocksLow = shaderBlocksLow;
+            _shaderEntityLow = shaderEntityLow;
         }
 
-        private WorldRenderer _Render() => WorldRender ??= new WorldRenderer(Game, Context, _shaderBlocksLow);
+        private WorldRenderer _Render() => WorldRender ??= new WorldRenderer(Game, Context, _shaderBlocksLow, _shaderEntityLow);
+
+        /// <summary>
+        /// Зарегистрировать рендер сущности мода (в оригинале мод создавал его сам в InitRender сущности)
+        /// </summary>
+        public void RegisterEntityRender(string kind, Func<EntityBase, EntitiesRenderer, ResourcesEntity, EntityRenderBase> create)
+            => _entityRenders[kind] = create;
+
+        /// <summary>
+        /// Создать рендер сущности по ключу вида (IEntityRenderFactory). Частицы пока без рендера.
+        /// </summary>
+        public override EntityRenderBase Create(string kind, EntityBase entity, ResourcesEntity resources)
+        {
+            EntitiesRenderer entities = _Render().Entities;
+            if (_entityRenders.TryGetValue(kind, out var create)) return create(entity, entities, resources);
+            return kind switch
+            {
+                EntityRenderKind.Client => new EntityRenderClient(entity, entities, resources),
+                EntityRenderKind.Animation => new EntityRenderAnimation((EntityLiving)entity, entities, resources),
+                EntityRenderKind.EyeMouth => new EntityRenderEyeMouth((EntityLiving)entity, entities, resources),
+                EntityRenderKind.Item => new EntityRenderItem(entity, entities),
+                _ => base.Create(kind, entity, resources)
+            };
+        }
 
         public override ChunkClient CreateChunk(WorldClient world, int chunkPosX, int chunkPosY)
             => new ChunkRender(world, _Render(), chunkPosX, chunkPosY);

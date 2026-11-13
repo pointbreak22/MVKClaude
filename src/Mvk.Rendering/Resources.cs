@@ -32,6 +32,12 @@ namespace Mvk.Rendering
         void SetData(ReadOnlySpan<byte> pixels, PixelFormat format, int level = 0, int layer = 0);
 
         /// <summary>
+        /// Загрузить прямоугольник пикселей в слой (уровень 0), остальное содержимое слоя не меняется.
+        /// Нужен для картинок меньше слоя (текстуры сущностей в массиве оригинала, TexSubImage3D).
+        /// </summary>
+        void SetSubData(ReadOnlySpan<byte> pixels, PixelFormat format, int x, int y, int width, int height, int layer = 0);
+
+        /// <summary>
         /// Построить мипмапы средствами драйвера из уровня 0
         /// </summary>
         void GenerateMipmaps();

@@ -75,7 +75,7 @@ namespace Mvk.Rendering.OpenGL
                 throw new ArgumentException("Неверный размер текстуры " + d);
             _gl = device.Gl;
             Description = d;
-            Target = d.Layers > 1 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D;
+            Target = d.IsArray || d.Layers > 1 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D;
             Handle = _gl.GenTexture();
             _gl.BindTexture(Target, Handle);
 
@@ -127,6 +127,29 @@ namespace Mvk.Rendering.OpenGL
                 else
                 {
                     _gl.TexSubImage3D(Target, level, 0, 0, layer, w, h, 1, GLConvert.Pixel(format), PixelType.UnsignedByte, p);
+                }
+            }
+        }
+
+        public unsafe void SetSubData(ReadOnlySpan<byte> pixels, PixelFormat format, int x, int y, int width, int height, int layer = 0)
+        {
+            TextureDescription d = Description;
+            if ((uint)layer >= (uint)d.Layers) throw new ArgumentOutOfRangeException(nameof(layer));
+            if (x < 0 || y < 0 || width <= 0 || height <= 0 || x + width > d.Width || y + height > d.Height)
+                throw new ArgumentOutOfRangeException(nameof(width), $"Прямоугольник {x},{y} {width}x{height} вне текстуры {d.Width}x{d.Height}");
+            if (pixels.Length < width * height * 4)
+                throw new ArgumentException($"Мало данных: {pixels.Length} < {width * height * 4}");
+
+            _gl.BindTexture(Target, Handle);
+            fixed (byte* p = pixels)
+            {
+                if (Target == TextureTarget.Texture2D)
+                {
+                    _gl.TexSubImage2D(Target, 0, x, y, (uint)width, (uint)height, GLConvert.Pixel(format), PixelType.UnsignedByte, p);
+                }
+                else
+                {
+                    _gl.TexSubImage3D(Target, 0, x, y, layer, (uint)width, (uint)height, 1, GLConvert.Pixel(format), PixelType.UnsignedByte, p);
                 }
             }
         }

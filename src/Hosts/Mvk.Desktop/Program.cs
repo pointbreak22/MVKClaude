@@ -39,6 +39,7 @@ namespace Mvk.Desktop
             double shotAfter = 8;
             List<string> commands = new List<string>();
             float[]? look = null;
+            int view = 0;
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i] == "--assets" && i + 1 < args.Length) assets = args[++i];
@@ -49,6 +50,7 @@ namespace Mvk.Desktop
                 else if (args[i] == "--slot" && i + 1 < args.Length) slot = int.Parse(args[++i]);
                 else if (args[i] == "--seed" && i + 1 < args.Length) seed = long.Parse(args[++i]);
                 else if (args[i] == "--cmd" && i + 1 < args.Length) commands.Add(args[++i]);
+                else if (args[i] == "--view" && i + 1 < args.Length) view = int.Parse(args[++i]);
                 else if (args[i] == "--look" && i + 1 < args.Length)
                 {
                     // Поворот и наклон в градусах через запятую
@@ -63,7 +65,7 @@ namespace Mvk.Desktop
                 Console.Error.WriteLine("Не найдена папка Assets. Укажите её: --assets <путь>");
                 return 2;
             }
-            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look);
+            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view);
 
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -173,10 +175,11 @@ namespace Mvk.Desktop
         /// <summary>
         /// Локальная игра: остров в слоте, обзор мышью (щелчок по окну), WASD, пробел, F3+клавиши отладки.
         /// С --screenshot ждёт входа в мир и ещё shotAfter секунд построения сеток, сохраняет кадр и выходит.
-        /// --cmd отправляет команды чата после входа в мир, --look задаёт взгляд (для снимков без человека).
+        /// --cmd отправляет команды чата после входа в мир (и включает отладочную /summon), --look задаёт
+        /// взгляд, --view переключает камеру как F5 (для снимков без человека).
         /// </summary>
         private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe,
-            List<string> commands, float[]? look)
+            List<string> commands, float[]? look, int view)
         {
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -190,7 +193,7 @@ namespace Mvk.Desktop
                 device = new OpenGLDevice(GL.GetApi(window));
                 Console.WriteLine(device.Description);
                 Mvk.Engine.Debug.IsDrawVoxelLine = wireframe;
-                scene = new GameScene(device, assets, slot, seed, window.FramebufferSize.X, window.FramebufferSize.Y);
+                scene = new GameScene(device, assets, slot, seed, window.FramebufferSize.X, window.FramebufferSize.Y, commands.Count > 0);
 
                 input = window.CreateInput();
                 foreach (IKeyboard k in input.Keyboards)
@@ -243,6 +246,7 @@ namespace Mvk.Desktop
                 {
                     sinceStart = Stopwatch.StartNew();
                     foreach (string command in commands) scene.SendCommand(command);
+                    scene.ViewCameraNext(view);
                 }
                 if (look != null && screenshot != null && scene.Started) scene.Look(look[0], look[1]);
                 if (screenshot != null && sinceStart != null)

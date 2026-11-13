@@ -44,6 +44,23 @@ namespace Mvk.Platform.Tests
         }
 
         [Fact]
+        public void Matrix4x3ArrayCopiesCountMatrices()
+        {
+            var list = new CommandList();
+            float[] bones = new float[12 * 24];
+            for (int i = 0; i < bones.Length; i++) bones[i] = i;
+            list.SetUniformMatrix4x3(new UniformHandle(7), bones, 24);
+            bones[0] = -1; // список хранит копию
+            RecordedCommand c = list.Commands[0];
+            Assert.Equal(CommandType.UniformMatrix4x3, c.Type);
+            Assert.Equal(7, c.A);
+            Assert.Equal(24, c.C);
+            ReadOnlySpan<float> d = list.Data.Slice(c.B, 12 * 24);
+            Assert.Equal(0f, d[0]);
+            Assert.Equal(287f, d[287]);
+        }
+
+        [Fact]
         public void InvalidUniformIsSkipped()
         {
             var list = new CommandList();

@@ -36,6 +36,8 @@ namespace Mvk.Desktop
         private readonly SkyTexturesMvk _skyTextures;
         private readonly Stopwatch _clock = Stopwatch.StartNew();
         private double _lastMs;
+        /// <summary>Время прошлого кадра в мс</summary>
+        private double _lastFrameMs;
         private double _accumulatorMs;
         private Vector2 _mouse;
         private bool _mouseLook;
@@ -49,16 +51,16 @@ namespace Mvk.Desktop
         /// <summary>Окно должно прятать курсор и ловить мышь</summary>
         public event Action<bool>? MouseLookChanged;
 
-        public GameScene(IGraphicsDevice device, string assets, int slot, long seed, int width, int height)
+        public GameScene(IGraphicsDevice device, string assets, int slot, long seed, int width, int height, bool debugCommands = false)
         {
             _device = device;
             MvkClient.Initialize(assets, false);
             Gi.Width = width;
             Gi.Height = height;
 
-            _host = new GameClientHost(new GameModServerMvk(), device, MvkClient.ShaderBlocksLow);
+            _host = new GameClientHost(debugCommands ? new GameModServerDebug() : new GameModServerMvk(), device, MvkClient.ShaderBlocksLow, MvkClient.ShaderEntityLow);
             _skyTextures = new SkyTexturesMvk(device);
-            _host.SkyFactory = MvkClient.SkyFactory(_skyTextures);
+            MvkClient.SetupHost(_host, _skyTextures);
             _host.CursorShowHandler = show =>
             {
                 _mouseLook = !show;
@@ -94,6 +96,10 @@ namespace Mvk.Desktop
         {
             Gi.Width = width;
             Gi.Height = height;
+            // Дельта кадра в мс для анимации сущностей (DeltaTimeFrame окна оригинала)
+            double now = _clock.Elapsed.TotalMilliseconds;
+            _host.DeltaTimeFrame = (float)(now - _lastFrameMs);
+            _lastFrameMs = now;
             _commands.Reset();
             _commands.SetViewport(0, 0, width, height);
             _host.Draw(_commands, (float)(_accumulatorMs / TickMs));
@@ -105,6 +111,14 @@ namespace Mvk.Desktop
         /// </summary>
         public void SendCommand(string message)
             => _game.TrancivePacket(new PacketC14Message(message, _game.Player.MovingObject));
+
+        /// <summary>
+        /// Переключить вид камеры (как F5): 1 раз сзади, 2 раза спереди
+        /// </summary>
+        public void ViewCameraNext(int count)
+        {
+            for (int i = 0; i < count; i++) _game.Player.ViewCameraNext();
+        }
 
         /// <summary>
         /// Задать направление взгляда игрока в радианах (для снимков без человека)

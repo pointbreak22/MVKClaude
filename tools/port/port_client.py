@@ -18,6 +18,10 @@ FILES = [
     "Renderer/World/ChunkRender.cs",
     # Карта освещения: расчёт переносится, загрузка в текстуру заменяется швом
     "Renderer/World/TextureLightMap.cs",
+    # Рендер сущностей: логика анимации и юниформы через ShadersEntity и IEntityRender клиента
+    "Entity/Render/EntityRenderAbstract.cs", "Entity/Render/EntityRenderClient.cs",
+    "Entity/Render/EntityRenderAnimation.cs", "Entity/Render/EntityRenderEyeMouth.cs",
+    "Entity/Render/EntityRenderItem.cs",
 ]
 
 n = 0

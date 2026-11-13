@@ -131,6 +131,12 @@ namespace Mvk.Rendering.OpenGL
                             Gl.UniformMatrix4(c.A, (uint)c.C, false, p);
                         }
                         break;
+                    case CommandType.UniformMatrix4x3:
+                        fixed (float* p = data.Slice(c.B, c.C * 12))
+                        {
+                            Gl.UniformMatrix4x3(c.A, (uint)c.C, false, p);
+                        }
+                        break;
                     case CommandType.Draw:
                         PrepareDraw();
                         Gl.DrawArrays(_pipeline!.Primitive, c.B, (uint)c.A);

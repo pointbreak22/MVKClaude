@@ -65,7 +65,7 @@ namespace Mvk.Engine.Games
         public virtual void DisposeGame() { }
 
         /// <summary>Пустой рендер: сущности получают объект без отображения</summary>
-        public EntityRenderBase Create(string kind, EntityBase entity, ResourcesEntity resources)
+        public virtual EntityRenderBase Create(string kind, EntityBase entity, ResourcesEntity resources)
             => new EntityRenderBase();
     }
 }
