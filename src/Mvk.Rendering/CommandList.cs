@@ -144,6 +144,15 @@ namespace Mvk.Rendering
             Add(CommandType.UniformMatrix4, u.Location, off, 1, 0, null);
         }
 
+        /// <summary>Матрица 4x4 из массива 16 чисел по столбцам (Gi.MatrixView)</summary>
+        public void SetUniformMatrix4(UniformHandle u, ReadOnlySpan<float> m16)
+        {
+            if (!u.IsValid) return;
+            int off = AddData(16);
+            m16.Slice(0, 16).CopyTo(_data.AsSpan(off, 16));
+            Add(CommandType.UniformMatrix4, u.Location, off, 1, 0, null);
+        }
+
         /// <summary>Рисовать без индексов</summary>
         public void Draw(int vertexCount, int firstVertex = 0)
         {

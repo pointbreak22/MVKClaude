@@ -10,6 +10,7 @@ namespace Mvk.Game.Tests
     /// Новый генератор «Острова» (Mvk.Game на Mvk.Engine) даёт те же чанки, что старый код:
     /// блоки, биомы, карта высот, освещение, число блок-сущностей (Golden/island.csv)
     /// </summary>
+    [Collection("Registries")]
     public class IslandParityTests
     {
         private const int Radius = 2;

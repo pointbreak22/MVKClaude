@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!-- Клиентская часть движка: мешинг, камера, частицы, GUI, звук. Видит только интерфейсы RHI. -->
+  <PropertyGroup>
+    <!-- Как в Mvk.Engine: перенесённый из Vge код писался без аннотаций. Новые файлы включают их сами (#nullable enable). -->
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Mvk.Engine\Mvk.Engine.csproj" />
     <ProjectReference Include="..\Mvk.Rendering\Mvk.Rendering.csproj" />

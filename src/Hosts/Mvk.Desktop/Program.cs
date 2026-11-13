@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using Mvk.Platform;
 using Mvk.Platform.Audio;
@@ -31,12 +32,20 @@ namespace Mvk.Desktop
             string? screenshot = null;
             int shotFrame = 90;
             bool wireframe = false;
+            bool testScene = false;
+            int slot = 0;
+            long seed = 2;
+            double shotAfter = 8;
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i] == "--assets" && i + 1 < args.Length) assets = args[++i];
                 else if (args[i] == "--screenshot" && i + 1 < args.Length) screenshot = Path.GetFullPath(args[++i]);
                 else if (args[i] == "--frame" && i + 1 < args.Length) shotFrame = int.Parse(args[++i]);
                 else if (args[i] == "--wireframe") wireframe = true;
+                else if (args[i] == "--test-scene") testScene = true;
+                else if (args[i] == "--slot" && i + 1 < args.Length) slot = int.Parse(args[++i]);
+                else if (args[i] == "--seed" && i + 1 < args.Length) seed = long.Parse(args[++i]);
+                else if (args[i] == "--shot-after" && i + 1 < args.Length) shotAfter = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture);
             }
             assets ??= FindAssets();
             if (assets == null || !Directory.Exists(assets))
@@ -44,6 +53,7 @@ namespace Mvk.Desktop
                 Console.Error.WriteLine("Не найдена папка Assets. Укажите её: --assets <путь>");
                 return 2;
             }
+            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe);
 
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -134,6 +144,106 @@ namespace Mvk.Desktop
             {
                 scene?.Dispose();
                 audio?.Dispose();
+                input?.Dispose();
+                device?.Dispose();
+            };
+
+            try
+            {
+                window.Run();
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e);
+                result = 1;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Локальная игра: остров в слоте, обзор мышью (щелчок по окну), WASD, пробел, F3+клавиши отладки.
+        /// С --screenshot ждёт входа в мир и ещё shotAfter секунд построения сеток, сохраняет кадр и выходит.
+        /// </summary>
+        private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe)
+        {
+            using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
+            IGraphicsDevice? device = null;
+            GameScene? scene = null;
+            IInputContext? input = null;
+            Stopwatch? sinceStart = null;
+            int result = 0;
+
+            window.Load += () =>
+            {
+                device = new OpenGLDevice(GL.GetApi(window));
+                Console.WriteLine(device.Description);
+                Mvk.Engine.Debug.IsDrawVoxelLine = wireframe;
+                scene = new GameScene(device, assets, slot, seed, window.FramebufferSize.X, window.FramebufferSize.Y);
+
+                input = window.CreateInput();
+                foreach (IKeyboard k in input.Keyboards)
+                {
+                    k.KeyDown += (_, key, _) => scene.KeyDown(key);
+                    k.KeyUp += (_, key, _) => scene.KeyUp(key);
+                    k.KeyChar += (_, c) => scene.KeyChar(c);
+                }
+                foreach (IMouse m in input.Mice)
+                {
+                    m.MouseDown += (_, b) => scene.MouseDown(b);
+                    m.MouseUp += (_, b) => scene.MouseUp(b);
+                    m.MouseMove += (_, p) => scene.MouseMove(p);
+                    m.Scroll += (_, w) => scene.MouseWheel(w.Y);
+                }
+                scene.MouseLookChanged += look =>
+                {
+                    foreach (IMouse m in input.Mice)
+                    {
+                        m.Cursor.CursorMode = look ? CursorMode.Raw : CursorMode.Normal;
+                        scene.ResetMouse(m.Position);
+                    }
+                };
+            };
+
+            window.Update += _ =>
+            {
+                if (scene == null) return;
+                scene.Update();
+                if (scene.Error != null)
+                {
+                    Console.Error.WriteLine("Ошибка игры: " + scene.Error);
+                    result = 1;
+                    window.Close();
+                }
+                else if (scene.Stopped != null)
+                {
+                    Console.WriteLine("Игра остановлена: " + scene.Stopped);
+                    window.Close();
+                }
+            };
+
+            window.Render += _ =>
+            {
+                if (device == null || scene == null) return;
+                int w = window.FramebufferSize.X;
+                int h = window.FramebufferSize.Y;
+                scene.Render(w, h);
+                if (screenshot != null && scene.Started)
+                {
+                    sinceStart ??= Stopwatch.StartNew();
+                    if (sinceStart.Elapsed.TotalSeconds >= shotAfter)
+                    {
+                        byte[] pixels = new byte[w * h * 4];
+                        device.ReadPixels(0, 0, w, h, pixels);
+                        PngWriter.Write(screenshot, w, h, pixels);
+                        Console.WriteLine($"Снимок {w}x{h}: {screenshot}");
+                        window.Close();
+                    }
+                }
+            };
+
+            window.Closing += () =>
+            {
+                scene?.Dispose();
                 input?.Dispose();
                 device?.Dispose();
             };
