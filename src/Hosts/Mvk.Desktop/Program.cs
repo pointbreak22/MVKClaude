@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Mvk.Platform;
@@ -36,6 +37,8 @@ namespace Mvk.Desktop
             int slot = 0;
             long seed = 2;
             double shotAfter = 8;
+            List<string> commands = new List<string>();
+            float[]? look = null;
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i] == "--assets" && i + 1 < args.Length) assets = args[++i];
@@ -45,6 +48,13 @@ namespace Mvk.Desktop
                 else if (args[i] == "--test-scene") testScene = true;
                 else if (args[i] == "--slot" && i + 1 < args.Length) slot = int.Parse(args[++i]);
                 else if (args[i] == "--seed" && i + 1 < args.Length) seed = long.Parse(args[++i]);
+                else if (args[i] == "--cmd" && i + 1 < args.Length) commands.Add(args[++i]);
+                else if (args[i] == "--look" && i + 1 < args.Length)
+                {
+                    // Поворот и наклон в градусах через запятую
+                    string[] parts = args[++i].Split(',');
+                    look = new float[] { _Deg(parts[0]), _Deg(parts[1]) };
+                }
                 else if (args[i] == "--shot-after" && i + 1 < args.Length) shotAfter = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture);
             }
             assets ??= FindAssets();
@@ -53,7 +63,7 @@ namespace Mvk.Desktop
                 Console.Error.WriteLine("Не найдена папка Assets. Укажите её: --assets <путь>");
                 return 2;
             }
-            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe);
+            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look);
 
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -163,8 +173,10 @@ namespace Mvk.Desktop
         /// <summary>
         /// Локальная игра: остров в слоте, обзор мышью (щелчок по окну), WASD, пробел, F3+клавиши отладки.
         /// С --screenshot ждёт входа в мир и ещё shotAfter секунд построения сеток, сохраняет кадр и выходит.
+        /// --cmd отправляет команды чата после входа в мир, --look задаёт взгляд (для снимков без человека).
         /// </summary>
-        private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe)
+        private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe,
+            List<string> commands, float[]? look)
         {
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -227,9 +239,14 @@ namespace Mvk.Desktop
                 int w = window.FramebufferSize.X;
                 int h = window.FramebufferSize.Y;
                 scene.Render(w, h);
-                if (screenshot != null && scene.Started)
+                if (scene.Started && sinceStart == null)
                 {
-                    sinceStart ??= Stopwatch.StartNew();
+                    sinceStart = Stopwatch.StartNew();
+                    foreach (string command in commands) scene.SendCommand(command);
+                }
+                if (look != null && screenshot != null && scene.Started) scene.Look(look[0], look[1]);
+                if (screenshot != null && sinceStart != null)
+                {
                     if (sinceStart.Elapsed.TotalSeconds >= shotAfter)
                     {
                         byte[] pixels = new byte[w * h * 4];
@@ -276,5 +293,8 @@ namespace Mvk.Desktop
             }
             return null;
         }
+
+        private static float _Deg(string value)
+            => float.Parse(value, System.Globalization.CultureInfo.InvariantCulture) * MathF.PI / 180f;
     }
 }

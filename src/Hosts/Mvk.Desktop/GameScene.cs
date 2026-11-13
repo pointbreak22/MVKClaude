@@ -3,8 +3,10 @@ using System.Diagnostics;
 using System.Numerics;
 using Mvk.Engine.Actions;
 using Mvk.Engine.Games;
+using Mvk.Engine.Network.Packets.Client;
 using Mvk.Engine.Util;
 using Mvk.Game.Client;
+using Mvk.Game.Client.Renderer;
 using Mvk.Game.Games;
 using Mvk.Game.World;
 using Mvk.Rendering;
@@ -30,6 +32,8 @@ namespace Mvk.Desktop
         private readonly GameClientHost _host;
         private readonly GameLocal _game;
         private readonly CommandList _commands = new CommandList();
+        /// <summary>Текстуры неба острова</summary>
+        private readonly SkyTexturesMvk _skyTextures;
         private readonly Stopwatch _clock = Stopwatch.StartNew();
         private double _lastMs;
         private double _accumulatorMs;
@@ -53,6 +57,8 @@ namespace Mvk.Desktop
             Gi.Height = height;
 
             _host = new GameClientHost(new GameModServerMvk(), device, MvkClient.ShaderBlocksLow);
+            _skyTextures = new SkyTexturesMvk(device);
+            _host.SkyFactory = MvkClient.SkyFactory(_skyTextures);
             _host.CursorShowHandler = show =>
             {
                 _mouseLook = !show;
@@ -92,6 +98,21 @@ namespace Mvk.Desktop
             _commands.SetViewport(0, 0, width, height);
             _host.Draw(_commands, (float)(_accumulatorMs / TickMs));
             _device.Submit(_commands);
+        }
+
+        /// <summary>
+        /// Отправить серверу команду чата (например "/time n" или "/weather rain"), как ScreenChat оригинала
+        /// </summary>
+        public void SendCommand(string message)
+            => _game.TrancivePacket(new PacketC14Message(message, _game.Player.MovingObject));
+
+        /// <summary>
+        /// Задать направление взгляда игрока в радианах (для снимков без человека)
+        /// </summary>
+        public void Look(float yaw, float pitch)
+        {
+            _game.Player.RotationYaw = _game.Player.RotationPrevYaw = _game.Player.RotationFrameYaw = yaw;
+            _game.Player.RotationPitch = _game.Player.RotationPrevPitch = _game.Player.RotationFramePitch = pitch;
         }
 
         #region Ввод
@@ -219,6 +240,7 @@ namespace Mvk.Desktop
         {
             Stop();
             _game.Dispose();
+            _skyTextures.Dispose();
             _host.Context.Dispose();
         }
     }

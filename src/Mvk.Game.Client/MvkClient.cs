@@ -1,4 +1,9 @@
+using System;
 using System.IO;
+using Mvk.Engine.Games;
+using Mvk.Engine.Renderer.World;
+using Mvk.Game.Client.Renderer;
+using Mvk.Game.World;
 using Mvk.Engine.Audio;
 using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.Particle;
@@ -49,5 +54,14 @@ namespace Mvk.Game.Client
             EntitiesFXRegMvk.Initialization();
             EntitiesReg.TextureManagerRun();
         }
+
+        /// <summary>
+        /// Фабрика неба мира для GameClientHost.SkyFactory, как GameModClientMvk.CreateWorldSettings
+        /// оригинала: мир кошмаров (id 2) с базовым небом, остальные с небом острова
+        /// </summary>
+        public static Func<GameBase, WorldRenderer, SkyRender> SkyFactory(SkyTexturesMvk textures)
+            => (game, render) => game.World.Settings is WorldSettingsNightmare
+                ? new SkyRender(game.Player, render)
+                : new SkyIslandRender(game.Player, render, textures);
     }
 }

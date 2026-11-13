@@ -46,6 +46,23 @@ namespace Mvk.Engine.Games
 
         public override void OnGameStarting() => _Render();
         public override void OnWorldStarting() => _Render().Starting();
+
+        /// <summary>
+        /// Фабрика неба мира, её задаёт клиент мода (в оригинале небо создавал
+        /// GameModClientMvk.CreateWorldSettings). Без фабрики рисуется базовое небо.
+        /// </summary>
+        public System.Func<GameBase, WorldRenderer, SkyRender>? SkyFactory { get; set; }
+
+        /// <summary>
+        /// Пришли настройки мира: создать небо мира и передать ему настройки
+        /// (WorldStarted + WorldRenderInitSetting оригинала)
+        /// </summary>
+        public override void OnWorldSettings()
+        {
+            WorldRenderer render = _Render();
+            render.WorldStarted(SkyFactory?.Invoke(Game, render) ?? new SkyRender(Game.Player, render));
+            render.WorldRenderInitSetting();
+        }
         public override void OnTick(float deltaTime) => WorldRender?.OnTick(deltaTime);
         public override void OnWorldStoping() => WorldRender?.Stoping();
         public override void OnModifyOverviewChunk() => WorldRender?.ModifyOverviewChunk();

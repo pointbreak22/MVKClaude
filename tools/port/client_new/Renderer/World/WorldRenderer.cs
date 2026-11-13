@@ -14,7 +14,8 @@ namespace Mvk.Engine.Renderer.World
     /// <summary>
     /// Рендер мира на RHI. Перенос WorldRenderer оригинала: поток построения сеток, очереди,
     /// привязка сеток в кадре и проходы сплошных и альфа блоков.
-    /// Пока без сущностей, неба, частиц, курсора и теней (следующие шаги этапа 5).
+    /// Небо и облака рисует SkyRender, его задаёт мод при создании настроек мира (WorldStarted).
+    /// Пока без сущностей, частиц, курсора и теней (следующие шаги этапа 5).
     /// </summary>
     public class WorldRenderer : IDisposable
     {
@@ -37,6 +38,8 @@ namespace Mvk.Engine.Renderer.World
         public Vector3 ColorFog = new Vector3(0);
 
         private readonly GameBase _game;
+        /// <summary>Небо текущего мира</summary>
+        private SkyRender? _skyRender;
         /// <summary>Флаг потока рендера чанков</summary>
         private volatile bool _flagRenderLoopRunning;
         /// <summary>Очередь чанков для рендера</summary>
@@ -70,7 +73,22 @@ namespace Mvk.Engine.Renderer.World
         {
             _arrayChunkRender.Resize(Ce.OverviewCircles.Length);
             OverviewBlock = _game.Player.OverviewChunk * 16;
+            _skyRender?.ModifyOverviewChunk(OverviewBlock);
         }
+
+        /// <summary>
+        /// Мир запущен, старт и смена мира: задать небо (прошлое освобождается)
+        /// </summary>
+        public void WorldStarted(SkyRender skyRender)
+        {
+            _skyRender?.Dispose();
+            _skyRender = skyRender;
+        }
+
+        /// <summary>
+        /// Инициализация в рендере мира настроек мира
+        /// </summary>
+        public void WorldRenderInitSetting() => _skyRender?.InitSetting();
 
         #region Поток рендера
 
@@ -168,12 +186,13 @@ namespace Mvk.Engine.Renderer.World
                 ColorSky = environment.GetColorSky();
                 ColorFog = environment.GetColorFog();
             }
+            _skyRender?.Update();
         }
 
         /// <summary>
         /// Готов ли мир к прорисовке
         /// </summary>
-        public bool IsWorldReady => _game.World?.Settings != null && _game.Player != null;
+        public bool IsWorldReady => _game.World?.Settings != null && _game.Player != null && _skyRender != null;
 
         /// <summary>
         /// Записать кадр мира в список команд. Вызывать в потоке окна:
@@ -191,7 +210,13 @@ namespace Mvk.Engine.Renderer.World
             // Биндим чанки вокселей и готовим массив чанков
             _BindChunkVoxel();
 
+            // Небо
+            _skyRender!.DrawSky(commands, timeIndex);
+            // Рисуем воксели сплошных и уникальных блоков
             _DrawVoxelDense(commands);
+            // Облака и дождь
+            _skyRender.DrawCloudsRain(commands, timeIndex);
+            // Рисуем воксели альфа
             _DrawVoxelAlpha(commands);
         }
 
@@ -306,6 +331,8 @@ namespace Mvk.Engine.Renderer.World
         {
             Stoping();
             _thread?.Join(2000);
+            _skyRender?.Dispose();
+            _skyRender = null;
             Mesher.Dispose();
             LightMap.Dispose();
             ShsBlocks.Dispose();

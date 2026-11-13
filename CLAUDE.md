@@ -106,5 +106,6 @@ assets/                   ресурсы из res/Assets (копируются �
 Этап 4 готов: RHI (`Mvk.Rendering`: буферы, текстуры, шейдеры, конвейеры, `CommandList`), бэкенд
 OpenGL, `Mvk.Platform` (ввод через `InputActionMap`, звук OpenAL, `audio.csv`), тестовая сцена
 в `Mvk.Desktop`.
-Этап 5 идёт: шаг 5.1 готов (локальная игра в окне, остров на экране, `src/Mvk.Engine.Client` из `tools/port/run_client.py`).
-Следующий: шаг 5.2 (небо, сущности, GUI и HUD на RHI). Android отложен. См. `docs/progress.md`.
+Этап 5 идёт: шаг 5.1 готов (локальная игра в окне, остров на экране, `src/Mvk.Engine.Client` из `tools/port/run_client.py`);
+в 5.2 готово небо острова (`SkyRender`, `SkyIslandRender`: солнце, луна, звёзды, облака, дождь).
+Следующий: рендер игрока и мобов, ресайз окна, затем GUI и HUD на RHI. Android отложен. См. `docs/progress.md`.

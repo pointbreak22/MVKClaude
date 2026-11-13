@@ -18,3 +18,8 @@ saves/
 logs/
 
 __pycache__/
+
+# Игровые данные Desktop при запуске из корня репозитория
+/Games/
+/options.ini
+/Logs/
