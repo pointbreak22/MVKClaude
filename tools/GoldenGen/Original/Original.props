@@ -5,7 +5,7 @@
     <Nullable>disable</Nullable>
     <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <NoWarn>$(NoWarn);CS0618;CS0162;CS0168;CS0169;CS0219;CS0414;CS0649;CS0108;CS0114;CS8632;CA1416;SYSLIB0011</NoWarn>
+    <NoWarn>$(NoWarn);CS0618;CS0162;CS0168;CS0169;CS0219;CS0414;CS0649;CS0108;CS0114;CS8632;CA1416;SYSLIB0011;SYSLIB0051;CA2022;CA2200</NoWarn>
     <Src>$(MSBuildThisFileDirectory)..\..\..\original\src</Src>
   </PropertyGroup>
 </Project>

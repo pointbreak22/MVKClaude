@@ -51,6 +51,7 @@ namespace Mvk.Desktop
             List<string> presses = new List<string>();
             bool holdLeft = false;
             bool fx = false;
+            bool calm = false;
             WorldMouseLayout mouseLayout = DesktopApp.DefaultMouseLayout;
             string? screen = null;
             int[]? size = null;
@@ -73,6 +74,7 @@ namespace Mvk.Desktop
                 else if (args[i] == "--press" && i + 1 < args.Length) presses.Add(args[++i]);
                 else if (args[i] == "--hold-left") holdLeft = true;
                 else if (args[i] == "--fx") fx = true;
+                else if (args[i] == "--calm") calm = true;
                 else if (args[i] == "--mouse" && i + 1 < args.Length)
                     mouseLayout = args[++i] == "original" ? WorldMouseLayout.Original : WorldMouseLayout.Swapped;
                 else if (args[i] == "--screen" && i + 1 < args.Length) screen = args[++i];
@@ -91,7 +93,7 @@ namespace Mvk.Desktop
                 Console.Error.WriteLine("Не найдена папка Assets. Укажите её: --assets <путь>");
                 return 2;
             }
-            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound, presses, holdLeft, fx, mouseLayout);
+            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound, presses, holdLeft, fx, mouseLayout, calm);
 
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -205,6 +207,7 @@ namespace Mvk.Desktop
         /// --screen chat|inventory|creative|storage|pause открывает экран клавишей на половине ожидания.
         /// Снимки идут без звука (быстрее загрузка), --sound включает его. --press F3+G нажимает комбинацию
         /// клавиш (имена Keys оригинала) на половине ожидания, --hold-left зажимает левую кнопку мыши,
+        /// --calm снимает кадр при ветре около нуля (для сравнения с оригиналом, tools/OrigShot).
         /// --fx спавнит плоские частицы перед игроком. --mouse original возвращает кнопки мыши в мире как в оригинале
         /// (левая ломает, правая ставит); по умолчанию наоборот.
         /// --cmd отправляет команды чата после входа в мир (и включает отладочную /summon), --look задаёт
@@ -215,7 +218,7 @@ namespace Mvk.Desktop
         private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe,
             List<string> commands, float[]? look, int view, int[]? size, int[]? resize, bool profile,
             bool menu, string? screen, bool sound, List<string> presses, bool holdLeft, bool fx,
-            WorldMouseLayout mouseLayout)
+            WorldMouseLayout mouseLayout, bool calm)
         {
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude",
                 size?[0] ?? 1280, size?[1] ?? 720);
@@ -228,8 +231,12 @@ namespace Mvk.Desktop
 
             window.Load += () =>
             {
-                device = new OpenGLDevice(GL.GetApi(window));
+                GL gl = GL.GetApi(window);
+                device = new OpenGLDevice(gl);
                 Console.WriteLine(device.Description);
+                gl.GetFramebufferAttachmentParameter(FramebufferTarget.Framebuffer, (FramebufferAttachment)0x1801,
+                    FramebufferAttachmentParameterName.DepthSize, out int depthBits);
+                Console.WriteLine("Буфер глубины: " + depthBits + " бит");
                 Mvk.Engine.Debug.IsDrawVoxelLine = wireframe;
                 MvkClient.SetAssets(assets);
                 app = new DesktopApp(window, device, commands.Count > 0, screenshot == null || sound, mouseLayout);
@@ -325,7 +332,8 @@ namespace Mvk.Desktop
                         app.App.OnKeyUp(key);
                     }
                 }
-                if (screenshot != null && sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter)
+                if (screenshot != null && sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter
+                    && (!calm || _Calm(app.App.Game)))
                 {
                     // Отчёт до снимка: буфер пикселей и PNG не относятся к кадру игры
                     if (profiler != null) Console.WriteLine(profiler.Report());
@@ -333,6 +341,11 @@ namespace Mvk.Desktop
                     device.ReadPixels(0, 0, w, h, pixels);
                     PngWriter.Write(screenshot, w, h, pixels);
                     Console.WriteLine($"Снимок {w}x{h}: {screenshot}");
+                    if (app.App.Game != null)
+                    {
+                        var pl = app.App.Game.Player;
+                        Console.WriteLine(FormattableString.Invariant($"Игрок {pl.PosX:0.###} {pl.PosY:0.###} {pl.PosZ:0.###} yaw {pl.RotationFrameYaw:0.###} pitch {pl.RotationFramePitch:0.###}"));
+                    }
                     if (app.Audio != null) Console.WriteLine("Звук (звучит/источников): " + app.App.debug.Audio);
                     if (app.App.GameHost?.WorldRender != null) Console.WriteLine("Частицы: " + app.App.GameHost.WorldRender.Particles);
                     window.Close();
@@ -374,6 +387,13 @@ namespace Mvk.Desktop
             }
             return null;
         }
+
+        /// <summary>
+        /// Ветер около нуля (--calm): волна воды не сдвигает вершины, кадры оригинала и порта
+        /// сравнимы в любой момент. Ветер Environment32: cos((такт &amp; 0x7F) * .049) * .16, ноль у фазы 32.
+        /// </summary>
+        private static bool _Calm(Mvk.Engine.Games.GameBase? game)
+            => game?.World == null || (game.World.GetTickCounter() & 0x7F) == 32;
 
         private static int[] _Size(string value)
         {

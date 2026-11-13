@@ -27,3 +27,4 @@
 | Mvk2/Renderer, Gui, WindowMvk, DebugMvk | Mvk.Game.Client | 5 | 🟡 | 5.2: `SkyIslandRender`, `SkyTexturesMvk`, `EntityRenderOwner`; 5.3: `RenderMvk`, `HudMvk`, `RenderSlots`, `WindowMvk`, все `Gui/*`, `LoadingMvk`, `DebugMvkClient` (F6) |
 | Mvk2/Games | Mvk.Game (+ Client) | 3/5 | ⬜ | |
 | res/Assets | assets/ | 5 | ⬜ | копировать в вывод сборки |
+| (инструмент) | tools/OrigShot | 6 | ✅ | кадры оригинала без изменений для сравнения с портом, `compare.py` |
