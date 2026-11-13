@@ -19,7 +19,7 @@ namespace Mvk.Engine.Renderer.World.Entity
     /// <summary>
     /// Объект рендера всех сущностей на RHI. Перенос EntitiesRenderer оригинала:
     /// массивы текстур сущностей, сетки всех типов сущностей и предметов, проходы кадра.
-    /// Пока без хитбоксов (F-отладка) и карты теней.
+    /// Пока без карты теней.
     /// </summary>
     public class EntitiesRenderer : IDisposable
     {
@@ -31,6 +31,14 @@ namespace Mvk.Engine.Renderer.World.Entity
         /// Шейдер сущностей
         /// </summary>
         public readonly ShadersEntity ShsEntity;
+        /// <summary>
+        /// Видим ли мы хитбокс сущности (F3+B)
+        /// </summary>
+        public bool IsHitBox = false;
+        /// <summary>
+        /// Объект для отладки хитбокса сущности, создаётся при первом показе
+        /// </summary>
+        private HitboxEntityRender? _hitbox;
         /// <summary>
         /// Общие объекты рендера
         /// </summary>
@@ -252,6 +260,32 @@ namespace Mvk.Engine.Renderer.World.Entity
                     }
                 }
             }
+
+            if (IsHitBox)
+            {
+                // Есть хит бокс сущности: пробегаемся заново по всем сущностям
+                float x = _game.Player.PosFrameX;
+                float y = _game.Player.PosFrameY;
+                float z = _game.Player.PosFrameZ;
+                _hitbox ??= new HitboxEntityRender(Render);
+                for (int i = 0; i < count; i++)
+                {
+                    chunkRender = _arrayChunkRender[i];
+                    countEntity = chunkRender.ListEntities.Count;
+                    for (int j = 0; j < countEntity; j++)
+                    {
+                        entity = chunkRender.ListEntities.GetAt(j);
+                        if (entity.Id != playerId)
+                        {
+                            Render.ShaderBindLine(Gi.MatrixView,
+                                entity.GetPosFrameX(timeIndex) - x,
+                                entity.GetPosFrameY(timeIndex) - y,
+                                entity.GetPosFrameZ(timeIndex) - z, 1f);
+                            _hitbox.Draw(timeIndex, entity);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -301,6 +335,13 @@ namespace Mvk.Engine.Renderer.World.Entity
                 _BindUniformBegin(commands, false);
                 _game.Player.Render.Draw(timeIndex, _game.DeltaTimeFrame);
             }
+
+            if (IsHitBox)
+            {
+                _hitbox ??= new HitboxEntityRender(Render);
+                Render.ShaderBindLine(Gi.MatrixView, 0, 0, 0, 1f);
+                _hitbox.Draw(timeIndex, _game.Player);
+            }
         }
 
         /// <summary>
@@ -320,6 +361,7 @@ namespace Mvk.Engine.Renderer.World.Entity
 
         public void Dispose()
         {
+            _hitbox?.Dispose();
             _textureSmall?.Dispose();
             _textureSmall = null;
             _textureBig?.Dispose();

@@ -16,7 +16,7 @@ namespace Mvk.Engine.Renderer.World
     /// Рендер мира на RHI. Перенос WorldRenderer оригинала: поток построения сеток, очереди,
     /// привязка сеток в кадре и проходы сплошных и альфа блоков.
     /// Небо и облака рисует SkyRender, его задаёт мод при создании настроек мира (WorldStarted).
-    /// Сущности рисует EntitiesRenderer, частицы ParticlesRenderer. Пока без курсора и теней (следующие шаги этапа 5).
+    /// Сущности рисует EntitiesRenderer, частицы ParticlesRenderer, курсор CursorRender. Пока без теней.
     /// </summary>
     public class WorldRenderer : IDisposable
     {
@@ -38,6 +38,19 @@ namespace Mvk.Engine.Renderer.World
         /// Рендер частиц
         /// </summary>
         public readonly ParticlesRenderer Particles;
+        /// <summary>
+        /// Отрисовка интерфейса и линий (RenderMain оригинала)
+        /// </summary>
+        public readonly RenderMain Render;
+        /// <summary>
+        /// Курсор блока и сетка чанка
+        /// </summary>
+        private readonly CursorRender _cursorRender;
+
+        /// <summary>
+        /// В оригинале GL окна, им создавались сетки; здесь отрисовка интерфейса и линий
+        /// </summary>
+        public RenderMain GetOpenGL() => Render;
 
         /// <summary>Обзор в блоках</summary>
         public int OverviewBlock = 32;
@@ -65,16 +78,21 @@ namespace Mvk.Engine.Renderer.World
         /// <summary>Время мс на рендер чанков</summary>
         private int _batchChunksTime;
 
-        public WorldRenderer(GameBase game, RenderContext context, string shaderBlocksLow, string shaderEntityLow)
+        public WorldRenderer(GameBase game, RenderMain render, string shaderBlocksLow, string shaderEntityLow)
         {
             _game = game;
-            Context = context;
+            Render = render;
+            Context = render.Context;
+            RenderContext context = Context;
             _arrayChunkRender = new ArrayFast<ChunkRender>(Ce.OverviewCircles.Length);
             LightMap = new TextureLightMap(context.Device);
             ShsBlocks = new ShadersBlocks(context, shaderBlocksLow);
             Atlas = new BlockAtlasTextures(context.Device);
             Entities = new EntitiesRenderer(game, this, _arrayChunkRender, shaderEntityLow);
             Particles = new ParticlesRenderer(game, this);
+            Entities.Gui = render;
+            Particles.Gui = render;
+            _cursorRender = new CursorRender(game.Player, this);
         }
 
         /// <summary>
@@ -97,9 +115,23 @@ namespace Mvk.Engine.Renderer.World
         }
 
         /// <summary>
-        /// Перезапуск мира (курсор чанков добавится вместе с курсором блока)
+        /// Перезапуск мира
         /// </summary>
-        public void RespawnInWorld() => Particles.Clear();
+        public void RespawnInWorld()
+        {
+            Particles.Clear();
+            _cursorRender.SetHeightChunks(_game.World.ChunkPr.Settings.NumberBlocks);
+        }
+
+        /// <summary>
+        /// Смена видимости курсора чанка
+        /// </summary>
+        public void ChunkCursorHiddenShow() => _cursorRender.ChunkCursorHiddenShow();
+
+        /// <summary>
+        /// Смена видимости хитбоксов сущностей
+        /// </summary>
+        public void HitboxEntitiesHiddenShow() => Entities.IsHitBox = !Entities.IsHitBox;
 
         /// <summary>
         /// Изменена опция теней (ModifyShadow оригинала). Тени ещё не перенесены (нужны кадровые буферы в RHI),
@@ -251,6 +283,8 @@ namespace Mvk.Engine.Renderer.World
             _DrawVoxelDense(commands);
             // Сущности
             Entities.Draw(commands, timeIndex);
+            // Рендер и прорисовка курсора если это необходимо
+            _cursorRender.RenderDraw();
             // Прорисовка вид не с руки, а видим себя
             Entities.DrawOwner(commands, timeIndex);
             // Частички
@@ -381,6 +415,7 @@ namespace Mvk.Engine.Renderer.World
             ShsBlocks.Dispose();
             Entities.Dispose();
             Particles.Dispose();
+            _cursorRender.Dispose();
             Atlas.Dispose();
         }
 

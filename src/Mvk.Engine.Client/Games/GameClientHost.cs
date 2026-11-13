@@ -105,10 +105,8 @@ namespace Mvk.Engine.Games
         {
             if (WorldRender == null)
             {
-                WorldRender = new WorldRenderer(Game, Context, _shaderBlocksLow, _shaderEntityLow);
-                // Предметы и сущности в GUI рисуются через RenderMain (в оригинале общий RenderMain окна)
-                WorldRender.Entities.Gui = Render;
-                WorldRender.Particles.Gui = Render;
+                // Предметы и сущности в GUI, линии курсора рисуются через RenderMain (в оригинале общий RenderMain окна)
+                WorldRender = new WorldRenderer(Game, Render, _shaderBlocksLow, _shaderEntityLow);
                 WorldRender.Particles.RenderFactory = this;
                 Render.ShsEntity = WorldRender.Entities.ShsEntity;
             }
@@ -228,6 +226,15 @@ namespace Mvk.Engine.Games
         /// Игрок возродился в мире (WorldRender.RespawnInWorld)
         /// </summary>
         public override void OnRespawnInWorld() => WorldRender?.RespawnInWorld();
+
+        /// <summary>
+        /// Отладка F3+G (сетка чанка) и F3+B (хитбоксы)
+        /// </summary>
+        public override void DebugToggle(EnumDebugToggle toggle)
+        {
+            if (toggle == EnumDebugToggle.ChunkCursor) WorldRender?.ChunkCursorHiddenShow();
+            else if (toggle == EnumDebugToggle.HitboxEntities) WorldRender?.HitboxEntitiesHiddenShow();
+        }
 
         public override void OnTick(float deltaTime)
         {

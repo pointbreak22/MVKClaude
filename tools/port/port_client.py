@@ -28,6 +28,8 @@ FILES = [
     "Gui/Huds/HudBase.cs", "Gui/Huds/HudDebug.cs", "Gui/Huds/PartHubChat.cs",
     # Предмет в GUI (сетка MeshGuiEntity и шейдер EntityGui клиента)
     "Renderer/World/ItemRender.cs",
+    # Курсор блока, сетка чанка (F3+G) и хитбоксы (F3+B) на MeshLine и шейдере Line клиента
+    "Renderer/World/CursorRender.cs", "Renderer/World/Entity/HitboxEntityRender.cs",
     # Экраны, виджеты и загрузка ресурсов: окно приложения WindowMain и Warp написаны заново (client_new)
     "Realms/Loading.cs", "Gui/RenderSlot.cs", "Gui/ToolTip.cs",
     "Gui/Controls/Button.cs", "Gui/Controls/ButtonClose.cs", "Gui/Controls/ButtonIcon.cs",

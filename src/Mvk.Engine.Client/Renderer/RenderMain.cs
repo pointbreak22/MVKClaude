@@ -33,8 +33,10 @@ namespace Mvk.Engine.Renderer
         /// <summary>Номера текстур виджетов, частиц и заставки (TextureIndex оригинала)</summary>
         protected uint _textureWidgets, _textureParticles, _textureSplash;
 
-        private readonly IShader _shGuiColor, _shGuiLine;
-        private readonly UniformHandle _colorProjview, _colorPos, _lineProjview, _linePos;
+        private readonly IShader _shGuiColor, _shGuiLine, _shLine;
+        private readonly UniformHandle _colorProjview, _colorPos, _lineProjview, _linePos, _lView, _lPos, _lAlpha;
+        /// <summary>Линии в мире (шейдер Line): курсор блока, сетка чанка, хитбоксы</summary>
+        private readonly IPipeline[] _pipeLineWorld = new IPipeline[2];
         /// <summary>Конвейеры: [глубина выключена, включена]</summary>
         private readonly IPipeline[] _pipeColor = new IPipeline[2];
         private readonly IPipeline[] _pipeLine = new IPipeline[2];
@@ -63,6 +65,12 @@ namespace Mvk.Engine.Renderer
                 new[] { "v_position", "v_color" }, Array.Empty<string>()));
             _lineProjview = _shGuiLine.GetUniform("projview");
             _linePos = _shGuiLine.GetUniform("pos");
+            _shLine = device.CreateShader(new ShaderDescription("Line",
+                FileAssets.ReadStringToShader("Line.vsh"), FileAssets.ReadStringToShader("Line.fsh"),
+                new[] { "v_position", "v_color" }, Array.Empty<string>()));
+            _lView = _shLine.GetUniform("view");
+            _lPos = _shLine.GetUniform("pos");
+            _lAlpha = _shLine.GetUniform("alpha");
             for (int i = 0; i < 2; i++)
             {
                 // Состояние GL оригинала после мира: отсечение задних граней, LEQUAL, смешивание по альфе
@@ -76,6 +84,10 @@ namespace Mvk.Engine.Renderer
                     Raster = raster, Blend = BlendState.Alpha
                 });
                 _pipeLine[i] = device.CreatePipeline(new PipelineDescription(_shGuiLine, MeshGuiLine.Layout)
+                {
+                    Raster = raster, Blend = BlendState.Alpha, Topology = PrimitiveTopology.Lines
+                });
+                _pipeLineWorld[i] = device.CreatePipeline(new PipelineDescription(_shLine, MeshLine.Layout)
                 {
                     Raster = raster, Blend = BlendState.Alpha, Topology = PrimitiveTopology.Lines
                 });
@@ -123,6 +135,17 @@ namespace Mvk.Engine.Renderer
             BindPipelines(_pipeLine);
             Commands.SetUniformMatrix4(_lineProjview, _ortho2D);
             Commands.SetUniform(_linePos, posX, posY);
+        }
+
+        /// <summary>
+        /// Шейдер линий в мире (ShaderBindLine оригинала)
+        /// </summary>
+        public void ShaderBindLine(float[] view, float posX, float posY, float posZ, float alpha)
+        {
+            BindPipelines(_pipeLineWorld);
+            Commands.SetUniformMatrix4(_lView, view);
+            Commands.SetUniform(_lPos, posX, posY, posZ);
+            Commands.SetUniform(_lAlpha, alpha);
         }
 
         public void ShaderBindGuiColor() => ShaderBindGuiColor(0, 0);
@@ -236,9 +259,11 @@ namespace Mvk.Engine.Renderer
             {
                 _pipeColor[i].Dispose();
                 _pipeLine[i].Dispose();
+                _pipeLineWorld[i].Dispose();
             }
             _shGuiColor.Dispose();
             _shGuiLine.Dispose();
+            _shLine.Dispose();
             Texture.Dispose();
         }
     }

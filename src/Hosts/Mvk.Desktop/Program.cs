@@ -46,6 +46,7 @@ namespace Mvk.Desktop
             bool profile = false;
             bool menu = false;
             bool sound = false;
+            List<string> presses = new List<string>();
             string? screen = null;
             int[]? size = null;
             int[]? resize = null;
@@ -64,6 +65,7 @@ namespace Mvk.Desktop
                 else if (args[i] == "--profile") profile = true;
                 else if (args[i] == "--menu") menu = true;
                 else if (args[i] == "--sound") sound = true;
+                else if (args[i] == "--press" && i + 1 < args.Length) presses.Add(args[++i]);
                 else if (args[i] == "--screen" && i + 1 < args.Length) screen = args[++i];
                 else if (args[i] == "--view" && i + 1 < args.Length) view = int.Parse(args[++i]);
                 else if (args[i] == "--look" && i + 1 < args.Length)
@@ -80,7 +82,7 @@ namespace Mvk.Desktop
                 Console.Error.WriteLine("Не найдена папка Assets. Укажите её: --assets <путь>");
                 return 2;
             }
-            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound);
+            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound, presses);
 
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -192,7 +194,8 @@ namespace Mvk.Desktop
         /// С --screenshot после загрузки сразу запускается игра в слоте (--menu: снимок главного меню),
         /// ждёт входа в мир и ещё shotAfter секунд построения сеток, сохраняет кадр и выходит.
         /// --screen chat|inventory|creative|storage|pause открывает экран клавишей на половине ожидания.
-        /// Снимки идут без звука (быстрее загрузка), --sound включает его.
+        /// Снимки идут без звука (быстрее загрузка), --sound включает его. --press F3+G нажимает комбинацию
+        /// клавиш (имена Keys оригинала) на половине ожидания.
         /// --cmd отправляет команды чата после входа в мир (и включает отладочную /summon), --look задаёт
         /// взгляд, --view переключает камеру как F5, --size задаёт размер окна при старте, --resize меняет
         /// его на половине ожидания снимка, --profile печатает аллокации и время кадра и такта
@@ -200,7 +203,7 @@ namespace Mvk.Desktop
         /// </summary>
         private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe,
             List<string> commands, float[]? look, int view, int[]? size, int[]? resize, bool profile,
-            bool menu, string? screen, bool sound)
+            bool menu, string? screen, bool sound, List<string> presses)
         {
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude",
                 size?[0] ?? 1280, size?[1] ?? 720);
@@ -265,6 +268,19 @@ namespace Mvk.Desktop
                         // Ресайз в середине ожидания: игрок уже стоит, камера сама не обновляется
                         window.Size = new Vector2D<int>(resize[0], resize[1]);
                         resize = null;
+                    }
+                    if (presses.Count > 0)
+                    {
+                        // Нажать комбинации клавиш, как человек: F3+G держим F3 и жмём G
+                        foreach (string press in presses)
+                        {
+                            string[] parts = press.Split('+');
+                            var keys = new Mvk.Engine.Actions.Keys[parts.Length];
+                            for (int k = 0; k < parts.Length; k++) keys[k] = Enum.Parse<Mvk.Engine.Actions.Keys>(parts[k]);
+                            foreach (var key in keys) app.App.OnKeyDown(key);
+                            for (int k = keys.Length - 1; k >= 0; k--) app.App.OnKeyUp(keys[k]);
+                        }
+                        presses.Clear();
                     }
                     if (screen != null && !screenOpened)
                     {
