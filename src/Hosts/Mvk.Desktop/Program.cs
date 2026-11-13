@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Mvk.Core.Util;
+using Mvk.Engine;
 using Mvk.Engine.Games;
 using Mvk.Game.Client;
 using Mvk.Platform;
@@ -48,6 +49,8 @@ namespace Mvk.Desktop
             bool menu = false;
             bool sound = false;
             List<string> presses = new List<string>();
+            bool holdLeft = false;
+            bool fx = false;
             string? screen = null;
             int[]? size = null;
             int[]? resize = null;
@@ -67,6 +70,8 @@ namespace Mvk.Desktop
                 else if (args[i] == "--menu") menu = true;
                 else if (args[i] == "--sound") sound = true;
                 else if (args[i] == "--press" && i + 1 < args.Length) presses.Add(args[++i]);
+                else if (args[i] == "--hold-left") holdLeft = true;
+                else if (args[i] == "--fx") fx = true;
                 else if (args[i] == "--screen" && i + 1 < args.Length) screen = args[++i];
                 else if (args[i] == "--view" && i + 1 < args.Length) view = int.Parse(args[++i]);
                 else if (args[i] == "--look" && i + 1 < args.Length)
@@ -83,7 +88,7 @@ namespace Mvk.Desktop
                 Console.Error.WriteLine("Не найдена папка Assets. Укажите её: --assets <путь>");
                 return 2;
             }
-            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound, presses);
+            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound, presses, holdLeft, fx);
 
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -196,7 +201,8 @@ namespace Mvk.Desktop
         /// ждёт входа в мир и ещё shotAfter секунд построения сеток, сохраняет кадр и выходит.
         /// --screen chat|inventory|creative|storage|pause открывает экран клавишей на половине ожидания.
         /// Снимки идут без звука (быстрее загрузка), --sound включает его. --press F3+G нажимает комбинацию
-        /// клавиш (имена Keys оригинала) на половине ожидания.
+        /// клавиш (имена Keys оригинала) на половине ожидания, --hold-left зажимает левую кнопку мыши,
+        /// --fx спавнит плоские частицы перед игроком.
         /// --cmd отправляет команды чата после входа в мир (и включает отладочную /summon), --look задаёт
         /// взгляд, --view переключает камеру как F5, --size задаёт размер окна при старте, --resize меняет
         /// его на половине ожидания снимка, --profile печатает аллокации и время кадра и такта
@@ -204,7 +210,7 @@ namespace Mvk.Desktop
         /// </summary>
         private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe,
             List<string> commands, float[]? look, int view, int[]? size, int[]? resize, bool profile,
-            bool menu, string? screen, bool sound, List<string> presses)
+            bool menu, string? screen, bool sound, List<string> presses, bool holdLeft, bool fx)
         {
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude",
                 size?[0] ?? 1280, size?[1] ?? 720);
@@ -269,6 +275,21 @@ namespace Mvk.Desktop
                         // Ресайз в середине ожидания: игрок уже стоит, камера сама не обновляется
                         window.Size = new Vector2D<int>(resize[0], resize[1]);
                         resize = null;
+                    }
+                    if (fx)
+                    {
+                        // Плоские частицы перед игроком: дым (спрайт) и капли (квад), как спавнит клиентский мир
+                        fx = false;
+                        app.SpawnFlatParticles();
+                    }
+                    if (holdLeft)
+                    {
+                        // Зажать левую кнопку (ломать блок под прицелом) до снимка
+                        holdLeft = false;
+                        // Первый щелчок, как у человека, только включает обзор мышью (GameBase.OnMouseDown)
+                        app.App.OnMouseDown(Mvk.Engine.Actions.MouseButton.Left, Gi.Width / 2, Gi.Height / 2);
+                        app.App.OnMouseUp(Mvk.Engine.Actions.MouseButton.Left, Gi.Width / 2, Gi.Height / 2);
+                        app.App.OnMouseDown(Mvk.Engine.Actions.MouseButton.Left, Gi.Width / 2, Gi.Height / 2);
                     }
                     if (presses.Count > 0)
                     {

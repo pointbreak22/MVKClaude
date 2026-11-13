@@ -161,6 +161,21 @@ namespace Mvk.Desktop
         }
 
         /// <summary>
+        /// Плоские частицы перед игроком: 40 дыма и 40 капель (WorldClient.SpawnParticle)
+        /// </summary>
+        public void SpawnFlatParticles()
+        {
+            if (App.Game?.World == null) return;
+            var p = App.Game.Player;
+            var front = Mvk.Core.Maths.Glm.Ray(p.RotationYaw, 0) * 3f;
+            var pos = new Mvk.Core.Maths.Vector3(p.PosX + front.X, p.PosY + 1.2f, p.PosZ + front.Z);
+            App.Game.World.SpawnParticle(Mvk.Game.Entity.Particle.EntitiesFXRegMvk.SmokeId, 40, pos,
+                new Mvk.Core.Maths.Vector3(1.5f), .1f, 0);
+            App.Game.World.SpawnParticle(Mvk.Game.Entity.Particle.EntitiesFXRegMvk.DropletId, 40, pos,
+                new Mvk.Core.Maths.Vector3(1.5f), .1f, 0);
+        }
+
+        /// <summary>
         /// Переключить вид камеры (как F5)
         /// </summary>
         public void ViewCameraNext(int count)
