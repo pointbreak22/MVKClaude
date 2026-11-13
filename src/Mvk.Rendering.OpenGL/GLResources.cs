@@ -64,6 +64,7 @@ namespace Mvk.Rendering.OpenGL
     internal sealed class GLTexture : ITexture
     {
         private readonly GL _gl;
+        private readonly OpenGLDevice _device;
 
         public uint Handle { get; private set; }
         public TextureTarget Target { get; }
@@ -74,6 +75,7 @@ namespace Mvk.Rendering.OpenGL
             if (d.Width <= 0 || d.Height <= 0 || d.Layers <= 0 || d.MipLevels <= 0)
                 throw new ArgumentException("Неверный размер текстуры " + d);
             _gl = device.Gl;
+            _device = device;
             Description = d;
             Target = d.IsArray || d.Layers > 1 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D;
             Handle = _gl.GenTexture();
@@ -129,6 +131,9 @@ namespace Mvk.Rendering.OpenGL
                 throw new ArgumentException($"Мало данных для уровня {level}: {pixels.Length} < {w * h * 4}");
 
             _gl.BindTexture(Target, Handle);
+            // Привязка на текущий блок мимо кеша устройства: иначе следующий SetTexture этого блока
+            // может решить, что там уже нужная текстура (карта света обновляется каждый такт)
+            _device.ForgetTextureBinding();
             fixed (byte* p = pixels)
             {
                 if (Target == TextureTarget.Texture2D)
@@ -152,6 +157,9 @@ namespace Mvk.Rendering.OpenGL
                 throw new ArgumentException($"Мало данных: {pixels.Length} < {width * height * 4}");
 
             _gl.BindTexture(Target, Handle);
+            // Привязка на текущий блок мимо кеша устройства: иначе следующий SetTexture этого блока
+            // может решить, что там уже нужная текстура (карта света обновляется каждый такт)
+            _device.ForgetTextureBinding();
             fixed (byte* p = pixels)
             {
                 if (Target == TextureTarget.Texture2D)
@@ -168,6 +176,7 @@ namespace Mvk.Rendering.OpenGL
         public void GenerateMipmaps()
         {
             _gl.BindTexture(Target, Handle);
+            _device.ForgetTextureBinding();
             _gl.GenerateMipmap(Target);
         }
 

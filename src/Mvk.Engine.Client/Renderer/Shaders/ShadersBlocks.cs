@@ -41,6 +41,8 @@ namespace Mvk.Engine.Renderer.Shaders
         private bool _depthPass;
         /// <summary>Графика качественнее, с тенями</summary>
         private bool _qualitatively;
+        /// <summary>Текстуры кадра из Begin: Switch ставит их заново</summary>
+        private ITexture? _atlasBlurry, _atlasSharpness, _lightMap, _depthMap;
 
         public ShadersBlocks(RenderContext context, string nameLow, string nameHigh, string nameDepthMap)
         {
@@ -91,6 +93,10 @@ namespace Mvk.Engine.Renderer.Shaders
             commands.SetTexture(SlotAtlasSharpness, atlasSharpness);
             commands.SetTexture(SlotLightMap, lightMap);
             if (_qualitatively && depthMap != null) commands.SetTexture(SlotDepthMap, depthMap);
+            _atlasBlurry = atlasBlurry;
+            _atlasSharpness = atlasSharpness;
+            _lightMap = lightMap;
+            _depthMap = depthMap;
             Program p = _action;
             commands.SetUniformMatrix4(p.View, Gi.MatrixView);
             commands.SetUniform(p.Takt, takt);
@@ -128,9 +134,18 @@ namespace Mvk.Engine.Renderer.Shaders
         }
 
         /// <summary>
-        /// Сменить конвейер того же шейдера, униформы кадра уже занесены в Begin
+        /// Сменить конвейер того же шейдера, униформы кадра уже занесены в Begin.
+        /// Текстуры ставятся заново: между проходами сплошных и альфа блоков рисуются сущности, облака и дождь,
+        /// они занимают те же слоты (в оригинале атласы жили на отдельных блоках 5-7 и не перебивались).
         /// </summary>
-        public void Switch(CommandList commands, IPipeline pipeline) => commands.SetPipeline(pipeline);
+        public void Switch(CommandList commands, IPipeline pipeline)
+        {
+            commands.SetPipeline(pipeline);
+            if (_atlasBlurry != null) commands.SetTexture(SlotAtlasBlurry, _atlasBlurry);
+            if (_atlasSharpness != null) commands.SetTexture(SlotAtlasSharpness, _atlasSharpness);
+            if (_lightMap != null) commands.SetTexture(SlotLightMap, _lightMap);
+            if (_qualitatively && _depthMap != null) commands.SetTexture(SlotDepthMap, _depthMap);
+        }
 
         /// <summary>
         /// Смещение чанка в блоках (UniformDataChunk оригинала)
