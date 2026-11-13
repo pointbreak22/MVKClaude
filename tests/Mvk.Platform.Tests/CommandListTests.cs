@@ -61,6 +61,15 @@ namespace Mvk.Platform.Tests
         }
 
         [Fact]
+        public void RenderTargetCommandKeepsTarget()
+        {
+            var list = new CommandList();
+            list.SetRenderTarget(null);
+            Assert.Equal(CommandType.SetRenderTarget, list.Commands[0].Type);
+            Assert.Null(list.Commands[0].Ref);
+        }
+
+        [Fact]
         public void InvalidUniformIsSkipped()
         {
             var list = new CommandList();

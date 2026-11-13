@@ -2,6 +2,22 @@
 
 Новые записи сверху. Изменения поведения относительно оригинала помечаются `[ПОВЕДЕНИЕ]`.
 
+## 2026-11-14: этап 5.7: тени
+Сделано:
+- RHI: формат текстуры `Depth32F` (`TextureDescription.Depth`), белая рамка сэмплера (`SamplerState.BorderWhite`),
+  цель рендера только с глубиной (`IRenderTarget`, `IGraphicsDevice.CreateRenderTarget`), команда
+  `CommandList.SetRenderTarget`. Бэкенд GL: кадровый буфер с `DrawBuffer/ReadBuffer NONE`, как ShadowMapping оригинала.
+- `ShadowMapping` (`tools/port/client_new`): карта 4096x4096, ортопроекция ±64 блока от солнца, проход для
+  ближних 45 чанков; `Options.Shadow` (в оригинале по умолчанию включено) задаёт яркость блоков 0.3 или 0.15.
+- Шейдеры блоков и сущностей: три программы оригинала (Low, High с `IncShadow`, DepthMap), выбор по опции
+  теней (`UpdateOptions`, `ModifyShadow`). Проход теней: сплошные блоки, сущности и предметы, облака
+  (`SkyIslandRender.DrawCloudsDepthMap`). Матрица карты теней считается в такте, как `_GenVectorLightСalendar`.
+- Особенность оригинала сохранена: в `EntityDepthMap` юниформ называется `eyeLips`, а пишется `eyeMouth`,
+  поэтому закрытые глаза и рот в тени не вырезаются.
+- Тест `RenderTargetCommandKeepsTarget`. Снимок `docs/img/stage5-shadows.png`: тень игрока на песке,
+  затенённые грани блоков.
+- Полная пересборка: 0 ошибок, 0 предупреждений. `dotnet test`: 254 из 254.
+
 ## 2026-11-13: этап 5.6: курсор блока, сетка чанка, хитбоксы
 Сделано:
 - `MeshLine` и `RenderMain.ShaderBindLine` (шейдер `Line` оригинала) на RHI.
