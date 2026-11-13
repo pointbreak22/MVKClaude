@@ -18,7 +18,7 @@
 | Vge/Item, Network, Management, Command, Event, Actions | Mvk.Engine | 2 | 🟨 | компилируется; `WinGL/Actions` (Keys, MouseButton) → `Mvk.Engine.Actions` |
 | Vge/Games (сервер) | Mvk.Engine | 2 | 🟨 | компилируется |
 | Vge/Games (клиент), Realms | логика: Mvk.Engine; окно и экраны: Mvk.Engine.Client | 2/5 | 🟨 | `GameBase` без `Warp`, отображение через `IGameClientHost` (ADR 0003); ChatList, Loading → клиент |
-| Vge/Renderer | Mvk.Engine.Client (+ RHI) | 5 | 🟡 | 5.1: сетки чанков, `WorldRenderer`, `ShadersBlocks`, карта света, атлас (`tools/port/run_client.py`); 5.2: `SkyRender`, рендер сущностей (`EntitiesRenderer`, `Entity/Render/*`); частицы, тени впереди |
+| Vge/Renderer | Mvk.Engine.Client (+ RHI) | 5 | 🟡 | 5.1: сетки чанков, `WorldRenderer`, `ShadersBlocks`, карта света, атлас (`tools/port/run_client.py`); 5.2: `SkyRender`, рендер сущностей (`EntitiesRenderer`, `Entity/Render/*`); 5.3: шрифты, `ChatList`, `Gui/Huds` (HudBase, HudDebug, PartHubChat), `RenderMain` GUI; частицы, тени, экраны впереди |
 | Vge/Gui | Mvk.Engine.Client | 5 | ⬜ | 10 из 37 файлов вызывают GL |
 | Vge/Audio (Al, Alc, AudioSample, AudioSource, AudioSources) | Mvk.Platform.Audio (`AudioDevice`, `PcmSample`) | 4 | ✅ | DllImport → Silk.NET.OpenAL; декодирование OGG побайтно: `Golden/audio.csv` (51 звук) |
 | Vge/Audio (AudioBase, реестр звуков) | Mvk.Engine + Mvk.Engine.Client | 5 | ⬜ | связать ключи звуков Engine с `AudioDevice` через `IGameClientHost` |

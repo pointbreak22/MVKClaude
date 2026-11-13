@@ -2,6 +2,27 @@
 
 Новые записи сверху. Изменения поведения относительно оригинала помечаются `[ПОВЕДЕНИЕ]`.
 
+## 2026-11-13: этап 5.3, часть 1: шрифты, чат и HUD движка на RHI
+Сделано:
+- Инфраструктура GUI на RHI (`tools/port/client_new`): `RenderMain` (шейдеры `GuiColor` и `GuiLine` оригинала,
+  `ShaderBindGuiColor/GuiLine`, `DepthOn/Off`, загрузка картинок GUI и основного шрифта как `Loading`),
+  `TextureMap` (текстуры по номерам, как в оригинале), `MeshGuiColor`, `MeshGuiLine`, `WarpRenderer`.
+  API тот же, что в оригинале, запись идёт в список команд кадра; если сетку перезаливают после
+  отрисовки в том же кадре, записанное сначала отправляется (в оригинале GL рисовал сразу).
+- Переносятся скриптом (`port_client.py` + `client_seam4.py`): `FontBase`, `FontStyle`, `Symbol`,
+  `TransferText`, `EnumFontFX`, `ChatList`, `HudBase` (прицел), `PartHubChat` (чат), `HudDebug`
+  (карта света в DEBUG, как в оригинале).
+- Хост клиента: `Render`, `ChatList` (в оригинале `Player.Chat`), `Hud` из `HudFactory` мода
+  (по умолчанию `HudDebug`, как `GameModClient.CreateHud`), такт, ресайз и отрисовка HUD после мира.
+- Эталон `tests/Mvk.Game.Tests/Golden/font.csv` (GoldenGen режим `font`): ширины символов, ширины строк и
+  перенос текста для FontMain, FontSmall, FontLarge. `FontParityTests`: совпадает с оригиналом.
+- Снимок `docs/img/stage5-hud-chat.png`: прицел, чат с двумя сообщениями команд, карта света.
+- Найдено: в языковых файлах оригинала нет `CommandsWeatherClear`, в чат выводится ключ (как в оригинале).
+- Полная пересборка: 0 ошибок, 0 предупреждений. `dotnet test`: 253 из 253.
+
+Дальше: HUD Малювек (`HudMvk`: панель предметов, левая рука) с 3D-предметами в GUI, `RenderMvk` со своими
+шрифтами и текстурами, затем экраны и меню.
+
 ## 2026-11-13: улучшение R20: аллокации серверного потока
 Сделано:
 - Замер: `Worlds.Update` выделял около 650 КБ/с, почти всё в `_TickBlocks`: строка имени секции профайлера

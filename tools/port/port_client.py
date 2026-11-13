@@ -22,6 +22,10 @@ FILES = [
     "Entity/Render/EntityRenderAbstract.cs", "Entity/Render/EntityRenderClient.cs",
     "Entity/Render/EntityRenderAnimation.cs", "Entity/Render/EntityRenderEyeMouth.cs",
     "Entity/Render/EntityRenderItem.cs",
+    # Шрифты, чат и HUD: рисуют через RenderMain, MeshGuiColor и MeshGuiLine клиента (client_new)
+    "Renderer/Font/EnumFontFX.cs", "Renderer/Font/FontBase.cs", "Renderer/Font/FontStyle.cs",
+    "Renderer/Font/Symbol.cs", "Renderer/Font/TransferText.cs", "Realms/ChatList.cs",
+    "Gui/Huds/HudBase.cs", "Gui/Huds/HudDebug.cs", "Gui/Huds/PartHubChat.cs",
 ]
 
 n = 0

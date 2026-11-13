@@ -42,7 +42,7 @@ namespace Mvk.Engine.Games
         public void ServerLoadingBegin(int count) { }
         public void ServerLoadingStep() => LoadingSteps++;
         public void AcceptNetworkPackage(IPacket packet) { }
-        public void ChatMessage(string message) => Chat.Add(message);
+        public virtual void ChatMessage(string message) => Chat.Add(message);
         public GameModServer CreateGameModServer() => _modServer;
 
         public void Attach(GameBase game) => Game = game;

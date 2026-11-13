@@ -12,3 +12,4 @@
 8. **Растянутая картинка после изменения размера окна.** `Vge/WindowMain.cs:382` (`OnResized`) меняет `Gi.Width/Height` и viewport, но матрицу проекции игрока (`PlayerClientOwner._UpdateMatrixCamera`) пересчитывает только движение камеры: до первого движения мышью или шага кадр сжат или растянут. Снимок `docs/img/stage5-resize-before.png` (1280x720 → 720x720). **Исправлено** [ПОВЕДЕНИЕ] швом `tools/port/fix_resize_camera.py`, сравнение `docs/img/stage5-resize.png`.
 
 Состояние в порте: п. 5 (утечка меша дождя) и п. 6 (аллокации неба в кадре) устранены при переносе неба (этап 5.2, `docs/improvements.md` R9).
+9. **Нет перевода `CommandsWeatherClear`.** `/weather c` пишет в чат ключ строки: в `Mvk2Texts/RuServer.txt` оригинала его нет (есть только `CommandsTimeDay`). Исправлять добавлением строки в ассеты.

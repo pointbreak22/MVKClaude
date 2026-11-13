@@ -10,6 +10,7 @@ namespace Mvk.Engine
         internal const string ItIsImpossibleToCompareTwoObjects = "Невозможно сравнить два объекта";
         internal const string OutOfRangeArray = "Вне диапазона массива, количество {0}";
         internal const string EntityClothingLayersObjectIsMissing = "Отсутствует объект слоёв одежды [{0}] у сущности [{1}].";
+        internal const string TheSymbolIsNotInTheList = "Символ [{0}] отсутствует в перечне";
         internal const string BufferItemIsMissing = "Отсутствует буфер сетки, предмет {0}";
 
         public static string GetString(string name, params object[] args)

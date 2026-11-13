@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.Render;
+using Mvk.Engine.Gui.Huds;
+using Mvk.Engine.Realms;
 using Mvk.Engine.Renderer;
 using Mvk.Engine.Renderer.World.Entity;
 using Mvk.Engine.Renderer.World;
@@ -40,6 +42,7 @@ namespace Mvk.Engine.Games
             : base(modServer)
         {
             Context = new RenderContext(device);
+            Render = new RenderMain(Context);
             _shaderBlocksLow = shaderBlocksLow;
             _shaderEntityLow = shaderEntityLow;
         }
@@ -79,7 +82,65 @@ namespace Mvk.Engine.Games
 
         public override void CursorShow(bool show) => CursorShowHandler?.Invoke(show);
 
-        public override void OnGameStarting() => _Render();
+        /// <summary>
+        /// Отрисовка интерфейса: шрифты, текстуры GUI, шейдеры GuiColor и GuiLine.
+        /// Мод может заменить своим наследником (RenderMvk) до запуска игры.
+        /// </summary>
+        public RenderMain Render { get; set; }
+        /// <summary>
+        /// Строки чата для HUD (в оригинале Player.Chat), создаётся с основным шрифтом при запуске игры
+        /// </summary>
+        public ChatList? ChatList { get; private set; }
+        /// <summary>
+        /// HUD, создаётся когда игрок вошёл в мир (Hud оригинала)
+        /// </summary>
+        public HudBase? Hud { get; private set; }
+        /// <summary>
+        /// Фабрика HUD мода (GameModClient.CreateHud оригинала). Без неё HudDebug, как в движке оригинала.
+        /// </summary>
+        public System.Func<GameBase, HudBase>? HudFactory { get; set; }
+        /// <summary>Картинки GUI загружены</summary>
+        private bool _texturesLoaded;
+
+        public override void OnGameStarting()
+        {
+            _Render();
+            if (!_texturesLoaded)
+            {
+                // Шаги загрузки картинок оригинала (Loading, LoadingMvk) до входа в мир
+                Render.LoadTextures();
+                _texturesLoaded = true;
+            }
+            ChatList = new ChatList(Ce.ChatLineTimeLife, Render.FontMain);
+        }
+
+        /// <summary>
+        /// Игрок вошёл в мир: создать HUD (GameBase.OnStartedGame оригинала: Hud = ModClient.CreateHud())
+        /// </summary>
+        public override void OnStartedGame()
+        {
+            base.OnStartedGame();
+            Hud?.Dispose();
+            Hud = HudFactory != null ? HudFactory(Game) : new HudDebug(Game);
+        }
+
+        /// <summary>
+        /// Сообщение чата в строки HUD (PlayerClientOwner оригинала: Chat.AddMessage)
+        /// </summary>
+        public override void ChatMessage(string message)
+        {
+            base.ChatMessage(message);
+            ChatList?.AddMessage(message, Gi.WindowsChatWidthMessage, Gi.Si);
+        }
+
+        /// <summary>
+        /// Изменён размер окна: размер шрифтов (UpdateSizeInterface окна оригинала) и HUD
+        /// </summary>
+        public override void OnResized(int width, int height)
+        {
+            Render.UpdateSizeInterface();
+            Hud?.OnResized(width, height);
+        }
         public override void OnWorldStarting() => _Render().Starting();
 
         /// <summary>
@@ -98,13 +159,19 @@ namespace Mvk.Engine.Games
             render.WorldStarted(SkyFactory?.Invoke(Game, render) ?? new SkyRender(Game.Player, render));
             render.WorldRenderInitSetting();
         }
-        public override void OnTick(float deltaTime) => WorldRender?.OnTick(deltaTime);
+        public override void OnTick(float deltaTime)
+        {
+            WorldRender?.OnTick(deltaTime);
+            Hud?.OnTick(deltaTime);
+        }
         public override void OnWorldStoping() => WorldRender?.Stoping();
         public override void OnModifyOverviewChunk() => WorldRender?.ModifyOverviewChunk();
         public override string ToDebugString() => WorldRender?.ToString() ?? "";
 
         public override void DisposeGame()
         {
+            Hud?.Dispose();
+            Hud = null;
             WorldRender?.Dispose();
             WorldRender = null;
         }
@@ -116,6 +183,12 @@ namespace Mvk.Engine.Games
         {
             if (WorldRender != null) WorldRender.Draw(commands, timeIndex);
             else commands.Clear(0, 0, 0, 1);
+            // Интерфейс поверх мира (GameBase.Draw оригинала: Hud.Draw после WorldRender.Draw)
+            if (Hud != null)
+            {
+                Render.BeginFrame(commands);
+                Hud.Draw(timeIndex);
+            }
         }
     }
 }

@@ -270,6 +270,7 @@ namespace Mvk.Desktop
             Stop();
             _game.Dispose();
             _skyTextures.Dispose();
+            _host.Render.Dispose();
             _host.Context.Dispose();
         }
     }

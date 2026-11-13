@@ -65,6 +65,14 @@ namespace GoldenGen
                 return 0;
             }
 
+            if (args.Length > 0 && args[0] == "font")
+            {
+                string fontOutput = Path.GetFullPath(args.Length > 1 ? args[1] : "font.csv", _startDirectory);
+                FontGolden.Write(Path.Combine(AppContext.BaseDirectory, "Assets", "Mvk2Textures"), fontOutput);
+                Console.WriteLine("Done: " + fontOutput);
+                return 0;
+            }
+
             if (args.Length > 0 && args[0] == "ogg")
             {
                 string oggOutput = Path.GetFullPath(args.Length > 1 ? args[1] : "audio.csv", _startDirectory);

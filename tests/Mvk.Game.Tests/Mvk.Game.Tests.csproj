@@ -13,12 +13,15 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mvk.Game\Mvk.Game.csproj" />
+    <!-- Шрифты и GUI-логика клиента (font.csv) -->
+    <ProjectReference Include="..\..\src\Mvk.Engine.Client\Mvk.Engine.Client.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- Эталонные хэши чанков со старого генератора -->
     <None Include="Golden\**\*" CopyToOutputDirectory="PreserveNewest" />
     <!-- Общий с tools/GoldenGen код эталона: здесь он генерирует новым кодом -->
     <Compile Include="..\..\tools\GoldenGen\IslandGolden.cs" Link="Golden\IslandGolden.cs" />
+    <Compile Include="..\..\tools\GoldenGen\FontGolden.cs" Link="Golden\FontGolden.cs" />
     <!-- Ассеты оригинала (блоки, биомы, модели в json): до этапа 5 берём из original/ -->
     <None Include="..\..\original\res\Assets\**\*" LinkBase="Assets" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
