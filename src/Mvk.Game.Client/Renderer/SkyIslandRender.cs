@@ -100,6 +100,8 @@ namespace Mvk.Game.Client.Renderer
         private readonly IPipeline _pipeStar, _pipeStarLine;
         /// <summary>Облака</summary>
         private readonly IPipeline _pipeClouds, _pipeCloudsLine;
+        /// <summary>Облака в карте теней: без цвета (кадровый буфер теней только с глубиной)</summary>
+        private readonly IPipeline _pipeCloudsDepth;
         /// <summary>Дождь: элемент неба в состоянии сцены</summary>
         private readonly IPipeline _pipeRain;
 
@@ -235,6 +237,10 @@ namespace Mvk.Game.Client.Renderer
             _pipeStar = _Pipeline(_shSkyStar, _layoutStar, RasterSky, BlendState.Additive);
             _pipeStarLine = _Pipeline(_shSkyStar, _layoutStar, RasterSkyLine, BlendState.Additive);
             _pipeClouds = _Pipeline(_shSkyClouds, _layoutClouds, _rasterScene, BlendState.AlphaKeepDst);
+            _pipeCloudsDepth = _device.CreatePipeline(new PipelineDescription(_shSkyClouds, _layoutClouds)
+            {
+                Raster = _rasterScene, Blend = BlendState.AlphaKeepDst, ColorWrite = false
+            });
             _pipeCloudsLine = _Pipeline(_shSkyClouds, _layoutClouds, RasterSkyLine, BlendState.AlphaKeepDst);
             _pipeRain = _Pipeline(_shSkyElement, _layoutElement, _rasterScene, BlendState.AlphaKeepDst);
 
@@ -703,6 +709,24 @@ namespace Mvk.Game.Client.Renderer
         }
 
         /// <summary>
+        /// Прорисовка облака неба для карты теней
+        /// </summary>
+        public override void DrawCloudsDepthMap(CommandList commands, float timeIndex)
+        {
+            if (_environment.FewClouds < .7f)
+            {
+                commands.SetPipeline(_pipeCloudsDepth);
+                commands.SetTexture(0, _textureCloud);
+                _ShCloudsBind(commands, timeIndex);
+                commands.SetUniform(_uClTransparency, 1f);
+                commands.SetUniformMatrix4(_uClView, Gi.MatrixViewDepthMap);
+                commands.SetUniform(_uClPosY, _player.PosFrameY + 4);
+                commands.SetUniform(_uClFew, _environment.FewClouds + .14f);
+                _DrawQuads(commands, _meshClouds, _countCloudQuads);
+            }
+        }
+
+        /// <summary>
         /// Прорисовка облака
         /// </summary>
         private void _DrawClouds(CommandList commands, float timeIndex)
@@ -972,6 +996,7 @@ namespace Mvk.Game.Client.Renderer
             _pipeStar.Dispose();
             _pipeStarLine.Dispose();
             _pipeClouds.Dispose();
+            _pipeCloudsDepth.Dispose();
             _pipeCloudsLine.Dispose();
             _pipeRain.Dispose();
             _meshSunset.Dispose();

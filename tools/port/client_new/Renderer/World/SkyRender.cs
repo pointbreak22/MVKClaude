@@ -237,6 +237,11 @@ namespace Mvk.Engine.Renderer.World
         public virtual void DrawCloudsRain(CommandList commands, float timeIndex) { }
 
         /// <summary>
+        /// Прорисовка облаков для карты теней
+        /// </summary>
+        public virtual void DrawCloudsDepthMap(CommandList commands, float timeIndex) { }
+
+        /// <summary>
         /// Дополнительные элементы неба, рисуются в состоянии неба (без глубины или каркасом)
         /// </summary>
         protected virtual void _DrawAddElementSky(CommandList commands, float timeIndex) { }

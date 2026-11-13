@@ -19,7 +19,7 @@ namespace Mvk.Engine.Renderer.World.Entity
     /// <summary>
     /// Объект рендера всех сущностей на RHI. Перенос EntitiesRenderer оригинала:
     /// массивы текстур сущностей, сетки всех типов сущностей и предметов, проходы кадра.
-    /// Пока без карты теней.
+    /// Тени: проход в карту теней DrawDepthMap.
     /// </summary>
     public class EntitiesRenderer : IDisposable
     {
@@ -107,7 +107,7 @@ namespace Mvk.Engine.Renderer.World.Entity
             Context = worldRenderer.Context;
             _arrayChunkRender = arrayChunkRender;
             // Имя шейдера GUI сущностей задано движком (RenderMain оригинала)
-            ShsEntity = new ShadersEntity(Context, shaderEntityLow, "EntityGui");
+            ShsEntity = new ShadersEntity(Context, shaderEntityLow, "EntityHigh", "EntityDepthMap", "EntityGui");
         }
 
         /// <summary>
@@ -202,12 +202,12 @@ namespace Mvk.Engine.Renderer.World.Entity
             if (eye)
             {
                 ShsEntity.BindUniformBeginEye(commands, _textureSmall!, _textureBig!,
-                    _worldRenderer.Atlas.Sharpness, _worldRenderer.LightMap.Texture);
+                    _worldRenderer.Atlas.Sharpness, _worldRenderer.LightMap.Texture, _worldRenderer.Shadow.DepthTexture);
             }
             else
             {
                 ShsEntity.BindUniformBegin(commands, _textureSmall!, _textureBig!,
-                    _worldRenderer.Atlas.Sharpness, _worldRenderer.LightMap.Texture);
+                    _worldRenderer.Atlas.Sharpness, _worldRenderer.LightMap.Texture, _worldRenderer.Shadow.DepthTexture);
             }
         }
 
@@ -283,6 +283,51 @@ namespace Mvk.Engine.Renderer.World.Entity
                                 entity.GetPosFrameZ(timeIndex) - z, 1f);
                             _hitbox.Draw(timeIndex, entity);
                         }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Метод для прорисовки кадра теней: сущности и предметы ближних чанков (DrawDepthMap оригинала)
+        /// </summary>
+        public void DrawDepthMap(CommandList commands, float timeIndex)
+        {
+            int count = _arrayChunkRender.Count;
+            if (count > ShadowMapping.CountChunkShadowMap) count = ShadowMapping.CountChunkShadowMap;
+            int countEntity;
+            ChunkRender chunkRender;
+            EntityBase entity;
+
+            // Параметры шейдоров
+            ShsEntity.BindUniformBeginDepthMap(commands, _textureSmall!, _textureBig!, _worldRenderer.Atlas.Sharpness);
+            // Сущности
+            for (int i = 0; i < count; i++)
+            {
+                chunkRender = _arrayChunkRender[i];
+                countEntity = chunkRender.ListEntities.Count;
+                for (int j = 0; j < countEntity; j++)
+                {
+                    entity = chunkRender.ListEntities.GetAt(j);
+                    if (!(entity is EntityItem))
+                    {
+                        entity.Render.Draw(timeIndex, _game.DeltaTimeFrame);
+                    }
+                }
+            }
+
+            // Предметы
+            ShsEntity.BindUniformItems();
+            for (int i = 0; i < count; i++)
+            {
+                chunkRender = _arrayChunkRender[i];
+                countEntity = chunkRender.ListEntities.Count;
+                for (int j = 0; j < countEntity; j++)
+                {
+                    entity = chunkRender.ListEntities.GetAt(j);
+                    if (entity is EntityItem)
+                    {
+                        entity.Render.Draw(timeIndex, _game.DeltaTimeFrame);
                     }
                 }
             }

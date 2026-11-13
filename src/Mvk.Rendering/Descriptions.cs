@@ -31,7 +31,7 @@ namespace Mvk.Rendering
     /// Состояние выборки из текстуры
     /// </summary>
     public readonly record struct SamplerState(
-        TextureFilter MinFilter, TextureFilter MagFilter, MipFilter MipFilter, TextureWrap Wrap)
+        TextureFilter MinFilter, TextureFilter MagFilter, MipFilter MipFilter, TextureWrap Wrap, bool BorderWhite = false)
     {
         /// <summary>Пиксельная графика без мипмапов, с повтором</summary>
         public static readonly SamplerState PointRepeat
@@ -49,8 +49,15 @@ namespace Mvk.Rendering
     /// (массив из одного слоя нужен шейдеру с sampler2DArray).
     /// </summary>
     public readonly record struct TextureDescription(
-        int Width, int Height, int Layers, int MipLevels, SamplerState Sampler, bool IsArray = false)
+        int Width, int Height, int Layers, int MipLevels, SamplerState Sampler, bool IsArray = false,
+        TextureFormat Format = TextureFormat.Rgba8)
     {
+        /// <summary>
+        /// Текстура глубины для карты теней: шейдер читает .r как глубину 0..1
+        /// </summary>
+        public static TextureDescription Depth(int width, int height, SamplerState sampler)
+            => new(width, height, 1, 1, sampler, false, TextureFormat.Depth32F);
+
         /// <summary>2D-текстура без мипмапов</summary>
         public static TextureDescription Texture2D(int width, int height, SamplerState sampler)
             => new(width, height, 1, 1, sampler);

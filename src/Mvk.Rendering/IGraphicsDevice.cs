@@ -28,6 +28,9 @@ namespace Mvk.Rendering
 
         IPipeline CreatePipeline(PipelineDescription description);
 
+        /// <summary>Цель рендера только с глубиной (текстура формата Depth32F)</summary>
+        IRenderTarget CreateRenderTarget(ITexture depth);
+
         /// <summary>Выполнить записанные команды</summary>
         void Submit(CommandList commands);
 

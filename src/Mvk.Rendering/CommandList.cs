@@ -18,6 +18,7 @@ namespace Mvk.Rendering
         UniformFloat,
         UniformMatrix4,
         UniformMatrix4x3,
+        SetRenderTarget,
         Draw,
         DrawIndexed
     }
@@ -166,6 +167,11 @@ namespace Mvk.Rendering
             data.Slice(0, n).CopyTo(_data.AsSpan(off, n));
             Add(CommandType.UniformMatrix4x3, u.Location, off, count, 0, null);
         }
+
+        /// <summary>
+        /// Рисовать в цель рендера (null: в окно). Viewport задаётся отдельно.
+        /// </summary>
+        public void SetRenderTarget(IRenderTarget? target) => Add(CommandType.SetRenderTarget, 0, 0, 0, 0, target);
 
         /// <summary>Рисовать без индексов</summary>
         public void Draw(int vertexCount, int firstVertex = 0)

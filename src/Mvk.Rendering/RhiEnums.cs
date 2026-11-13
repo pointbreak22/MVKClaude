@@ -122,6 +122,17 @@ namespace Mvk.Rendering
     }
 
     /// <summary>
+    /// Формат хранения текстуры
+    /// </summary>
+    public enum TextureFormat
+    {
+        /// <summary>Цвет, 8 бит на канал</summary>
+        Rgba8 = 0,
+        /// <summary>Глубина float (карта теней)</summary>
+        Depth32F = 1
+    }
+
+    /// <summary>
     /// Поведение координат за пределами 0..1
     /// </summary>
     public enum TextureWrap

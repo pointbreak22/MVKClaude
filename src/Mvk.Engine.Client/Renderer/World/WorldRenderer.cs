@@ -16,7 +16,7 @@ namespace Mvk.Engine.Renderer.World
     /// Рендер мира на RHI. Перенос WorldRenderer оригинала: поток построения сеток, очереди,
     /// привязка сеток в кадре и проходы сплошных и альфа блоков.
     /// Небо и облака рисует SkyRender, его задаёт мод при создании настроек мира (WorldStarted).
-    /// Сущности рисует EntitiesRenderer, частицы ParticlesRenderer, курсор CursorRender. Пока без теней.
+    /// Сущности рисует EntitiesRenderer, частицы ParticlesRenderer, курсор CursorRender, тени ShadowMapping.
     /// </summary>
     public class WorldRenderer : IDisposable
     {
@@ -46,6 +46,10 @@ namespace Mvk.Engine.Renderer.World
         /// Курсор блока и сетка чанка
         /// </summary>
         private readonly CursorRender _cursorRender;
+        /// <summary>
+        /// Карта теней
+        /// </summary>
+        public readonly ShadowMapping Shadow;
 
         /// <summary>
         /// В оригинале GL окна, им создавались сетки; здесь отрисовка интерфейса и линий
@@ -86,7 +90,8 @@ namespace Mvk.Engine.Renderer.World
             RenderContext context = Context;
             _arrayChunkRender = new ArrayFast<ChunkRender>(Ce.OverviewCircles.Length);
             LightMap = new TextureLightMap(context.Device);
-            ShsBlocks = new ShadersBlocks(context, shaderBlocksLow);
+            ShsBlocks = new ShadersBlocks(context, shaderBlocksLow, "BlocksHigh", "BlocksDepthMap");
+            Shadow = new ShadowMapping(context.Device);
             Atlas = new BlockAtlasTextures(context.Device);
             Entities = new EntitiesRenderer(game, this, _arrayChunkRender, shaderEntityLow);
             Particles = new ParticlesRenderer(game, this);
@@ -134,10 +139,14 @@ namespace Mvk.Engine.Renderer.World
         public void HitboxEntitiesHiddenShow() => Entities.IsHitBox = !Entities.IsHitBox;
 
         /// <summary>
-        /// Изменена опция теней (ModifyShadow оригинала). Тени ещё не перенесены (нужны кадровые буферы в RHI),
-        /// шейдеры сейчас только без теней, поэтому менять нечего.
+        /// Изменена опция теней (ModifyShadow оригинала)
         /// </summary>
-        public void ModifyShadow() { }
+        public void ModifyShadow()
+        {
+            Shadow.ReloadInit();
+            Entities.ShsEntity.UpdateOptions();
+            ShsBlocks.UpdateOptions();
+        }
 
         /// <summary>
         /// Инициализация в рендере мира настроек мира
@@ -247,6 +256,14 @@ namespace Mvk.Engine.Renderer.World
                 Gi.ViewLightDir = environment.GetVectorLight();
                 ColorSky = environment.GetColorSky();
                 ColorFog = environment.GetColorFog();
+
+                // Матрица карты теней от солнца (_GenVectorLightСalendar оригинала)
+                Vector3 vr = Glm.Cross(new Vector3(0, 1, 0), Gi.ViewLightDir);
+                Vector3 vu = Glm.Cross(Gi.ViewLightDir, vr);
+                int sosm = ShadowMapping.SizeOrthShadowMap;
+                Mat4 matrix = Glm.Ortho(-sosm, sosm, -sosm, sosm, -sosm * 4, sosm);
+                matrix.Multiply(Glm.LookAt(Gi.ViewLightDir, new Vector3(0, 0, 0), vu));
+                matrix.ConvArray(Gi.MatrixViewDepthMap);
             }
             _skyRender?.Update();
         }
@@ -276,6 +293,20 @@ namespace Mvk.Engine.Renderer.World
             // мод зарегистрировал все сущности и предметы (в оригинале WorldRenderer.GameStarting)
             if (!Entities.IsStarted) Entities.GameStarting();
             Entities.UpdateMatrix(timeIndex);
+
+            // Буфер теней есть, работаем дальше
+            if (Shadow.RenderSceneBegin(commands))
+            {
+                // --- Начало сцены ТЕНЕЙ
+                // Рисуем воксели сплошных и уникальных блоков
+                _DrawVoxelDenseDepthMap(commands);
+                // Сущности
+                Entities.DrawDepthMap(commands, timeIndex);
+                // Облака
+                _skyRender!.DrawCloudsDepthMap(commands, timeIndex);
+                // --- Конец сцены ТЕНЕЙ, обратно в окно
+                Shadow.RenderSceneEnd(commands, Gi.Width, Gi.Height);
+            }
 
             // Небо
             _skyRender!.DrawSky(commands, timeIndex);
@@ -357,10 +388,33 @@ namespace Mvk.Engine.Renderer.World
         /// <summary>
         /// Рисуем воксели сплошных и уникальных блоков
         /// </summary>
+        /// <summary>
+        /// Рисуем воксели сплошных и уникальных блоков для карты глубины (ближние 45 чанков)
+        /// </summary>
+        private void _DrawVoxelDenseDepthMap(CommandList commands)
+        {
+            ShsBlocks.BeginDepthMap(commands, Atlas.Blurry, Atlas.Sharpness,
+                _game.Player.PosFrameX, _game.Player.PosFrameY, _game.Player.PosFrameZ,
+                (int)_game.World!.GetTickCounter(), _game.World.Settings.Environment.GetWind());
+
+            int count = _arrayChunkRender.Count;
+            if (count > ShadowMapping.CountChunkShadowMap) count = ShadowMapping.CountChunkShadowMap;
+            ChunkRender chunkRender;
+            for (int i = 0; i < count; i++)
+            {
+                chunkRender = _arrayChunkRender[i];
+                if (chunkRender.NotNullMeshDense)
+                {
+                    ShsBlocks.UniformDataChunk(commands, chunkRender.CurrentChunkX << 4, chunkRender.CurrentChunkY << 4);
+                    chunkRender.DrawDense(commands);
+                }
+            }
+        }
+
         private void _DrawVoxelDense(CommandList commands)
         {
-            ShsBlocks.Begin(commands, Debug.IsDrawVoxelLine ? ShsBlocks.DenseLine : ShsBlocks.Dense,
-                Atlas.Blurry, Atlas.Sharpness, LightMap.Texture,
+            ShsBlocks.Begin(commands, s => Debug.IsDrawVoxelLine ? s.DenseLine : s.Dense,
+                Atlas.Blurry, Atlas.Sharpness, LightMap.Texture, Shadow.DepthTexture,
                 _game.Player.PosFrameX, _game.Player.PosFrameY, _game.Player.PosFrameZ,
                 (int)_game.World!.GetTickCounter(), _game.World.Settings.Environment.GetWind(),
                 OverviewBlock, ColorFog, 5);
@@ -416,6 +470,7 @@ namespace Mvk.Engine.Renderer.World
             Entities.Dispose();
             Particles.Dispose();
             _cursorRender.Dispose();
+            Shadow.Dispose();
             Atlas.Dispose();
         }
 

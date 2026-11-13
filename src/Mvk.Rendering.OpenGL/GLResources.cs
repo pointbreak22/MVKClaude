@@ -79,7 +79,12 @@ namespace Mvk.Rendering.OpenGL
             Handle = _gl.GenTexture();
             _gl.BindTexture(Target, Handle);
 
-            for (int level = 0; level < d.MipLevels; level++)
+            if (d.Format == TextureFormat.Depth32F)
+            {
+                _gl.TexImage2D(Target, 0, InternalFormat.DepthComponent32f, (uint)d.Width, (uint)d.Height, 0,
+                    Silk.NET.OpenGL.PixelFormat.DepthComponent, PixelType.Float, null);
+            }
+            else for (int level = 0; level < d.MipLevels; level++)
             {
                 uint w = (uint)Math.Max(1, d.Width >> level);
                 uint h = (uint)Math.Max(1, d.Height >> level);
@@ -102,6 +107,12 @@ namespace Mvk.Rendering.OpenGL
             int wrap = GLConvert.Wrap(s.Wrap, device.IsGles);
             _gl.TexParameter(Target, TextureParameterName.TextureWrapS, wrap);
             _gl.TexParameter(Target, TextureParameterName.TextureWrapT, wrap);
+            if (s.BorderWhite && !device.IsGles)
+            {
+                // Вне карты теней глубина 1: там тени нет (как в оригинале)
+                float* border = stackalloc float[] { 1f, 1f, 1f, 1f };
+                _gl.TexParameter(Target, TextureParameterName.TextureBorderColor, border);
+            }
             _gl.TexParameter(Target, TextureParameterName.TextureBaseLevel, 0);
             _gl.TexParameter(Target, TextureParameterName.TextureMaxLevel, d.MipLevels - 1);
             device.ForgetTextureBinding();
@@ -172,6 +183,39 @@ namespace Mvk.Rendering.OpenGL
     /// Программа шейдеров OpenGL. Входы привязываются к location по ShaderDescription.Attributes,
     /// sampler-униформы к слотам по ShaderDescription.Samplers (как ShaderProgram оригинала).
     /// </summary>
+    /// <summary>
+    /// Кадровый буфер только с глубиной (glDrawBuffer и glReadBuffer NONE, как ShadowMapping оригинала)
+    /// </summary>
+    internal sealed class GLRenderTarget : IRenderTarget
+    {
+        private readonly GL _gl;
+        public uint Handle { get; private set; }
+        public ITexture Depth { get; }
+
+        public GLRenderTarget(OpenGLDevice device, GLTexture depth)
+        {
+            _gl = device.Gl;
+            Depth = depth;
+            Handle = _gl.GenFramebuffer();
+            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, Handle);
+            _gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment,
+                TextureTarget.Texture2D, depth.Handle, 0);
+            _gl.DrawBuffer(DrawBufferMode.None);
+            _gl.ReadBuffer(ReadBufferMode.None);
+            GLEnum status = _gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+            _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            if (status != GLEnum.FramebufferComplete)
+                throw new InvalidOperationException("Ошибка кадрового буфера для теней: " + status);
+        }
+
+        public void Dispose()
+        {
+            if (Handle == 0) return;
+            _gl.DeleteFramebuffer(Handle);
+            Handle = 0;
+        }
+    }
+
     internal sealed class GLShader : IShader
     {
         private readonly GL _gl;

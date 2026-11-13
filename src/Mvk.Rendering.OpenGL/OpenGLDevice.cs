@@ -56,6 +56,8 @@ namespace Mvk.Rendering.OpenGL
 
         public ITexture CreateTexture(in TextureDescription description) => new GLTexture(this, description);
 
+        public IRenderTarget CreateRenderTarget(ITexture depth) => new GLRenderTarget(this, (GLTexture)depth);
+
         public IShader CreateShader(ShaderDescription description) => new GLShader(this, description);
 
         public IPipeline CreatePipeline(PipelineDescription description)
@@ -77,6 +79,9 @@ namespace Mvk.Rendering.OpenGL
                 ref readonly RecordedCommand c = ref list[i];
                 switch (c.Type)
                 {
+                    case CommandType.SetRenderTarget:
+                        Gl.BindFramebuffer(FramebufferTarget.Framebuffer, ((GLRenderTarget?)c.Ref)?.Handle ?? 0);
+                        break;
                     case CommandType.Viewport:
                         Gl.Viewport(c.A, c.B, (uint)c.C, (uint)c.D);
                         break;

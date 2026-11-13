@@ -44,6 +44,15 @@ namespace Mvk.Rendering
     }
 
     /// <summary>
+    /// Цель рендера вне окна: кадровый буфер с текстурой глубины (карта теней), без цвета
+    /// </summary>
+    public interface IRenderTarget : IDisposable
+    {
+        /// <summary>Текстура глубины</summary>
+        ITexture Depth { get; }
+    }
+
+    /// <summary>
     /// Ссылка на uniform-переменную шейдера. Получается один раз после создания шейдера.
     /// </summary>
     public readonly record struct UniformHandle(int Location)
