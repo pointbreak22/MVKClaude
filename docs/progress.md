@@ -2,6 +2,34 @@
 
 Новые записи сверху. Изменения поведения относительно оригинала помечаются `[ПОВЕДЕНИЕ]`.
 
+## 2026-11-13: этап 5.3, часть 3: окно приложения, меню и экраны
+Сделано:
+- `WindowMain` (`tools/port/client_new`): логика окна оригинала без окна ОС — экраны (`ScreenCreate`,
+  `ScreenClose`, `ScreenLaunchFromParent`), запуск и остановка игры (`GameLocalRun`, `GameNetRun`,
+  `Game_Stoped`), такты 20 в секунду и кадры, ввод в экран или игру, ресайз, отладочный текст.
+  Окно ОС, курсор, полный экран, буфер обмена и закрытие делает хост платформы (`IWindowHost`).
+  Реестры заполняются перед каждой игрой, как в оригинале. `Warp` для экранов.
+- Скриптом переносятся (`port_client.py` + `client_seam5.py`) все экраны и виджеты движка: `ScreenBase`,
+  `LaunchScreen`, заставка, главное меню, одиночная игра, создание игры, сетевая игра, опции, пауза,
+  чат, уведомление, да/нет, процесс, загрузка мира; `Button*`, `Label`, `TextBox`, `Slider`, `CheckBox`,
+  `ControlSlot`, `ToolTip`, `RenderSlot`; `Loading` (загрузка картинок в отдельном потоке, как в оригинале).
+- `GameClientHost` пересылает окну меню паузы, экраны процесса и загрузки, курсор; `EntityRenderAnimation.DrawGui`
+  вернулся (игрок в инвентаре), `ShadersEntity.BindUniformAnimationGui`.
+- `Mvk.Game.Client`: `WindowMvk`, `LaunchScreenMvk`, экраны Малювек (инвентарь, хранилища, креатив, чат),
+  `ControlSlotMvk`, `RenderSlotMvk`, `ToolTipMvk`, `ButtonArrow`, `ButtonTab`, `LoadingMvk` (перенос из Mvk2).
+  Клавиши чата, инвентаря и хранилищ (в оригинале `GameModClientMvk` через окно) обрабатывает `WindowMvk`
+  после игры в том же порядке.
+- `Mvk.Desktop`: `DesktopApp` (хост Silk для `WindowMvk`) вместо `GameScene`. Запуск без ключей открывает
+  заставку и главное меню; со `--screenshot` после загрузки сразу одиночная игра, `--menu` снимает меню,
+  `--screen chat|inventory|creative|storage|pause` открывает экран клавишей.
+- Снимки: `docs/img/stage5-menu.png` (главное меню), `docs/img/stage5-screens.png` (пауза, чат со списком
+  игроков, инвентарь с моделью игрока и одеждой).
+- Полная пересборка: 0 ошибок, 0 предупреждений. `dotnet test`: 253 из 253.
+
+Не сделано (дальше):
+- Звук: шаги загрузки звуков в `LoadingMvk` и звук клика GUI вернутся вместе со звуком в игре.
+- `DebugMvk.ScreenFileBiomeArea` (F6) не перенесён.
+
 ## 2026-11-13: этап 5.3, часть 2: HUD Малювек и предметы в GUI
 Сделано:
 - `ShadersEntity`: GUI-проход (шейдер `EntityGui` оригинала, `BindUniformBeginGui`, `UniformPosGui`,

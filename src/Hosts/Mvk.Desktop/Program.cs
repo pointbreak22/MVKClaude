@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using Mvk.Engine.Games;
+using Mvk.Game.Client;
 using Mvk.Platform;
 using Mvk.Platform.Audio;
 using Mvk.Platform.Input;
@@ -42,6 +44,8 @@ namespace Mvk.Desktop
             float[]? look = null;
             int view = 0;
             bool profile = false;
+            bool menu = false;
+            string? screen = null;
             int[]? size = null;
             int[]? resize = null;
             for (int i = 0; i < args.Length; i++)
@@ -57,6 +61,8 @@ namespace Mvk.Desktop
                 else if (args[i] == "--size" && i + 1 < args.Length) size = _Size(args[++i]);
                 else if (args[i] == "--resize" && i + 1 < args.Length) resize = _Size(args[++i]);
                 else if (args[i] == "--profile") profile = true;
+                else if (args[i] == "--menu") menu = true;
+                else if (args[i] == "--screen" && i + 1 < args.Length) screen = args[++i];
                 else if (args[i] == "--view" && i + 1 < args.Length) view = int.Parse(args[++i]);
                 else if (args[i] == "--look" && i + 1 < args.Length)
                 {
@@ -72,7 +78,7 @@ namespace Mvk.Desktop
                 Console.Error.WriteLine("Не найдена папка Assets. Укажите её: --assets <путь>");
                 return 2;
             }
-            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile);
+            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen);
 
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -180,23 +186,26 @@ namespace Mvk.Desktop
         }
 
         /// <summary>
-        /// Локальная игра: остров в слоте, обзор мышью (щелчок по окну), WASD, пробел, F3+клавиши отладки.
-        /// С --screenshot ждёт входа в мир и ещё shotAfter секунд построения сеток, сохраняет кадр и выходит.
+        /// Игра с меню (WindowMvk): заставка, главное меню, одиночная игра. Без --screenshot играет человек.
+        /// С --screenshot после загрузки сразу запускается игра в слоте (--menu: снимок главного меню),
+        /// ждёт входа в мир и ещё shotAfter секунд построения сеток, сохраняет кадр и выходит.
+        /// --screen chat|inventory|creative|storage|pause открывает экран клавишей на половине ожидания.
         /// --cmd отправляет команды чата после входа в мир (и включает отладочную /summon), --look задаёт
         /// взгляд, --view переключает камеру как F5, --size задаёт размер окна при старте, --resize меняет
         /// его на половине ожидания снимка, --profile печатает аллокации и время кадра и такта
         /// во второй половине ожидания (для снимков и замеров без человека).
         /// </summary>
         private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe,
-            List<string> commands, float[]? look, int view, int[]? size, int[]? resize, bool profile)
+            List<string> commands, float[]? look, int view, int[]? size, int[]? resize, bool profile,
+            bool menu, string? screen)
         {
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude",
                 size?[0] ?? 1280, size?[1] ?? 720);
             IGraphicsDevice? device = null;
-            GameScene? scene = null;
-            IInputContext? input = null;
+            DesktopApp? app = null;
             Stopwatch? sinceStart = null;
             FrameProfiler? profiler = profile ? new FrameProfiler() : null;
+            bool screenOpened = false;
             int result = 0;
 
             window.Load += () =>
@@ -204,100 +213,88 @@ namespace Mvk.Desktop
                 device = new OpenGLDevice(GL.GetApi(window));
                 Console.WriteLine(device.Description);
                 Mvk.Engine.Debug.IsDrawVoxelLine = wireframe;
-                scene = new GameScene(device, assets, slot, seed, window.FramebufferSize.X, window.FramebufferSize.Y, commands.Count > 0);
-
-                input = window.CreateInput();
-                foreach (IKeyboard k in input.Keyboards)
-                {
-                    k.KeyDown += (_, key, _) => scene.KeyDown(key);
-                    k.KeyUp += (_, key, _) => scene.KeyUp(key);
-                    k.KeyChar += (_, c) => scene.KeyChar(c);
-                }
-                foreach (IMouse m in input.Mice)
-                {
-                    m.MouseDown += (_, b) => scene.MouseDown(b);
-                    m.MouseUp += (_, b) => scene.MouseUp(b);
-                    m.MouseMove += (_, p) => scene.MouseMove(p);
-                    m.Scroll += (_, w) => scene.MouseWheel(w.Y);
-                }
-                scene.MouseLookChanged += look =>
-                {
-                    foreach (IMouse m in input.Mice)
-                    {
-                        m.Cursor.CursorMode = look ? CursorMode.Raw : CursorMode.Normal;
-                        scene.ResetMouse(m.Position);
-                    }
-                };
+                MvkClient.SetAssets(assets);
+                app = new DesktopApp(window, device, commands.Count > 0);
             };
 
-            window.FramebufferResize += fb => scene?.Resized(fb.X, fb.Y);
+            window.FramebufferResize += fb => app?.App.OnResized(fb.X, fb.Y);
 
             window.Update += _ =>
             {
-                if (scene == null) return;
+                if (app == null) return;
                 profiler?.Begin();
-                scene.Update();
+                app.Update();
                 if (profiler is { Running: true }) profiler.EndUpdate();
-                if (scene.Error != null)
+                if (app.Error != null) result = 1;
+                // Снимок без человека: после загрузки сразу одиночная игра (как кнопки «Одиночная» и «Играть»)
+                if (screenshot != null && !menu && app.App.Ready && app.App.Game == null && sinceStart == null)
                 {
-                    Console.Error.WriteLine("Ошибка игры: " + scene.Error);
-                    result = 1;
-                    window.Close();
-                }
-                else if (scene.Stopped != null)
-                {
-                    Console.WriteLine("Игра остановлена: " + scene.Stopped);
-                    window.Close();
+                    app.App.GameLocalRun(new GameSettings(slot, seed));
                 }
             };
 
             window.Render += _ =>
             {
-                if (device == null || scene == null) return;
+                if (device == null || app == null) return;
                 int w = window.FramebufferSize.X;
                 int h = window.FramebufferSize.Y;
                 // Свёрнутое окно не рисуем
                 if (w <= 0 || h <= 0) return;
                 profiler?.Begin();
-                scene.Render(w, h);
+                app.Render(w, h);
                 if (profiler is { Running: true }) profiler.EndRender();
                 if (profiler is { Running: false } && sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter / 2)
                 {
                     profiler.Start();
                 }
-                if (scene.Started && sinceStart == null)
+                bool started = menu ? app.App.Ready : app.App.GameHost?.Started == true;
+                if (started && sinceStart == null)
                 {
                     sinceStart = Stopwatch.StartNew();
-                    foreach (string command in commands) scene.SendCommand(command);
-                    scene.ViewCameraNext(view);
+                    foreach (string command in commands) app.SendCommand(command);
+                    app.ViewCameraNext(view);
                 }
-                if (look != null && screenshot != null && scene.Started) scene.Look(look[0], look[1]);
-                if (resize != null && sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter / 2)
+                if (look != null && screenshot != null && sinceStart != null && !menu) app.Look(look[0], look[1]);
+                if (sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter / 2)
                 {
-                    // Ресайз в середине ожидания: игрок уже стоит, камера сама не обновляется
-                    window.Size = new Vector2D<int>(resize[0], resize[1]);
-                    resize = null;
-                }
-                if (screenshot != null && sinceStart != null)
-                {
-                    if (sinceStart.Elapsed.TotalSeconds >= shotAfter)
+                    if (resize != null)
                     {
-                        // Отчёт до снимка: буфер пикселей и PNG не относятся к кадру игры
-                        if (profiler != null) Console.WriteLine(profiler.Report());
-                        byte[] pixels = new byte[w * h * 4];
-                        device.ReadPixels(0, 0, w, h, pixels);
-                        PngWriter.Write(screenshot, w, h, pixels);
-                        Console.WriteLine($"Снимок {w}x{h}: {screenshot}");
-                       
-                        window.Close();
+                        // Ресайз в середине ожидания: игрок уже стоит, камера сама не обновляется
+                        window.Size = new Vector2D<int>(resize[0], resize[1]);
+                        resize = null;
                     }
+                    if (screen != null && !screenOpened)
+                    {
+                        // Открыть экран клавишей, как человек (T чат, E инвентарь, Escape пауза, C креатив)
+                        screenOpened = true;
+                        Mvk.Engine.Actions.Keys key = screen switch
+                        {
+                            "chat" => Mvk.Engine.Actions.Keys.T,
+                            "inventory" => Mvk.Engine.Actions.Keys.E,
+                            "creative" => Mvk.Engine.Actions.Keys.C,
+                            "storage" => Mvk.Engine.Actions.Keys.R,
+                            _ => Mvk.Engine.Actions.Keys.Escape
+                        };
+                        app.App.OnKeyDown(key);
+                        app.App.OnKeyUp(key);
+                    }
+                }
+                if (screenshot != null && sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter)
+                {
+                    // Отчёт до снимка: буфер пикселей и PNG не относятся к кадру игры
+                    if (profiler != null) Console.WriteLine(profiler.Report());
+                    byte[] pixels = new byte[w * h * 4];
+                    device.ReadPixels(0, 0, w, h, pixels);
+                    PngWriter.Write(screenshot, w, h, pixels);
+                    Console.WriteLine($"Снимок {w}x{h}: {screenshot}");
+                    window.Close();
+                    screenshot = null;
                 }
             };
 
             window.Closing += () =>
             {
-                scene?.Dispose();
-                input?.Dispose();
+                app?.Dispose();
                 device?.Dispose();
             };
 

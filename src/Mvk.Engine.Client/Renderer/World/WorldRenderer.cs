@@ -92,6 +92,12 @@ namespace Mvk.Engine.Renderer.World
         }
 
         /// <summary>
+        /// Изменена опция теней (ModifyShadow оригинала). Тени ещё не перенесены (нужны кадровые буферы в RHI),
+        /// шейдеры сейчас только без теней, поэтому менять нечего.
+        /// </summary>
+        public void ModifyShadow() { }
+
+        /// <summary>
         /// Инициализация в рендере мира настроек мира
         /// </summary>
         public void WorldRenderInitSetting() => _skyRender?.InitSetting();

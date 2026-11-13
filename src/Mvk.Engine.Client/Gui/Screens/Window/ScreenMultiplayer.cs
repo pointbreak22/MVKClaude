@@ -1,0 +1,112 @@
+﻿using System;
+using System.Runtime.CompilerServices;
+using Mvk.Engine.Gui.Controls;
+using Mvk.Engine.Realms;
+using Mvk.Engine.Renderer.Font;
+using Mvk.Core.Util;
+using Mvk.Engine.Util;
+
+namespace Mvk.Engine.Gui.Screens
+{
+    /// <summary>
+    /// Экран многопользовательской игры
+    /// </summary>
+    public class ScreenMultiplayer : ScreenWindow
+    {
+        protected readonly Label _labelNikname;
+        protected readonly Label _labelAddress;
+        protected readonly Label _labelToken;
+        protected readonly TextBox _textBoxAddress;
+        protected readonly TextBox _textBoxToken;
+        protected readonly Button _buttonConnect;
+        protected readonly Button _buttonMenu;
+
+        public ScreenMultiplayer(WindowMain window) : base(window, 512f, 320, 200, true)
+        {
+            FontBase font = window.Render.FontMain;
+            _labelNikname = new Label(window, font, 320, 24, 
+                L.T("Nikname") + " " + ChatStyle.Bolb + Options.Nickname);
+            _labelNikname.SetTextAlight(EnumAlight.Center, EnumAlightVert.Middle);
+            _labelToken = new Label(window, font, 128, 24, L.T("Token"));
+            _labelToken.SetTextAlight(EnumAlight.Right, EnumAlightVert.Middle);
+            _labelAddress = new Label(window, font, 128, 24, L.T("IpAddress"));
+            _labelAddress.SetTextAlight(EnumAlight.Right, EnumAlightVert.Middle);
+
+            _textBoxToken = new TextBox(window, font, 128, Options.Token,
+               TextBox.EnumRestrictions.Name);
+            _textBoxAddress = new TextBox(window, font, 128, Options.IpAddress, 
+                TextBox.EnumRestrictions.IpPort, 15);
+           
+            _buttonConnect = new ButtonThin(window, font, 128, L.T("Connect"));
+            _buttonConnect.Click += ButtonConnect_Click;
+            _buttonMenu = new ButtonThin(window, font, 128, L.T("Menu"));
+            _buttonMenu.Click += ButtonMenu_Click;
+        }
+
+        /// <summary>
+        /// Название заголовка
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override string _GetTitle() => L.T("Multiplayer");
+
+        /// <summary>
+        /// Закрытие скрина
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override void _Close() => window.LScreen.MainMenu();
+
+        /// <summary>
+        /// Клик за пределами окна
+        /// </summary>
+        protected override void _OnClickOutsideWindow() { }
+
+        private void ButtonConnect_Click(object sender, EventArgs e)
+        {
+            Options.IpAddress = _textBoxAddress.Text;
+            Options.Token = _textBoxToken.Text;
+            window.OptionsSave();
+            window.GameNetRun(Options.IpAddress, 32021);
+        }
+
+        private void ButtonMenu_Click(object sender, EventArgs e) => _Close();
+
+        /// <summary>
+        /// Запускается при создании объекта и при смене режима FullScreen
+        /// </summary>
+        protected override void _OnInitialize()
+        {
+            base._OnInitialize();
+            _AddControls(_labelNikname);
+            _AddControls(_labelToken);
+            _AddControls(_labelAddress);
+            _AddControls(_textBoxToken);
+            _AddControls(_textBoxAddress);
+            _AddControls(_buttonConnect);
+            _AddControls(_buttonMenu);
+        }
+
+        /// <summary>
+        /// Изменён размер окна
+        /// </summary>
+        protected override void _OnResized()
+        {
+            PosX = (Width - WidthWindow) / 2;
+            PosY = (Height - HeightWindow) / 2;
+            base._OnResized();
+
+            _labelNikname.SetPosition(PosX, PosY + 30);
+            _labelToken.SetPosition(PosX + 26, PosY + 66);
+            _textBoxToken.SetPosition(PosX + 166, PosY + 66);
+            _labelAddress.SetPosition(PosX + 26, PosY + 96);
+            _textBoxAddress.SetPosition(PosX + 166, PosY + 96);
+            _buttonConnect.SetPosition(PosX + 26, PosY + 156);
+            _buttonMenu.SetPosition(PosX + 166, PosY + 156);
+        }
+
+        public override void Draw(float timeIndex)
+        {
+            gl.ClearColor(.486f, .569f, .616f, 1f);
+            base.Draw(timeIndex);
+        }
+    }
+}

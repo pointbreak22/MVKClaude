@@ -32,16 +32,16 @@ namespace Mvk.Engine.Games
         public float DeltaTime { get; set; } = 50f;
         public virtual void CursorShow(bool show) { }
         public virtual void SetCursorPosition(int x, int y) { }
-        public void OptionsSave() { }
+        public virtual void OptionsSave() { }
 
-        public void OpenInGameMenu() { }
-        public void ScreenClose() { }
-        public void ShowProcess(string text) { }
+        public virtual void OpenInGameMenu() { }
+        public virtual void ScreenClose() { }
+        public virtual void ShowProcess(string text) { }
         /// <summary>Экран загрузки «открыт», пока игра не началась: иначе клиент пропустит пакет старта</summary>
-        public bool IsLoadingScreen => !Started;
-        public void ServerLoadingBegin(int count) { }
-        public void ServerLoadingStep() => LoadingSteps++;
-        public void AcceptNetworkPackage(IPacket packet) { }
+        public virtual bool IsLoadingScreen => !Started;
+        public virtual void ServerLoadingBegin(int count) { }
+        public virtual void ServerLoadingStep() => LoadingSteps++;
+        public virtual void AcceptNetworkPackage(IPacket packet) { }
         public virtual void ChatMessage(string message) => Chat.Add(message);
         public GameModServer CreateGameModServer() => _modServer;
 

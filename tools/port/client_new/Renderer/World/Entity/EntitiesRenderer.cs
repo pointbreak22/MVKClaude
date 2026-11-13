@@ -71,6 +71,11 @@ namespace Mvk.Engine.Renderer.World.Entity
         private ItemRender[] _itemGuiRender = Array.Empty<ItemRender>();
 
         /// <summary>
+        /// Отрисовка интерфейса (в оригинале EntitiesRenderer.Render), для сущности в GUI
+        /// </summary>
+        public RenderMain Render => Gui!;
+
+        /// <summary>
         /// Отрисовка интерфейса, для предметов в GUI (задаёт хост клиента)
         /// </summary>
         public RenderMain? Gui

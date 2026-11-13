@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.Render;
 using Mvk.Engine.Gui.Huds;
+using Mvk.Engine.Gui.Screens;
+using Mvk.Engine.Network;
 using Mvk.Engine.Realms;
 using Mvk.Engine.Renderer;
 using Mvk.Engine.Renderer.World.Entity;
@@ -38,16 +40,64 @@ namespace Mvk.Engine.Games
         private readonly Dictionary<string, Func<EntityBase, EntitiesRenderer, ResourcesEntity, EntityRenderBase>> _entityRenders
             = new Dictionary<string, Func<EntityBase, EntitiesRenderer, ResourcesEntity, EntityRenderBase>>();
 
-        /// <param name="renderFactory">Отрисовка интерфейса мода (RenderMvk), по умолчанию RenderMain движка</param>
-        public GameClientHost(GameModServer modServer, IGraphicsDevice device, string shaderBlocksLow, string shaderEntityLow,
-            Func<RenderContext, RenderMain>? renderFactory = null)
+        /// <summary>
+        /// Окно приложения: экраны паузы, процесса и загрузки, курсор (в оригинале игра знала окно).
+        /// Без окна (снимки, тесты) экраны не открываются.
+        /// </summary>
+        public WindowMain? Window { get; }
+
+        /// <param name="render">Отрисовка интерфейса (общая с окном, в оригинале RenderMain окна)</param>
+        /// <param name="window">Окно приложения или null</param>
+        public GameClientHost(GameModServer modServer, RenderMain render, string shaderBlocksLow, string shaderEntityLow,
+            WindowMain? window = null)
             : base(modServer)
         {
-            Context = new RenderContext(device);
-            Render = renderFactory?.Invoke(Context) ?? new RenderMain(Context);
+            Context = render.Context;
+            Render = render;
+            Window = window;
             _shaderBlocksLow = shaderBlocksLow;
             _shaderEntityLow = shaderEntityLow;
+            window?.SetupHost(this);
         }
+
+        #region Окно
+
+        public override void OptionsSave() => Window?.OptionsSave();
+        public override void OpenInGameMenu() => Window?.LScreen.InGameMenu();
+        public override void ScreenClose() => Window?.ScreenClose();
+        public override void ShowProcess(string text) => Window?.LScreen.Process(text);
+
+        /// <summary>
+        /// Открыт экран загрузки мира (ScreenWorking). Без окна загрузка считается идущей, пока игра не началась.
+        /// </summary>
+        public override bool IsLoadingScreen => Window == null ? base.IsLoadingScreen : Window.Screen is ScreenWorking;
+
+        public override void ServerLoadingBegin(int count)
+        {
+            if (Window?.Screen is ScreenWorking screen) screen.ServerBegin(count);
+            else base.ServerLoadingBegin(count);
+        }
+
+        public override void ServerLoadingStep()
+        {
+            if (Window?.Screen is ScreenWorking screen) screen.ServerStep();
+            else base.ServerLoadingStep();
+        }
+
+        public override void AcceptNetworkPackage(IPacket packet) => Window?.Screen?.AcceptNetworkPackage(packet);
+
+        public override void CursorShow(bool show)
+        {
+            if (Window != null) Window.CursorShow(show);
+            else CursorShowHandler?.Invoke(show);
+        }
+
+        public override void SetCursorPosition(int x, int y) => Window?.SetCursorPosition(x, y);
+
+        public override void PlaySound(int key, float posX, float posY, float posZ, float volume, float pitch)
+            => Window?.PlaySound(key, posX, posY, posZ, volume, pitch);
+
+        #endregion
 
         private WorldRenderer _Render()
         {
@@ -92,7 +142,6 @@ namespace Mvk.Engine.Games
         /// </summary>
         public System.Action<bool>? CursorShowHandler { get; set; }
 
-        public override void CursorShow(bool show) => CursorShowHandler?.Invoke(show);
 
         /// <summary>
         /// Отрисовка интерфейса: шрифты, текстуры GUI, шейдеры GuiColor и GuiLine.
@@ -111,18 +160,11 @@ namespace Mvk.Engine.Games
         /// Фабрика HUD мода (GameModClient.CreateHud оригинала). Без неё HudDebug, как в движке оригинала.
         /// </summary>
         public System.Func<GameBase, HudBase>? HudFactory { get; set; }
-        /// <summary>Картинки GUI загружены</summary>
-        private bool _texturesLoaded;
 
         public override void OnGameStarting()
         {
             _Render();
-            if (!_texturesLoaded)
-            {
-                // Шаги загрузки картинок оригинала (Loading, LoadingMvk) до входа в мир
-                Render.LoadTextures();
-                _texturesLoaded = true;
-            }
+            // Картинки GUI и шрифты загружены заставкой (Loading) до запуска игры
             ChatList = new ChatList(Ce.ChatLineTimeLife, Render.FontMain);
         }
 

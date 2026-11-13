@@ -28,6 +28,21 @@ FILES = [
     "Gui/Huds/HudBase.cs", "Gui/Huds/HudDebug.cs", "Gui/Huds/PartHubChat.cs",
     # Предмет в GUI (сетка MeshGuiEntity и шейдер EntityGui клиента)
     "Renderer/World/ItemRender.cs",
+    # Экраны, виджеты и загрузка ресурсов: окно приложения WindowMain и Warp написаны заново (client_new)
+    "Realms/Loading.cs", "Gui/RenderSlot.cs", "Gui/ToolTip.cs",
+    "Gui/Controls/Button.cs", "Gui/Controls/ButtonClose.cs", "Gui/Controls/ButtonIcon.cs",
+    "Gui/Controls/ButtonRemove.cs", "Gui/Controls/ButtonThin.cs", "Gui/Controls/ButtonWide.cs",
+    "Gui/Controls/CheckBox.cs", "Gui/Controls/ControlIcon.cs", "Gui/Controls/ControlSlot.cs",
+    "Gui/Controls/EnumAlight.cs", "Gui/Controls/EnumAlightVert.cs", "Gui/Controls/Label.cs",
+    "Gui/Controls/LineHorizontal.cs", "Gui/Controls/Slider.cs", "Gui/Controls/TextBox.cs",
+    "Gui/Controls/WidgetBase.cs",
+    "Gui/Screens/EnumScreenParent.cs", "Gui/Screens/LaunchScreen.cs", "Gui/Screens/ScreenBase.cs",
+    "Gui/Screens/ScreenInGameMenu.cs", "Gui/Screens/ScreenMainMenu.cs", "Gui/Screens/ScreenProcess.cs",
+    "Gui/Screens/ScreenSplash.cs", "Gui/Screens/ScreenWorking.cs",
+    "Gui/Screens/Window/ScreenChat.cs", "Gui/Screens/Window/ScreenCreateGame.cs",
+    "Gui/Screens/Window/ScreenMultiplayer.cs", "Gui/Screens/Window/ScreenNotification.cs",
+    "Gui/Screens/Window/ScreenOptions.cs", "Gui/Screens/Window/ScreenSingle.cs",
+    "Gui/Screens/Window/ScreenWindow.cs", "Gui/Screens/Window/ScreenYesNo.cs",
 ]
 
 n = 0

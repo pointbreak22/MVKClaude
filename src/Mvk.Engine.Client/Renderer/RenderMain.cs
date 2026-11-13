@@ -30,8 +30,8 @@ namespace Mvk.Engine.Renderer
         /// <summary>Номер кадра, растёт в BeginFrame и при Flush</summary>
         public long Frame { get; private set; }
 
-        /// <summary>Номера текстур виджетов и частиц (TextureIndex оригинала)</summary>
-        protected uint _textureWidgets, _textureParticles;
+        /// <summary>Номера текстур виджетов, частиц и заставки (TextureIndex оригинала)</summary>
+        protected uint _textureWidgets, _textureParticles, _textureSplash;
 
         private readonly IShader _shGuiColor, _shGuiLine;
         private readonly UniformHandle _colorProjview, _colorPos, _lineProjview, _linePos;
@@ -180,6 +180,23 @@ namespace Mvk.Engine.Renderer
         /// </summary>
         public void BindTexture(ITexture texture) => Commands.SetTexture(0, texture);
 
+        /// <summary>
+        /// Загрузить картинку заставки (InitializeFirst оригинала), до загрузки остальных ресурсов
+        /// </summary>
+        public void InitializeFirst()
+            => _textureSplash = Texture.SetTexture(BufferedFileImage.FileToBufferedImage(Options.PathTextures + "Splash.png"));
+
+        public void BindTextureSplash()
+        {
+            if (_textureSplash != 0) Texture.BindTexture(_textureSplash);
+        }
+
+        public void DeleteTextureSplash()
+        {
+            Texture.DeleteTexture(_textureSplash);
+            _textureSplash = 0;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void BindTextureWidgets() => Texture.BindTexture(_textureWidgets);
 
@@ -188,36 +205,6 @@ namespace Mvk.Engine.Renderer
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CreateTextureFontMain(BufferedImage buffered) => FontMain = new FontBase(buffered, 1, this);
-
-        /// <summary>
-        /// Загрузить картинки GUI из папки текстур (шаги Loading оригинала) и создать текстуры
-        /// </summary>
-        public void LoadTextures()
-        {
-            Dictionary<string, BufferedImage> buffereds = new Dictionary<string, BufferedImage>();
-            _LoadImages(buffereds);
-            AtFinishLoading(buffereds);
-        }
-
-        /// <summary>
-        /// Шаги загрузки картинок (Loading._Steps оригинала): основной шрифт, виджеты, частицы
-        /// </summary>
-        protected virtual void _LoadImages(Dictionary<string, BufferedImage> buffereds)
-        {
-            CreateTextureFontMain(_FileToBufferedImage(buffereds, EnumTexture.FontMain.ToString()));
-            _FileToBufferedImage(buffereds, EnumTexture.Widgets.ToString());
-            _FileToBufferedImage(buffereds, EnumTexture.Particles.ToString());
-        }
-
-        /// <summary>
-        /// Картинка из папки текстур в словарь по ключу (имя файла без .png)
-        /// </summary>
-        protected static BufferedImage _FileToBufferedImage(Dictionary<string, BufferedImage> buffereds, string key)
-        {
-            BufferedImage buffered = BufferedFileImage.FileToBufferedImage(Options.PathTextures + key + ".png");
-            buffereds[key] = buffered;
-            return buffered;
-        }
 
         /// <summary>
         /// Загрузка закончена: картинки в текстуры (AtFinishLoading оригинала)

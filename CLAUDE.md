@@ -63,8 +63,10 @@ assets/                   ресурсы из res/Assets (копируются �
 ## Команды
 - Сборка: `dotnet build MvkClaude.slnx -c Debug`
 - Тесты: `dotnet test MvkClaude.slnx`
-- Запуск ПК: `dotnet run --project src/Hosts/Mvk.Desktop` (на этапе 4 тестовая сцена RHI с кубами;
-  `-- --screenshot кадр.png` рисует кадр в PNG и выходит, им проверяется рендер без человека)
+- Запуск ПК: `dotnet run --project src/Hosts/Mvk.Desktop` (заставка, главное меню, игра;
+  `-- --screenshot кадр.png --shot-after 8` сразу запускает одиночную игру, сохраняет кадр и выходит,
+  им проверяется рендер без человека; `--menu`, `--screen chat|inventory|pause`, `--cmd "/time n"`, `--look`, `--view`;
+  `--test-scene` тестовая сцена RHI этапа 4)
 - Сервер: `dotnet run --project src/Hosts/Mvk.Server`
 
 ## Проверка паритета с оригиналом
@@ -109,4 +111,5 @@ OpenGL, `Mvk.Platform` (ввод через `InputActionMap`, звук OpenAL, `
 Этап 5 идёт: шаг 5.1 готов (локальная игра в окне, остров на экране, `src/Mvk.Engine.Client` из `tools/port/run_client.py`);
 в 5.2 готово небо острова (`SkyRender`, `SkyIslandRender`: солнце, луна, звёзды, облака, дождь)
 и рендер игрока и мобов (`EntitiesRenderer`, анимация костей, одежда, рука с глаз), ресайз окна.
-Следующий: GUI и HUD на RHI (шрифты, меню, чат), затем частицы, тени, звук в игре. Android отложен. См. `docs/progress.md`.
+В 5.3 готовы GUI и HUD: шрифты, чат, HUD с предметами, окно приложения `WindowMain`, меню и все экраны.
+Следующий: звук в игре, частицы, тени, курсор блока. Android отложен. См. `docs/progress.md`.

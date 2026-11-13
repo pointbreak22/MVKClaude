@@ -8,8 +8,8 @@ namespace Mvk.Game.Client.Renderer
 {
     /// <summary>
     /// Отрисовка интерфейса Малювек: два дополнительных шрифта и текстуры окон, HUD и инвентаря.
-    /// Перенос RenderMvk оригинала; загрузка картинок как в LoadingMvk (шрифты, затем остальные по порядку).
-    /// Солнце и луну грузит SkyTexturesMvk (им нужна только текстура RHI).
+    /// Перенос RenderMvk оригинала, картинки загружает LoadingMvk. Солнце и луну грузит SkyTexturesMvk
+    /// (им нужна только текстура RHI), поэтому их картинки здесь не нужны.
     /// </summary>
     public class RenderMvk : RenderMain
     {
@@ -52,21 +52,6 @@ namespace Mvk.Game.Client.Renderer
 
         #endregion
 
-        /// <summary>
-        /// Шаги LoadingMvk: картинки движка, затем шрифты Малювек и остальные текстуры по порядку перечисления
-        /// </summary>
-        protected override void _LoadImages(Dictionary<string, BufferedImage> buffereds)
-        {
-            base._LoadImages(buffereds);
-            CreateTextureFontSmall(_FileToBufferedImage(buffereds, nameof(FontSmall)));
-            CreateTextureFontLarge(_FileToBufferedImage(buffereds, nameof(FontLarge)));
-            foreach (string name in _otherTextures) _FileToBufferedImage(buffereds, name);
-        }
-
-        /// <summary>Остальные текстуры EnumTextureMvk после шрифтов (Sun и Moon грузит SkyTexturesMvk)</summary>
-        private static readonly string[] _otherTextures =
-            { "WindowBig", "WindowSmall", "Chat", "Hud", "Inventory", "ConteinerStorage", "ItemMet" };
-
         public override void AtFinishLoading(Dictionary<string, BufferedImage> buffereds)
         {
             base.AtFinishLoading(buffereds);
@@ -89,5 +74,23 @@ namespace Mvk.Game.Client.Renderer
 
         private uint _Set(Dictionary<string, BufferedImage> buffereds, string name)
             => buffereds.TryGetValue(name, out BufferedImage? image) ? Texture.SetTexture(image) : 0;
+    }
+
+    /// <summary>
+    /// Ключи текстур Малювек (TextureIndexMvk.cs оригинала), порядок загрузки LoadingMvk
+    /// </summary>
+    public enum EnumTextureMvk
+    {
+        FontSmall,
+        FontLarge,
+        WindowBig,
+        WindowSmall,
+        Chat,
+        Hud,
+        Inventory,
+        ConteinerStorage,
+        Sun,
+        Moon,
+        ItemMet
     }
 }

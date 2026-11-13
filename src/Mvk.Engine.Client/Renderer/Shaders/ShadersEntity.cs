@@ -56,7 +56,11 @@ namespace Mvk.Engine.Renderer.Shaders
         private readonly IPipeline[] _pipeGui = new IPipeline[2];
         private readonly UniformHandle _guiView, _guiBrightness, _guiDepth, _guiLightDir, _guiScale, _guiPos;
         /// <summary>Текстуры последнего прохода сущностей: для GUI привязываются заново (слот 0 занят GUI)</summary>
-        private ITexture? _small, _big, _atlas;
+        private ITexture? _small, _big, _atlas, _lightMap;
+        /// <summary>
+        /// Шейдер сущностей для анимированной сущности в GUI (окно инвентаря) [глубина выключена, включена]
+        /// </summary>
+        private readonly IPipeline[] _pipeAnimationGui = new IPipeline[2];
 
         /// <summary>
         /// Отрисовка интерфейса: через неё выбираются конвейеры GUI с текущим состоянием глубины
@@ -104,6 +108,15 @@ namespace Mvk.Engine.Renderer.Shaders
             _guiPos = _shaderGui.GetUniform("pos");
             for (int i = 0; i < 2; i++)
             {
+                _pipeAnimationGui[i] = device.CreatePipeline(new PipelineDescription(_shader, LayoutFloats, LayoutInts)
+                {
+                    Raster = RasterState.Default with
+                    {
+                        Cull = CullMode.Back, DepthTest = i == 1, DepthWrite = i == 1,
+                        DepthFunc = i == 1 ? CompareFunc.LessEqual : CompareFunc.Always
+                    },
+                    Blend = BlendState.Alpha
+                });
                 _pipeGui[i] = device.CreatePipeline(new PipelineDescription(_shaderGui, LayoutFloats)
                 {
                     Raster = RasterState.Default with
@@ -136,6 +149,7 @@ namespace Mvk.Engine.Renderer.Shaders
             _small = small;
             _big = big;
             _atlas = atlas;
+            _lightMap = lightMap;
             commands.SetPipeline(Pipeline);
             commands.SetTexture(SlotSamplerSmall, small);
             commands.SetTexture(SlotSamplerBig, big);
@@ -207,6 +221,30 @@ namespace Mvk.Engine.Renderer.Shaders
         }
 
         /// <summary>
+        /// Занести юниформы для GUI анимированной сущности (BindUniformAnimationGui оригинала:
+        /// шейдер сущностей с ортогональной матрицей GUI)
+        /// </summary>
+        public void BindUniformAnimationGui(float x, float y, float scale, float depth, float anim, int eyeMouth)
+        {
+            Commands = Gui!.Commands;
+            Gui.BindPipelines(_pipeAnimationGui);
+            if (_small != null) Commands.SetTexture(SlotSamplerSmall, _small);
+            if (_big != null) Commands.SetTexture(SlotSamplerBig, _big);
+            if (_atlas != null) Commands.SetTexture(SlotAtlas, _atlas);
+            if (_lightMap != null) Commands.SetTexture(SlotLightMap, _lightMap);
+            Commands.SetUniformMatrix4(_view, Gi.Ortho);
+            Commands.SetUniform(_brightness, Gi.EntityBrightness);
+            // -5, -1, -5 нормализован
+            Commands.SetUniform(_lightDir, -.700140059f, -.140028015f, -.700140059f);
+            Commands.SetUniform(_scale, -scale);
+            Commands.SetUniform(_pos, x, y, 0);
+            Commands.SetUniform(_depth, depth);
+            Commands.SetUniform(_anim, anim);
+            Commands.SetUniform(_eyeMouth, eyeMouth);
+            Commands.SetUniform(_light, .96875f, .96875f);
+        }
+
+        /// <summary>
         /// Внести позицию для претмета Gui
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -236,6 +274,8 @@ namespace Mvk.Engine.Renderer.Shaders
         {
             _pipeGui[0].Dispose();
             _pipeGui[1].Dispose();
+            _pipeAnimationGui[0].Dispose();
+            _pipeAnimationGui[1].Dispose();
             _shaderGui.Dispose();
             Pipeline.Dispose();
             _shader.Dispose();
