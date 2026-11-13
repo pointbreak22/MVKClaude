@@ -119,6 +119,8 @@ namespace Mvk.Game.Client
                 // скрин креативного инвентаря
                 case Keys.C:
                     if (Game.Player.CreativeMode) LScreenMvk.CreativeInventory(); break;
+                // Скрин карты биомов (отладка)
+                case Keys.F6: DebugMvkClient.ScreenFileBiomeArea(Game); break;
             }
         }
 

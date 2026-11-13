@@ -2,6 +2,17 @@
 
 Новые записи сверху. Изменения поведения относительно оригинала помечаются `[ПОВЕДЕНИЕ]`.
 
+## 2026-11-14: этап 5.8: отладка F6 (карта биомов)
+Сделано:
+- `DebugMvkClient.ScreenFileBiomeArea` (`Mvk.Game.Client`): перенос `DebugMvk.ScreenFileBiomeArea` оригинала —
+  слой биомов острова seed 4, 4096x4096 с шагом 4, море прозрачное, те же записи в лог, файл `biomeLayer.png`.
+  В оригинале картинку собирал `System.Drawing.Bitmap` (только Windows); здесь пиксели пишет `PngWriter`.
+- `PngWriter` перенесён из `Mvk.Desktop` в `Mvk.Core.Util` (режим RGBA для прозрачности).
+- F6 обрабатывает `WindowMvk` в игре без открытого экрана, как `GameModClientMvk` оригинала.
+- Тест `DebugMvkClientTests`: цвета биомов равны именованным цветам `System.Drawing.Color` оригинала (12 из 12).
+- Снимок карты: `docs/img/stage5-f6-biomeLayer.png`.
+- Полная пересборка: 0 ошибок, 0 предупреждений. `dotnet test`: 266 из 266.
+
 ## 2026-11-14: этап 5.7: тени
 Сделано:
 - RHI: формат текстуры `Depth32F` (`TextureDescription.Depth`), белая рамка сэмплера (`SamplerState.BorderWhite`),
@@ -79,7 +90,6 @@
 - Полная пересборка: 0 ошибок, 0 предупреждений. `dotnet test`: 253 из 253.
 
 Не сделано (дальше):
-- `DebugMvk.ScreenFileBiomeArea` (F6) не перенесён.
 
 ## 2026-11-13: этап 5.3, часть 2: HUD Малювек и предметы в GUI
 Сделано:

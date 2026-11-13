@@ -15,6 +15,7 @@
     <ProjectReference Include="..\..\src\Mvk.Game\Mvk.Game.csproj" />
     <!-- Шрифты и GUI-логика клиента (font.csv) -->
     <ProjectReference Include="..\..\src\Mvk.Engine.Client\Mvk.Engine.Client.csproj" />
+    <ProjectReference Include="..\..\src\Mvk.Game.Client\Mvk.Game.Client.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- Эталонные хэши чанков со старого генератора -->
