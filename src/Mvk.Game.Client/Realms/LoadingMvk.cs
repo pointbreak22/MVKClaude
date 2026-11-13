@@ -23,17 +23,22 @@ namespace Mvk.Game.Client.Realms
         /// Количество текстур
         /// </summary>
         private readonly int _countTexture = Enum.GetNames(typeof(EnumTextureMvk)).Length;
+        /// <summary>
+        /// Количество звуков
+        /// </summary>
+        private readonly int _countSample;
 
         public LoadingMvk(WindowMvk window) : base(window)
         {
             _window = window;
             AudioReg.Initialization(true);
+            _countSample = AudioIndexs.Count();
         }
 
         /// <summary>
         /// Максимальное количество шагов
         /// </summary>
-        public override int GetMaxCountSteps() => base.GetMaxCountSteps() + _countTexture;
+        public override int GetMaxCountSteps() => base.GetMaxCountSteps() + _countTexture + _countSample;
 
         /// <summary>
         /// Этот метод как раз и реализует список загрузок
@@ -43,7 +48,7 @@ namespace Mvk.Game.Client.Realms
             // Загружаем  по умолчанию
             base._Steps();
             _StepsTextures();
-            // Шаги звуков (_StepsSample оригинала) вернутся вместе со звуком в игре
+            _StepsSample();
         }
 
         /// <summary>
@@ -70,6 +75,16 @@ namespace Mvk.Game.Client.Realms
                 _FileToBufferedImage(name, Options.PathTextures + name + ".png");
                 OnStep();
             }
+        }
+
+        /// <summary>
+        /// Шаги звуков
+        /// </summary>
+        private void _StepsSample()
+        {
+            _window.Audio.Initialize(_countSample, 256, 4);
+            _window.Audio.Step += (sender, e) => OnStep();
+            _window.Audio.InitializeSample();
         }
     }
 }

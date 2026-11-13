@@ -33,10 +33,13 @@ namespace Mvk.Desktop
         public readonly WindowMvk App;
         /// <summary>Ошибка игры</summary>
         public Exception? Error { get; private set; }
+        /// <summary>Звук OpenAL или null (снимки без звука быстрее загружаются)</summary>
+        public Mvk.Engine.Audio.IWindowAudio? Audio { get; }
 
-        public DesktopApp(IWindow window, IGraphicsDevice device, bool debugCommands)
+        public DesktopApp(IWindow window, IGraphicsDevice device, bool debugCommands, bool sound)
         {
             _window = window;
+            Audio = sound ? new DesktopAudio() : null;
             App = debugCommands ? new WindowMvkDebug(this, device) : new WindowMvk(this, device);
             _input = window.CreateInput();
             foreach (IKeyboard k in _input.Keyboards)

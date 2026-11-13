@@ -2,6 +2,7 @@ using System.Reflection;
 using Mvk.Core.Maths;
 using Mvk.Engine;
 using Mvk.Engine.Actions;
+using Mvk.Engine.Audio;
 using Mvk.Engine.Games;
 using Mvk.Engine.Item;
 using Mvk.Engine.Renderer.Font;
@@ -26,7 +27,7 @@ namespace Mvk.Game.Client
     /// Окно Малювек 2: перенос WindowMvk оригинала на WindowMain порта.
     /// Отличия от оригинала (не меняют игру): окно ОС создаёт хост платформы; клавиши чата и инвентаря,
     /// которые в оригинале обрабатывал GameModClientMvk через окно, обрабатываются здесь после игры
-    /// в том же порядке; звук клика появится вместе со звуком в игре.
+    /// в том же порядке.
     /// </summary>
     public class WindowMvk : WindowMain
     {
@@ -183,6 +184,12 @@ namespace Mvk.Game.Client
 
         protected override GameModClient _CreateGameModClient() => new GameModClientMvk();
         public override GameModServer CreateGameModServer() => new GameModServerMvk();
+
+        #endregion
+
+        #region Sound
+
+        public override void SoundClick(float volume) => Audio.PlaySound(AudioReg.Click, 0, 0, 0, volume, 1);
 
         #endregion
 

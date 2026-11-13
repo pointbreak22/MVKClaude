@@ -45,6 +45,7 @@ namespace Mvk.Desktop
             int view = 0;
             bool profile = false;
             bool menu = false;
+            bool sound = false;
             string? screen = null;
             int[]? size = null;
             int[]? resize = null;
@@ -62,6 +63,7 @@ namespace Mvk.Desktop
                 else if (args[i] == "--resize" && i + 1 < args.Length) resize = _Size(args[++i]);
                 else if (args[i] == "--profile") profile = true;
                 else if (args[i] == "--menu") menu = true;
+                else if (args[i] == "--sound") sound = true;
                 else if (args[i] == "--screen" && i + 1 < args.Length) screen = args[++i];
                 else if (args[i] == "--view" && i + 1 < args.Length) view = int.Parse(args[++i]);
                 else if (args[i] == "--look" && i + 1 < args.Length)
@@ -78,7 +80,7 @@ namespace Mvk.Desktop
                 Console.Error.WriteLine("Не найдена папка Assets. Укажите её: --assets <путь>");
                 return 2;
             }
-            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen);
+            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound);
 
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -190,6 +192,7 @@ namespace Mvk.Desktop
         /// С --screenshot после загрузки сразу запускается игра в слоте (--menu: снимок главного меню),
         /// ждёт входа в мир и ещё shotAfter секунд построения сеток, сохраняет кадр и выходит.
         /// --screen chat|inventory|creative|storage|pause открывает экран клавишей на половине ожидания.
+        /// Снимки идут без звука (быстрее загрузка), --sound включает его.
         /// --cmd отправляет команды чата после входа в мир (и включает отладочную /summon), --look задаёт
         /// взгляд, --view переключает камеру как F5, --size задаёт размер окна при старте, --resize меняет
         /// его на половине ожидания снимка, --profile печатает аллокации и время кадра и такта
@@ -197,7 +200,7 @@ namespace Mvk.Desktop
         /// </summary>
         private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe,
             List<string> commands, float[]? look, int view, int[]? size, int[]? resize, bool profile,
-            bool menu, string? screen)
+            bool menu, string? screen, bool sound)
         {
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude",
                 size?[0] ?? 1280, size?[1] ?? 720);
@@ -214,7 +217,7 @@ namespace Mvk.Desktop
                 Console.WriteLine(device.Description);
                 Mvk.Engine.Debug.IsDrawVoxelLine = wireframe;
                 MvkClient.SetAssets(assets);
-                app = new DesktopApp(window, device, commands.Count > 0);
+                app = new DesktopApp(window, device, commands.Count > 0, screenshot == null || sound);
             };
 
             window.FramebufferResize += fb => app?.App.OnResized(fb.X, fb.Y);
@@ -287,6 +290,7 @@ namespace Mvk.Desktop
                     device.ReadPixels(0, 0, w, h, pixels);
                     PngWriter.Write(screenshot, w, h, pixels);
                     Console.WriteLine($"Снимок {w}x{h}: {screenshot}");
+                    if (app.Audio != null) Console.WriteLine("Звук (звучит/источников): " + app.App.debug.Audio);
                     window.Close();
                     screenshot = null;
                 }

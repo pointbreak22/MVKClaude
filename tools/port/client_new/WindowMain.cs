@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using Mvk.Engine.Actions;
+using Mvk.Engine.Audio;
 using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.Particle;
 using Mvk.Engine.Event;
@@ -59,6 +60,8 @@ namespace Mvk.Engine
         public RenderContext Context { get; }
         /// <summary>Полноэкранный режим</summary>
         public bool FullScreen => _host.FullScreen;
+        /// <summary>Звук окна</summary>
+        public AudioBase Audio { get; protected set; }
         /// <summary>Ввод символов приходит в Windows-1251 (в оригинале при русской раскладке WinForms)</summary>
         public bool KeyCyrillic { get; protected set; }
 
@@ -85,6 +88,7 @@ namespace Mvk.Engine
             _host = host;
             Context = new RenderContext(device);
             VersionOpenGL = device.Description;
+            Audio = new AudioBase(host.Audio);
             LScreen = new LaunchScreen(this);
             Initialized();
         }
@@ -549,6 +553,8 @@ namespace Mvk.Engine
 
         protected virtual void OnTick()
         {
+            Audio.Tick();
+            debug.Audio = Audio.StrDebug;
             if (Screen != null)
             {
                 Screen.OnTick(DeltaTime);
@@ -574,9 +580,10 @@ namespace Mvk.Engine
         #region Sound
 
         /// <summary>
-        /// Звук в мире (звук в игре переносится отдельным шагом этапа 5)
+        /// Звук в координатах относительно игрока (их считает GameBase.PlaySound)
         /// </summary>
-        public virtual void PlaySound(int key, float posX, float posY, float posZ, float volume, float pitch) { }
+        public virtual void PlaySound(int key, float posX, float posY, float posZ, float volume, float pitch)
+            => Audio.PlaySound(key, posX, posY, posZ, volume, pitch);
 
         /// <summary>
         /// Звук клика GUI
@@ -591,6 +598,7 @@ namespace Mvk.Engine
             Screen?.Dispose();
             Game?.Dispose();
             Render?.Dispose();
+            Audio.Clear();
             Context.Dispose();
         }
 
@@ -628,5 +636,7 @@ namespace Mvk.Engine
         string? ClipboardGetText();
         /// <summary>Положить текст в буфер обмена</summary>
         void ClipboardSetText(string text);
+        /// <summary>Устройство звука или null (без звуковой карты, снимки)</summary>
+        IWindowAudio? Audio { get; }
     }
 }
