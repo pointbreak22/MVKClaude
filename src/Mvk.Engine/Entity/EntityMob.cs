@@ -119,7 +119,7 @@ namespace Mvk.Engine.Entity
             if (!_IsMovementBlocked())
             {
                 // ИИ
-                _worldServer.Filer.StartSection("Ai " + Ce.Entities.EntitiesAlias[IndexEntity]);
+                _worldServer.Filer.StartSection("Ai ", Ce.Entities.EntitiesAlias[IndexEntity]);
                 EntityAge++;
 
                 // Заставляет сущность исчезать, если требования выполнены

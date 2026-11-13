@@ -625,7 +625,7 @@ namespace Mvk.Engine.World
 
                     if (chunk != null && chunk.IsSendChunk)
                     {
-                        Filer.StartSection("TickChunk " + chunk.X + ":" + chunk.Y);
+                        Filer.StartSection("TickChunk ", chunk.X, chunk.Y);
                         chunk.UpdateServer();
                         Filer.EndSection();
 

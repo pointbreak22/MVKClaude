@@ -32,6 +32,13 @@ namespace Mvk.Engine.Util
 
         private readonly Stopwatch _stopwatch = new Stopwatch();
         private string _profilingSection;
+        /// <summary>
+        /// Части имени секции, строка собирается только для лога:
+        /// 0 только имя, 1 имя и строка, 2 имя и два числа через двоеточие
+        /// </summary>
+        private int _sectionParts;
+        private string _sectionText;
+        private int _sectionX, _sectionY;
         private bool _profilingEnabled = false;
 
         public Profiler(Logger log, string prefix = "")
@@ -48,9 +55,41 @@ namespace Mvk.Engine.Util
         public void StartSection(string name)
         {
             _profilingSection = name;
+            _sectionParts = 0;
             _profilingEnabled = true;
             _stopwatch.Restart();
         }
+
+        /// <summary>
+        /// Начало секции с именем name + text, строка не собирается без записи в лог
+        /// </summary>
+        public void StartSection(string name, string text)
+        {
+            StartSection(name);
+            _sectionParts = 1;
+            _sectionText = text;
+        }
+
+        /// <summary>
+        /// Начало секции с именем name + x + ":" + y, строка не собирается без записи в лог
+        /// </summary>
+        public void StartSection(string name, int x, int y)
+        {
+            StartSection(name);
+            _sectionParts = 2;
+            _sectionX = x;
+            _sectionY = y;
+        }
+
+        /// <summary>
+        /// Полное имя секции для лога
+        /// </summary>
+        private string _SectionName() => _sectionParts switch
+        {
+            1 => _profilingSection + _sectionText,
+            2 => _profilingSection + _sectionX + ":" + _sectionY,
+            _ => _profilingSection
+        };
 
         /// <summary>
         /// Закрыть проверку по времени
@@ -63,7 +102,7 @@ namespace Mvk.Engine.Util
                 long time = _stopwatch.ElapsedMilliseconds;
                 if (time > stepTime)
                 {
-                    Log.Log(Srl.SomethingIsTooLong, _prefix, _profilingSection, time);
+                    Log.Log(Srl.SomethingIsTooLong, _prefix, _SectionName(), time);
                 }
             }
         }
@@ -77,7 +116,7 @@ namespace Mvk.Engine.Util
             {
                 _profilingEnabled = false;
                 Log.Log(Srl.EndSectionTime, _prefix,
-                    _profilingSection, _stopwatch.ElapsedTicks / (float)_timerFrequency);
+                    _SectionName(), _stopwatch.ElapsedTicks / (float)_timerFrequency);
             }
         }
 

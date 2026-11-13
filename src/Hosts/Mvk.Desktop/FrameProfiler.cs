@@ -13,6 +13,7 @@ namespace Mvk.Desktop
         private double _updateMs, _renderMs;
         private long _totalStart;
         private int _gen0Start;
+        private long _threadStart;
         private readonly Stopwatch _clock = new Stopwatch();
         private long _mark;
 
@@ -24,6 +25,7 @@ namespace Mvk.Desktop
             Running = true;
             _totalStart = GC.GetTotalAllocatedBytes(false);
             _gen0Start = GC.CollectionCount(0);
+            _threadStart = GC.GetAllocatedBytesForCurrentThread();
         }
 
         public void Begin()
@@ -49,12 +51,13 @@ namespace Mvk.Desktop
         public string Report()
         {
             long total = GC.GetTotalAllocatedBytes(false) - _totalStart;
+            long thread = GC.GetAllocatedBytesForCurrentThread() - _threadStart;
             return string.Format(System.Globalization.CultureInfo.InvariantCulture,
                 "Профиль: кадров {0}, кадр {1:F2} мс и {2:F0} байт; вызовов Update {3}, Update {4:F2} мс и {5:F0} байт; " +
-                "всего по процессу {6:F1} КБ, сборок Gen0 {7}",
+                "поток окна всего {8:F1} КБ, по процессу {6:F1} КБ, сборок Gen0 {7}",
                 _frames, _renderMs / Math.Max(1, _frames), _renderBytes / (double)Math.Max(1, _frames),
                 _updates, _updateMs / Math.Max(1, _updates), _updateBytes / (double)Math.Max(1, _updates),
-                total / 1024.0, GC.CollectionCount(0) - _gen0Start);
+                total / 1024.0, GC.CollectionCount(0) - _gen0Start, thread / 1024.0);
         }
     }
 }

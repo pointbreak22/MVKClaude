@@ -282,11 +282,13 @@ namespace Mvk.Desktop
                 {
                     if (sinceStart.Elapsed.TotalSeconds >= shotAfter)
                     {
+                        // Отчёт до снимка: буфер пикселей и PNG не относятся к кадру игры
+                        if (profiler != null) Console.WriteLine(profiler.Report());
                         byte[] pixels = new byte[w * h * 4];
                         device.ReadPixels(0, 0, w, h, pixels);
                         PngWriter.Write(screenshot, w, h, pixels);
                         Console.WriteLine($"Снимок {w}x{h}: {screenshot}");
-                        if (profiler != null) Console.WriteLine(profiler.Report());
+                       
                         window.Close();
                     }
                 }
