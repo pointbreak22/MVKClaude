@@ -1,4 +1,5 @@
 """Шов клиента 3: рендер сущностей.
+- Mat4 значимый тип: Copy(m) родительской кости заменён присваиванием.
 - Строка ошибки слоёв одежды берётся из ClientStrings (Sr в Engine внутренний).
 - EntityRenderAnimation.DrawGui (сущность в окне инвентаря) переносится вместе с GUI:
   ему нужны Gi.Ortho и шейдер GUI сущностей, которых ещё нет.
@@ -11,6 +12,10 @@ rel = r"Entity\Render\EntityRenderAnimation.cs"
 t = load(rel, C)
 t = rep(t, "Sr.GetString(Sr.EntityClothingLayersObjectIsMissing,",
         "ClientStrings.GetString(ClientStrings.EntityClothingLayersObjectIsMissing,", rel)
+# Mat4 стал значимым типом (improvements R19): копия родительской матрицы кости явным присваиванием,
+# в оригинале Copy(m) писал в общий массив копии m
+t = rep(t, "_bonesTransforms[bone.ParentIndex].Copy(_bonesTransforms[i]);",
+        "_bonesTransforms[i] = _bonesTransforms[bone.ParentIndex];", rel)
 t = remove_member(t, "public void DrawGui(float posX, float posY, float yaw, float pitch, float scale)", rel)
 save(rel, t, C)
 print("client_seam3 ok")

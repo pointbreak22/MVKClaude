@@ -612,7 +612,7 @@ namespace Mvk.Engine.Entity.Render
                 // Перемножаем матрицы в положение как выставленно в Blockbench
                 bone = _resourcesEntity.Bones[i];
 
-                _bonesTransforms[bone.ParentIndex].Copy(_bonesTransforms[i]);
+                _bonesTransforms[i] = _bonesTransforms[bone.ParentIndex];
                 _bonesTransforms[i].Multiply(_bones[i].GetBoneMatrix());
 
                 // Если надо вращаем Pitch, голова
