@@ -66,6 +66,7 @@ assets/                   ресурсы из res/Assets (копируются �
 - Запуск ПК: `dotnet run --project src/Hosts/Mvk.Desktop` (заставка, главное меню, игра;
   `-- --screenshot кадр.png --shot-after 8` сразу запускает одиночную игру, сохраняет кадр и выходит,
   им проверяется рендер без человека; `--menu`, `--screen chat|inventory|pause`, `--cmd "/time n"`, `--look`, `--view`;
+  `--mouse original` кнопки мыши в мире как в оригинале (по умолчанию правая ломает, левая ставит);
   `--test-scene` тестовая сцена RHI этапа 4)
 - Сервер: `dotnet run --project src/Hosts/Mvk.Server`
 

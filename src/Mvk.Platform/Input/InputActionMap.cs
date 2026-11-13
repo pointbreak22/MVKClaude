@@ -70,6 +70,10 @@ namespace Mvk.Platform.Input
             if (!list.Contains(action.Id)) list.Add(action.Id);
         }
 
+        /// <summary>Привязана ли кнопка к действию</summary>
+        public bool IsBound(InputAction action, InputBinding binding)
+            => _bindings.TryGetValue(binding, out List<int>? list) && list.Contains(action.Id);
+
         /// <summary>Убрать все привязки действия (перед переназначением)</summary>
         public void Unbind(InputAction action)
         {

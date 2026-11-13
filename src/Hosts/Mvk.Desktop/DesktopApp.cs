@@ -5,6 +5,7 @@ using Mvk.Engine.Games;
 using Mvk.Engine.Network.Packets.Client;
 using Mvk.Game.Client;
 using Mvk.Rendering;
+using Mvk.Platform.Input;
 using Silk.NET.Input;
 using Silk.NET.Windowing;
 using IWindowHost = Mvk.Engine.IWindowHost;
@@ -36,9 +37,22 @@ namespace Mvk.Desktop
         /// <summary>Звук OpenAL или null (снимки без звука быстрее загружаются)</summary>
         public Mvk.Engine.Audio.IWindowAudio? Audio { get; }
 
-        public DesktopApp(IWindow window, IGraphicsDevice device, bool debugCommands, bool sound)
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Раскладка мыши в мире по умолчанию: правая ломает, левая ставит.
+        /// Вернуть как в оригинале: WorldMouseLayout.Original (или ключ --mouse original).
+        /// </summary>
+        public const WorldMouseLayout DefaultMouseLayout = WorldMouseLayout.Swapped;
+        /// <summary>Действия мыши в мире (ломать, ставить)</summary>
+        public readonly WorldMouseActions WorldMouse;
+        private readonly InputActionMap _actions = new InputActionMap();
+        /// <summary>Какой кнопкой игры ушло нажатие физической кнопки (отпускание идёт той же)</summary>
+        private readonly EngineMouse[] _pressedAs = new EngineMouse[16];
+
+        public DesktopApp(IWindow window, IGraphicsDevice device, bool debugCommands, bool sound,
+            WorldMouseLayout mouseLayout = DefaultMouseLayout)
         {
             _window = window;
+            WorldMouse = new WorldMouseActions(_actions, mouseLayout);
             Audio = sound ? new DesktopAudio() : null;
             App = debugCommands ? new WindowMvkDebug(this, device) : new WindowMvk(this, device);
             _input = window.CreateInput();
@@ -50,8 +64,8 @@ namespace Mvk.Desktop
             }
             foreach (IMouse m in _input.Mice)
             {
-                m.MouseDown += (_, b) => App.OnMouseDown(_MapMouse(b), (int)_mouse.X, (int)_mouse.Y);
-                m.MouseUp += (_, b) => App.OnMouseUp(_MapMouse(b), (int)_mouse.X, (int)_mouse.Y);
+                m.MouseDown += (_, b) => _MouseDown(b);
+                m.MouseUp += (_, b) => _MouseUp(b);
                 m.MouseMove += (_, p) => _MouseMove(p);
                 m.Scroll += (_, w) => App.OnMouseWheel(Math.Sign(w.Y), (int)_mouse.X, (int)_mouse.Y);
             }
@@ -65,6 +79,31 @@ namespace Mvk.Desktop
 
         /// <summary>Нарисовать кадр</summary>
         public void Render(int width, int height) => App.Draw(_commands, width, height);
+
+        /// <summary>
+        /// Нажатие мыши. В мире (игра без открытого экрана) кнопка переводится через действия раскладки:
+        /// «ломать» идёт игре как левая кнопка оригинала, «ставить» как правая. GUI получает кнопки как есть.
+        /// </summary>
+        private void _MouseDown(SilkMouse button)
+        {
+            EngineMouse m = _MapMouse(button);
+            if (App.Screen == null && App.Game != null)
+            {
+                int action = WorldMouse.ActionOf(button);
+                if (action == 0) m = EngineMouse.Left;
+                else if (action == 1) m = EngineMouse.Right;
+            }
+            if ((uint)button < (uint)_pressedAs.Length) _pressedAs[(int)button] = m;
+            App.OnMouseDown(m, (int)_mouse.X, (int)_mouse.Y);
+        }
+
+        private void _MouseUp(SilkMouse button)
+        {
+            EngineMouse m = (uint)button < (uint)_pressedAs.Length && _pressedAs[(int)button] != EngineMouse.None
+                ? _pressedAs[(int)button] : _MapMouse(button);
+            if ((uint)button < (uint)_pressedAs.Length) _pressedAs[(int)button] = EngineMouse.None;
+            App.OnMouseUp(m, (int)_mouse.X, (int)_mouse.Y);
+        }
 
         private void _KeyDown(SilkKey key)
         {

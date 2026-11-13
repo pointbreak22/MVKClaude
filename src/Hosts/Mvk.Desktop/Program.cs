@@ -51,6 +51,7 @@ namespace Mvk.Desktop
             List<string> presses = new List<string>();
             bool holdLeft = false;
             bool fx = false;
+            WorldMouseLayout mouseLayout = DesktopApp.DefaultMouseLayout;
             string? screen = null;
             int[]? size = null;
             int[]? resize = null;
@@ -72,6 +73,8 @@ namespace Mvk.Desktop
                 else if (args[i] == "--press" && i + 1 < args.Length) presses.Add(args[++i]);
                 else if (args[i] == "--hold-left") holdLeft = true;
                 else if (args[i] == "--fx") fx = true;
+                else if (args[i] == "--mouse" && i + 1 < args.Length)
+                    mouseLayout = args[++i] == "original" ? WorldMouseLayout.Original : WorldMouseLayout.Swapped;
                 else if (args[i] == "--screen" && i + 1 < args.Length) screen = args[++i];
                 else if (args[i] == "--view" && i + 1 < args.Length) view = int.Parse(args[++i]);
                 else if (args[i] == "--look" && i + 1 < args.Length)
@@ -88,7 +91,7 @@ namespace Mvk.Desktop
                 Console.Error.WriteLine("Не найдена папка Assets. Укажите её: --assets <путь>");
                 return 2;
             }
-            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound, presses, holdLeft, fx);
+            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound, presses, holdLeft, fx, mouseLayout);
 
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -202,7 +205,8 @@ namespace Mvk.Desktop
         /// --screen chat|inventory|creative|storage|pause открывает экран клавишей на половине ожидания.
         /// Снимки идут без звука (быстрее загрузка), --sound включает его. --press F3+G нажимает комбинацию
         /// клавиш (имена Keys оригинала) на половине ожидания, --hold-left зажимает левую кнопку мыши,
-        /// --fx спавнит плоские частицы перед игроком.
+        /// --fx спавнит плоские частицы перед игроком. --mouse original возвращает кнопки мыши в мире как в оригинале
+        /// (левая ломает, правая ставит); по умолчанию наоборот.
         /// --cmd отправляет команды чата после входа в мир (и включает отладочную /summon), --look задаёт
         /// взгляд, --view переключает камеру как F5, --size задаёт размер окна при старте, --resize меняет
         /// его на половине ожидания снимка, --profile печатает аллокации и время кадра и такта
@@ -210,7 +214,8 @@ namespace Mvk.Desktop
         /// </summary>
         private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe,
             List<string> commands, float[]? look, int view, int[]? size, int[]? resize, bool profile,
-            bool menu, string? screen, bool sound, List<string> presses, bool holdLeft, bool fx)
+            bool menu, string? screen, bool sound, List<string> presses, bool holdLeft, bool fx,
+            WorldMouseLayout mouseLayout)
         {
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude",
                 size?[0] ?? 1280, size?[1] ?? 720);
@@ -227,7 +232,7 @@ namespace Mvk.Desktop
                 Console.WriteLine(device.Description);
                 Mvk.Engine.Debug.IsDrawVoxelLine = wireframe;
                 MvkClient.SetAssets(assets);
-                app = new DesktopApp(window, device, commands.Count > 0, screenshot == null || sound);
+                app = new DesktopApp(window, device, commands.Count > 0, screenshot == null || sound, mouseLayout);
             };
 
             window.FramebufferResize += fb => app?.App.OnResized(fb.X, fb.Y);
