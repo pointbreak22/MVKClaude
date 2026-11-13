@@ -323,6 +323,11 @@ namespace Mvk.Engine.Entity.Player
         }
 
         /// <summary>
+        /// Изменён размер окна: пересчитать матрицы камеры в следующем кадре
+        /// </summary>
+        public void ViewSizeChanged() => _updateCamera = true;
+
+        /// <summary>
         /// Следующий вид камеры
         /// </summary>
         public void ViewCameraNext()

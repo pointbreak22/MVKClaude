@@ -427,6 +427,8 @@ namespace Mvk.Engine.Games
         /// </summary>
         public void OnResized(int width, int height)
         {
+            // Матрица проекции зависит от размера окна
+            Player.ViewSizeChanged();
             // Тут индикация если имеется
             Host.OnResized(width, height);
         }

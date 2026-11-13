@@ -108,5 +108,5 @@ OpenGL, `Mvk.Platform` (ввод через `InputActionMap`, звук OpenAL, `
 в `Mvk.Desktop`.
 Этап 5 идёт: шаг 5.1 готов (локальная игра в окне, остров на экране, `src/Mvk.Engine.Client` из `tools/port/run_client.py`);
 в 5.2 готово небо острова (`SkyRender`, `SkyIslandRender`: солнце, луна, звёзды, облака, дождь)
-и рендер игрока и мобов (`EntitiesRenderer`, анимация костей, одежда, рука с глаз).
-Следующий: ресайз окна, затем GUI и HUD на RHI. Android отложен. См. `docs/progress.md`.
+и рендер игрока и мобов (`EntitiesRenderer`, анимация костей, одежда, рука с глаз), ресайз окна.
+Следующий: GUI и HUD на RHI (шрифты, меню, чат), затем частицы, тени, звук в игре. Android отложен. См. `docs/progress.md`.

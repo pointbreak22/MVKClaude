@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -81,6 +81,8 @@ namespace Mvk.Game.Tests
             }
             Assert.True(hasBlocks, "Чанк под игроком пустой");
 
+            _ResizeUpdatesProjection(game);
+
             // Остановка: сервер сохраняет мир и сообщает клиенту
             game.GameStoping("test", false);
             time.Restart();
@@ -92,6 +94,48 @@ namespace Mvk.Game.Tests
             Assert.True(error == null, "Ошибка при остановке: " + error);
             Assert.Equal("test", stopped);
             game.Dispose();
+        }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] known-issues п. 8: после ресайза проекция пересчитывается без движения камеры.
+        /// Соотношение сторон берётся из матрицы вида: строки 0 и 1 = масштаб проекции на поворот LookAt.
+        /// </summary>
+        private static void _ResizeUpdatesProjection(GameLocal game)
+        {
+            int width = Gi.Width, height = Gi.Height;
+            try
+            {
+                Gi.Width = 1280;
+                Gi.Height = 720;
+                game.OnResized(1280, 720);
+                // Остановить игрока: кадровая позиция и поворот равны такту, камера больше не двигается
+                game.Player.ActionStop();
+                game.Player.UpdateFrame(.5f);
+                game.Player.UpdateFrame(.5f);
+                Assert.Equal(1280f / 720f, _Aspect(), 3);
+
+                // Только размер без OnResized: как в оригинале, матрица старая
+                Gi.Width = 720;
+                game.Player.UpdateFrame(.5f);
+                Assert.Equal(1280f / 720f, _Aspect(), 3);
+
+                game.OnResized(720, 720);
+                game.Player.UpdateFrame(.5f);
+                Assert.Equal(1f, _Aspect(), 3);
+            }
+            finally
+            {
+                Gi.Width = width;
+                Gi.Height = height;
+            }
+        }
+
+        private static float _Aspect()
+        {
+            float[] m = Gi.MatrixView;
+            float row0 = MathF.Sqrt(m[0] * m[0] + m[4] * m[4] + m[8] * m[8]);
+            float row1 = MathF.Sqrt(m[1] * m[1] + m[5] * m[5] + m[9] * m[9]);
+            return row1 / row0;
         }
     }
 }
