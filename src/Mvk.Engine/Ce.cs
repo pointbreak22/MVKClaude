@@ -91,7 +91,7 @@ public sealed class Ce
     /// <summary>
     /// Максимальный время для закачки чанков
     /// </summary>
-    public const int MaxBatchChunksTime = Tick​​Time / 3;// 2;// / 3 * 2;
+    public const int MaxBatchChunksTime = Tick​​Time; // [ПОВЕДЕНИЕ] весь такт, в оригинале треть (R26)
     /// <summary>
     /// Максимальный время для закачки и распаковки чанков
     /// </summary>
