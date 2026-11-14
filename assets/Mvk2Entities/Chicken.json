@@ -1,0 +1,61 @@
+{
+    Scale: 1,
+    #Model: "Robinson",
+    Model: "Chicken",
+    #Model: "Humanoid",
+    #Texture: "HumanoidSample",
+    Texture: "ChickenBroun",
+    OnlyMove: true,
+    BlinkEye: 50,
+    #NameShapeLayers: "Base",
+    #NameShapeLayers: "BaseOld",
+    Animations: [
+        { 
+            Code: "Idle",
+            Animation: "Idle",
+            #Default: true,
+            AnimationSpeed: 0.3,
+            TriggeredBy: ["Idle"]
+        },
+        {
+            Animation: "Walk",
+            AnimationSpeed: 1.4,
+            TriggeredBy: ["Move"]
+        },
+        { 
+            Animation: "WalkSwing",
+            AnimationSpeed: 1.4,
+            TriggeredBy: ["Levitate", "Move"]
+        },
+        {
+            Animation: "WalkSwing",
+            AnimationSpeed: 2.5,
+            TriggeredBy: ["Move", "Sprint"]
+        },
+        { 
+            Animation: "Sneak",
+            AnimationSpeed: 0.3,
+            TriggeredBy: ["Sneak", "Idle"]
+        },
+        { 
+            Animation: "Dead",
+            AnimationSpeed: 1.5,
+            TriggeredBy: ["Dead"]
+        },
+        { 
+            Animation: "Swing",
+            AnimationSpeed: 2.15,
+            TriggeredBy: ["Levitate", "Idle"]
+        },
+        {
+            Code: "Peck",
+            Animation: "Peck",
+            AnimationSpeed: 1.0
+        },
+        {
+            Code: "Drip",
+            Animation: "Drip",
+            AnimationSpeed: 1.0
+        }
+    ]
+}

@@ -1,0 +1,12 @@
+{
+    MaxStackSize: 5,
+    MaxDamage: 100,
+    Width: 0.375,
+    Height: 0.875,
+    Hold: "HoldTwo",
+    Action: "ActionBlock",
+    Two: true,
+    Shape: "ItemsForBlock/Bucket",
+    SpriteGui: "Items/ItemsForBlock/SpriteBucket",
+    ViewHold: { Scale: 0.9375 }
+}

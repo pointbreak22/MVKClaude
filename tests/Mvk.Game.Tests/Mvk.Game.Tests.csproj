@@ -23,7 +23,7 @@
     <!-- Общий с tools/GoldenGen код эталона: здесь он генерирует новым кодом -->
     <Compile Include="..\..\tools\GoldenGen\IslandGolden.cs" Link="Golden\IslandGolden.cs" />
     <Compile Include="..\..\tools\GoldenGen\FontGolden.cs" Link="Golden\FontGolden.cs" />
-    <!-- Ассеты оригинала (блоки, биомы, модели в json): до этапа 5 берём из original/ -->
-    <None Include="..\..\original\res\Assets\**\*" LinkBase="Assets" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Ассеты игры (блоки, биомы, модели в json) -->
+    <None Include="..\..\assets\**\*" LinkBase="Assets" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

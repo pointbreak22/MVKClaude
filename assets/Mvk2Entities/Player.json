@@ -1,0 +1,203 @@
+{
+    #Scale: 1.9375,
+    Scale: 0.96,
+    #Scale: 0.976,
+    #Model: "Robinson",
+    #Model: "Player",
+    Model: "Humanoid",
+    #Model: "Chicken",
+    Texture: "Robinson",
+    #Texture: "HumanoidSample",
+    OnlyMove: true,
+    BlinkEye: 70,
+    NameShapeLayers: "Base",
+    #NameShapeLayers: "BaseOld",
+    Animations: [
+        { 
+            Code: "Idle",
+            Animation: "Idle",
+            #Default: true,
+            AnimationSpeed: 0.3,
+            TriggeredBy: ["Idle"]
+        },
+        { 
+            Animation: "Sneak",
+            AnimationSpeed: 0.3,
+            TriggeredBy: ["Sneak", "Idle"]
+        },
+        { 
+            Animation: "SneakWalk",
+            AnimationSpeed: 0.55,
+            TriggeredBy: ["Sneak", "Forward"]
+        },
+        { 
+            Animation: "SneakWalk",
+            AnimationSpeed: 0.55,
+            TriggeredBy: ["Sneak", "Move"]
+        },
+        { 
+            Animation: "Levitate",
+            AnimationSpeed: 0.3,
+            TriggeredBy: ["Levitate", "Idle"]
+        },
+        { 
+            Animation: "Levitate",
+            AnimationSpeed: 0.5,
+            TriggeredBy: ["Levitate", "Move"]
+        },
+        {
+            Animation: "Levitate",
+            AnimationSpeed: 1.0,
+            TriggeredBy: ["Levitate", "Move", "Sprint"]
+        },
+        {
+            # На лестнице без движения, плавно опускается
+            Animation: "Climb",
+            AnimationSpeed: 0.35,
+            TriggeredBy: ["Climb", "Levitate"]
+        },
+        {
+            # На лестнице подымаемся или опускаемся
+            Animation: "Climb",
+            AnimationSpeed: 1.5,
+            TriggeredBy: ["Climb", "Levitate", "Move"]
+        },
+        {
+            # В жидкости без движения и не на дне
+            Animation: "InLiquid",
+            AnimationSpeed: 0.3,
+            TriggeredBy: ["InLiquid", "Levitate", "Idle"]
+        },
+        { 
+            # В жидкости плаваем
+            Animation: "InLiquid",
+            AnimationSpeed: 0.8,
+            TriggeredBy: ["InLiquid", "Levitate", "Move"]
+        },
+        { 
+            # В жидкости быстро плаваем
+            Animation: "InLiquid",
+            AnimationSpeed: 1.2,
+            TriggeredBy: ["InLiquid", "Levitate", "Move", "Sprint"]
+        },
+        {
+            Animation: "Walk",
+            AnimationSpeed: 1.4,
+            TriggeredBy: ["Move"]
+        },
+        {
+            Animation: "Walk",
+            AnimationSpeed: 2.15,
+            TriggeredBy: ["Move", "Sprint"]
+        },
+
+        {
+            Code: "AttackRight",
+            Animation: "AttackRight",
+            AnimationSpeed: 1.5,
+            ElementWeight: {
+                ArmRight: 80,
+                ForearmRight: 80,
+                HandRight: 80
+            }
+        },
+        
+        
+        {
+            Code: "HoldRight",
+            Animation: "HoldRight",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmRight: 10,
+                ForearmRight: 10
+            }
+        },
+        {
+            Code: "HoldLeft",
+            Animation: "HoldLeft",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmLeft: 20,
+                ForearmLeft: 20
+            }
+        },
+        {
+            Code: "HoldTwo",
+            Animation: "HoldTwo",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmRight: 10,
+                ForearmRight: 10,
+                HoldItemOne: 10,
+                ArmLeft: 10,
+                ForearmLeft: 10
+            }
+        },
+        {
+            Code: "HoldShovel",
+            Animation: "HoldShovel",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmRight: 50,
+                ForearmRight: 50,
+                HandRight: 50,
+                HoldItemOne: 50,
+                ArmLeft: 50,
+                ForearmLeft: 50,
+                HandLeft: 50
+            }
+        },
+        {
+            Code: "ActionShovel",
+            Animation: "ActionShovel",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmRight: 90,
+                ForearmRight: 90,
+                HandRight: 90,
+                HoldItemOne: 90,
+                ArmLeft: 90,
+                ForearmLeft: 90,
+                HandLeft: 90,
+                Chest: 50
+            }
+        },
+        {
+            Code: "ActionAxe",
+            Animation: "ActionAxe",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmRight: 80,
+                ForearmRight: 80,
+                HandRight: 80
+            }
+        },
+        {
+            Code: "ActionAxes",
+            Animation: "ActionAxes",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmLeft: 80,
+                ForearmLeft: 80,
+                HandLeft: 80,
+                ArmRight: 80,
+                ForearmRight: 80,
+                HandRight: 80
+            }
+        },
+        {
+            Code: "ActionBlock",
+            Animation: "ActionBlock",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmLeft: 90,
+                ForearmLeft: 90,
+                HoldItemOne: 90,
+                ArmRight: 90,
+                ForearmRight: 90,
+                Chest: 50
+            }
+        },
+
+    ]
+}

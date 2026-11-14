@@ -1,0 +1,17 @@
+{
+    Texture: {
+        Flow: "Blocks/LavaFlow",
+        Still: "Blocks/LavaStill",
+    },
+    Element: {
+        Wind:1,
+        Faces: [
+            { Texture:"Still", Side:"Down", Pause:12 },
+            { Texture:"Still", Side:"Up", Pause:8 },
+            { Texture:"Flow", Side:"North", Pause:5 },
+            { Texture:"Flow", Side:"East", Pause:5 },
+            { Texture:"Flow", Side:"South", Pause:5 },
+            { Texture:"Flow", Side:"West", Pause:5 }
+        ]
+    }
+}

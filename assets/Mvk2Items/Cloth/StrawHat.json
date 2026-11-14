@@ -1,0 +1,9 @@
+{
+    MaxStackSize: 1,
+    CellsBackpack: 1,
+    SlotClothIndex: [2, 1],
+    Sprite: "Items/Cloth/StrawHat",
+    SpriteGui: "Items/Cloth/StrawHat",
+    PutOnBody: "Hat",
+    NameLayer: "StrawHat"
+}

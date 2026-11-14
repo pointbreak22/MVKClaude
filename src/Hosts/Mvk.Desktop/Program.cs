@@ -429,7 +429,7 @@ namespace Mvk.Desktop
         }
 
         /// <summary>
-        /// Найти Assets: рядом с программой, иначе в original/res (пока ассеты не перенесены, этап 5)
+        /// Найти Assets: рядом с программой (копируются из assets/ при сборке), иначе assets/ репозитория
         /// </summary>
         private static string? FindAssets()
         {
@@ -438,7 +438,7 @@ namespace Mvk.Desktop
             DirectoryInfo? dir = new DirectoryInfo(AppContext.BaseDirectory);
             while (dir != null)
             {
-                string candidate = Path.Combine(dir.FullName, "original", "res", "Assets");
+                string candidate = Path.Combine(dir.FullName, "assets");
                 if (Directory.Exists(candidate)) return candidate;
                 dir = dir.Parent;
             }

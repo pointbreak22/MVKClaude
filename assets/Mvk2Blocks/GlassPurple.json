@@ -1,0 +1,4 @@
+{
+    Parent: "GlassTranslucent",
+    Color: [ 1.0, 0.5, 1.0 ]
+}

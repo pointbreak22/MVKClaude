@@ -1,0 +1,20 @@
+{
+    Texture: {
+        Flow: "Blocks/WaterFlow",
+        Still: "Blocks/WaterStill"
+    },
+    Element: {
+        From: [ -8, 0, -8 ],
+        To: [ 8, 16, 8 ],
+        TypeColor:3,
+        Wind:1,
+        Faces: [
+            { Texture:"Still", Side:"Down", Pause:10 },
+            { Texture:"Still", Side:"Up", Pause:5 },
+            { Texture:"Flow", Side:"North", Pause:3 },
+            { Texture:"Flow", Side:"East", Pause:3 },
+            { Texture:"Flow", Side:"South", Pause:3 },
+            { Texture:"Flow", Side:"West", Pause:3 }
+        ]
+    }
+}

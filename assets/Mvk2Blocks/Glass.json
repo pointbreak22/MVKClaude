@@ -1,0 +1,9 @@
+{
+    АmbientOcclusion: false,
+    UseNeighborBrightness: true,
+    LightOpacity: 0,
+    Translucent: true,
+    Variants: [
+        { Shape: "Glass" }
+    ]
+}

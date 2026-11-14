@@ -1,0 +1,15 @@
+{
+    Elements: [
+        {   From: [ -8, 0, -8 ],
+            To: [ 8, 16, 8 ],
+            Faces: [
+                { Texture:"All", Side:"Down"},
+                { Texture:"All", Side:"Up"},
+                { Texture:"All", Side:"North"},
+                { Texture:"All", Side:"East"},
+                { Texture:"All", Side:"South"},
+                { Texture:"All", Side:"West"}
+            ]
+        }
+    ]
+}

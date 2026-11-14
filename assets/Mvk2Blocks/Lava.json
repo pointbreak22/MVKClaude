@@ -1,0 +1,10 @@
+{
+    АmbientOcclusion: false,
+    UseNeighborBrightness: true,
+    Translucent: true,
+    NoCollision: true,
+    IsReplaceable: true,
+    LightValue: 8,
+    LiquidImpulse: 0.008,
+    Liquid: "Lava"
+}

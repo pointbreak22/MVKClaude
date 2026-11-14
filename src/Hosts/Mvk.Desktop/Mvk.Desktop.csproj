@@ -9,4 +9,8 @@
     <ProjectReference Include="..\..\Mvk.Rendering.OpenGL\Mvk.Rendering.OpenGL.csproj" />
     <ProjectReference Include="..\..\Mvk.Platform\Mvk.Platform.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Ассеты игры (блоки, тексты, шейдеры, текстуры, звуки) из assets/ рядом с программой -->
+    <None Include="..\..\..\assets\**\*" LinkBase="Assets" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

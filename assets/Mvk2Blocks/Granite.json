@@ -1,0 +1,6 @@
+{
+    Hardness: 40,
+    Variants: [
+        { Shape: "Granite" }
+    ]
+}

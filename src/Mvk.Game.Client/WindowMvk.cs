@@ -51,7 +51,7 @@ namespace Mvk.Game.Client
             OptionsLoad();
         }
 
-        protected override void OptionsLoad() => new OptionsFileMvk().Load();
+        protected override void OptionsLoad() => new OptionsFileClient().Load();
         public override void OptionsSave() => new OptionsFileMvk().Save();
 
         #endregion

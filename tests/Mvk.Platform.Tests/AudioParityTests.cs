@@ -24,14 +24,14 @@ namespace Mvk.Platform.Tests
         }
 
         /// <summary>
-        /// Ассеты оригинала (original/ не в git: клонировать по README)
+        /// Ассеты игры (assets/, байты как в res/Assets оригинала)
         /// </summary>
         private static string _AssetsDir()
         {
             DirectoryInfo? dir = new DirectoryInfo(AppContext.BaseDirectory);
             while (dir != null && !File.Exists(Path.Combine(dir.FullName, "MvkClaude.slnx"))) dir = dir.Parent;
             Assert.NotNull(dir);
-            string assets = Path.Combine(dir.FullName, "original", "res", "Assets");
+            string assets = Path.Combine(dir.FullName, "assets");
             Assert.True(Directory.Exists(assets), "Нет ассетов оригинала: " + assets);
             return assets;
         }

@@ -1,0 +1,28 @@
+{
+    АmbientOcclusion: false,
+    UseNeighborBrightness: true,
+    Translucent: true,
+    LightOpacity: 0,
+    ForceDrawFace: true,
+    ParticleColors: [ "5c762a", "4d6322", "3d6a1f", "424223" ],
+    ParticleCount: 8,
+    Hardness: 32,
+    Variants: [
+        { Shape: "DoorOfPlanks", RotateY: 270, Offset: [ 0, 0, -16 ] },
+        { Shape: "DoorOfPlanks", RotateY: 90, Offset: [ -16, 0, 0 ] },
+        { Shape: "DoorOfPlanks" },
+        { Shape: "DoorOfPlanks", RotateY: 180, Offset: [ -16, 0, -16 ] },
+        { Shape: "DoorOfPlanks", RotateY: 90, Offset: [ -16, 0, 29 ] },
+        { Shape: "DoorOfPlanks", RotateY: 270, Offset: [ 0, 0, 13 ] },
+        { Shape: "DoorOfPlanks", RotateY: 180, Offset: [ -16, 0, 13 ] },
+        { Shape: "DoorOfPlanks", Offset: [ 0, 0, 29 ] },
+        { Shape: "_Null" },
+        { Shape: "_Null" },
+        { Shape: "_Null" },
+        { Shape: "_Null" },
+        { Shape: "_Null" },
+        { Shape: "_Null" },
+        { Shape: "_Null" },
+        { Shape: "_Null" }
+    ]
+}

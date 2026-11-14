@@ -1,0 +1,7 @@
+{
+    АmbientOcclusion: false,
+    LightOpacity: 1,
+    NeedsRandomTick: true,
+    IsDestorySecond: true,
+    Hardness: 12
+}

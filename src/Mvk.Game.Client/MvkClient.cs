@@ -40,8 +40,17 @@ namespace Mvk.Game.Client
         /// </summary>
         /// <param name="assets">Путь к папке Assets</param>
         public static void SetAssets(string assets)
-            => Options.PathAssets = Path.GetFullPath(assets).TrimEnd(Path.DirectorySeparatorChar, '/')
+        {
+            Options.PathAssets = Path.GetFullPath(assets).TrimEnd(Path.DirectorySeparatorChar, '/')
                 + Path.DirectorySeparatorChar;
+            AssetsByHost = true;
+        }
+
+        /// <summary>
+        /// Папку Assets выбрал хост: строка PathAssets в options.ini её не переопределяет
+        /// (в старых options.ini там путь к ассетам оригинала)
+        /// </summary>
+        public static bool AssetsByHost { get; private set; }
 
         /// <summary>
         /// Подключить рендер мира Малювек к хосту клиента: небо острова и рендеры сущностей мода

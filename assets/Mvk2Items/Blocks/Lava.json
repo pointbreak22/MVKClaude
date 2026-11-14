@@ -1,0 +1,5 @@
+{
+    Parent: "_Block",
+    Shape: "Lava",
+    ShapeGui: "Lava"
+}
