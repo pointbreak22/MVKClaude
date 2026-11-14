@@ -145,7 +145,10 @@ namespace Mvk.Desktop
         public void SetFullScreen(bool fullScreen)
             => _window.WindowState = fullScreen ? WindowState.Fullscreen : WindowState.Normal;
 
-        public void SetVSync(bool on) => _window.VSync = on;
+        public void SetVSync(bool on) => _window.VSync = on && !ForceNoVSync;
+
+        /// <summary>Вертикальная синхронизация выключена ключом --novsync (замер кадров), опции её не включают</summary>
+        public bool ForceNoVSync;
 
         public void CursorShow(bool show)
         {

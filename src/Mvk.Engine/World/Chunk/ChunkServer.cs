@@ -134,7 +134,9 @@ namespace Mvk.Engine.World.Chunk
 
                 // Decoration
                 //World.Filer.StartSection("GenDec " + CurrentChunkX + "," + CurrentChunkY);
+                long statsBegin = ChunkStats.Begin();
                 provider.ChunkGenerate.Decoration(provider, this);
+                ChunkStats.End(ChunkStats.Stage.Decoration, statsBegin);
                 //World.Filer.EndSectionLog();
                 IsDecorated = true;
                 for (x = -1; x <= 1; x++)
@@ -175,6 +177,7 @@ namespace Mvk.Engine.World.Chunk
 
                 // Пробуем загрузить с файла
                 //World.Filer.StartSection("Hms " + CurrentChunkX + "," + CurrentChunkY);
+                long statsBegin = ChunkStats.Begin();
                 if (World.Settings.HasNoSky)
                 {
                     Light.GenerateHeightMap();
@@ -183,6 +186,7 @@ namespace Mvk.Engine.World.Chunk
                 {
                     Light.GenerateHeightMapSky(); // 0.09 - 0.13 мс
                 }
+                ChunkStats.End(ChunkStats.Stage.HeightMap, statsBegin);
                 //World.Filer.EndSectionLog();
                 IsHeightMapSky = true;
                 for (x = -1; x <= 1; x++)
@@ -222,7 +226,9 @@ namespace Mvk.Engine.World.Chunk
 
                 // Боковое небесное освещение и блочное освещение
                 //World.Filer.StartSection("Sls " + CurrentChunkX + "," + CurrentChunkY);
+                long statsBegin = ChunkStats.Begin();
                 Light.StartRecheckGaps(World.Settings.HasNoSky); // 0.12 - 0.2 мс
+                ChunkStats.End(ChunkStats.Stage.SideLight, statsBegin);
                 //World.Filer.EndSectionLog();
                 IsSideLightSky = true;
 

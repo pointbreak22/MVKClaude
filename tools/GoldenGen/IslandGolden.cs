@@ -96,7 +96,11 @@ namespace GoldenGen
         /// <summary>
         /// Сгенерировать области вокруг Centers и вернуть строки эталона
         /// </summary>
-        public static List<string> Generate(long seed, int slot, int radius)
+        public static List<string> Generate(long seed, int slot, int radius) => Generate(seed, slot, radius, false);
+
+        /// <param name="batch">Порт: грузить чанки пакетом, как сервер в игре (NeededChunk и LoadQueuedChunks),
+        /// а не по одному, как экран загрузки</param>
+        public static List<string> Generate(long seed, int slot, int radius, bool batch)
         {
             string pathGame = Options.PathGames + (slot + 1).ToString();
             if (Directory.Exists(pathGame)) Directory.Delete(pathGame, true);
@@ -119,7 +123,23 @@ namespace GoldenGen
                 for (int x = center.X - radius - 1; x <= center.X + radius + 1; x++)
                     for (int z = center.Y - radius - 1; z <= center.Y + radius + 1; z++)
                         if (world.ChunkPrServ.GetChunkServer(new Vector2i(x, z)) == null)
+                        {
+#if !GOLDEN_ORIGINAL
+                            if (batch)
+                            {
+                                world.ChunkPrServ.NeededChunk(x, z);
+                                continue;
+                            }
+#endif
                             world.ChunkPrServ.InitialLoadingChunk(x, z);
+                        }
+#if !GOLDEN_ORIGINAL
+                if (batch)
+                {
+                    world.ChunkPrServ.LoadQueuedChunks();
+                    world.ChunkPrServ.UnloadingRequiredChunksFromQueue();
+                }
+#endif
 
                 for (int x = center.X - radius; x <= center.X + radius; x++)
                 {

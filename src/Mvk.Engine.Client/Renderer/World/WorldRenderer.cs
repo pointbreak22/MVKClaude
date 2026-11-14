@@ -5,6 +5,7 @@ using System.Threading;
 using Mvk.Core.Maths;
 using Mvk.Core.Util;
 using Mvk.Engine.Games;
+using Mvk.Engine.Util;
 using Mvk.Engine.Renderer.Shaders;
 using Mvk.Engine.World.Environment;
 using Mvk.Engine.Renderer.World.Entity;
@@ -22,8 +23,21 @@ namespace Mvk.Engine.Renderer.World
     {
         /// <summary>Общие объекты рендера</summary>
         public readonly RenderContext Context;
-        /// <summary>Построитель сеток чанков (пользуется поток построения сеток)</summary>
-        public readonly ChunkMesher Mesher = new ChunkMesher();
+        /// <summary>
+        /// Сколько потоков строят сетки чанков: поток WorldRender и помощники планировщика.
+        /// Хост может задать до создания рендера мира (Mvk.Desktop --mesh-workers). По умолчанию один:
+        /// загрузка мира упирается в генерацию на сервере, а при 4 потоках сетка чанка дорожает с 3.8 до 5.7 мс
+        /// (общая память и сборка мусора), загрузка не быстрее (docs/progress.md, этап 7.1)
+        /// </summary>
+        public static int MeshWorkers = 1;
+        /// <summary>Построитель сеток чанков потока WorldRender (помощники берут свои из _meshers)</summary>
+        public ChunkMesher Mesher => _meshers[0];
+        /// <summary>Построители сеток, по одному на поток построения</summary>
+        private readonly ChunkMesher[] _meshers;
+        /// <summary>Планировщик потоков построения сеток (этап 7)</summary>
+        private readonly JobScheduler _meshScheduler;
+        /// <summary>Работа пакета сеток для планировщика</summary>
+        private readonly MeshJob _meshJob;
         /// <summary>Карта света</summary>
         public readonly TextureLightMap LightMap;
         /// <summary>Шейдер блоков</summary>
@@ -89,6 +103,10 @@ namespace Mvk.Engine.Renderer.World
             Context = render.Context;
             RenderContext context = Context;
             _arrayChunkRender = new ArrayFast<ChunkRender>(Ce.OverviewCircles.Length);
+            _meshers = new ChunkMesher[MeshWorkers];
+            for (int i = 0; i < _meshers.Length; i++) _meshers[i] = new ChunkMesher();
+            _meshScheduler = new JobScheduler(MeshWorkers, "WorldRender");
+            _meshJob = new MeshJob(this);
             LightMap = new TextureLightMap(context.Device);
             ShsBlocks = new ShadersBlocks(context, shaderBlocksLow, "BlocksHigh", "BlocksDepthMap");
             Shadow = new ShadowMapping(context.Device);
@@ -191,27 +209,61 @@ namespace Mvk.Engine.Renderer.World
         /// </summary>
         private int _RenderQueues(bool isDense, DoubleList<ChunkRender> list)
         {
-            int count, i;
-            ChunkRender chunkRender;
             list.Step();
-            count = list.CountBackward;
-            for (i = 0; i < count; i++)
+            int count = list.CountBackward;
+            // Пакет в массив, дальше чанки пакета строятся всеми потоками планировщика
+            _meshJob.Prepare(count, isDense);
+            for (int i = 0; i < count; i++)
             {
-                chunkRender = list.GetNext();
-                if (isDense)
+                _meshJob.Chunks[i] = list.GetNext();
+            }
+            _meshScheduler.ParallelFor(count, _meshJob);
+            _meshJob.Clear(count);
+            list.ClearBackward();
+
+            return count;
+        }
+
+        /// <summary>
+        /// Построение сеток пакета чанков на потоках планировщика: у каждого потока свой ChunkMesher
+        /// </summary>
+        private sealed class MeshJob : IParallelJob
+        {
+            /// <summary>Чанки пакета</summary>
+            public ChunkRender[] Chunks = new ChunkRender[64];
+            private readonly WorldRenderer _render;
+            private bool _isDense;
+
+            public MeshJob(WorldRenderer render) => _render = render;
+
+            /// <summary>Подготовить массив под пакет (растёт только при первом большом пакете)</summary>
+            public void Prepare(int count, bool isDense)
+            {
+                if (Chunks.Length < count) Chunks = new ChunkRender[Math.Max(count, Chunks.Length * 2)];
+                _isDense = isDense;
+            }
+
+            /// <summary>Не держать ссылки на чанки после пакета</summary>
+            public void Clear(int count) => Array.Clear(Chunks, 0, count);
+
+            public void Execute(int index, int worker)
+            {
+                if (!_render._flagRenderLoopRunning) return;
+                ChunkRender chunkRender = Chunks[index];
+                chunkRender.SetMesher(_render._meshers[worker]);
+                long statsBegin = ChunkStats.Begin();
+                if (_isDense)
                 {
                     chunkRender.Render();
+                    ChunkStats.End(ChunkStats.Stage.Mesh, statsBegin);
                 }
                 else
                 {
                     chunkRender.RenderAlpha();
+                    ChunkStats.End(ChunkStats.Stage.MeshAlpha, statsBegin);
                 }
                 chunkRender.ClearBufferChunks();
-                if (!_flagRenderLoopRunning) break;
             }
-            list.ClearBackward();
-
-            return count;
         }
 
         #endregion
@@ -464,7 +516,8 @@ namespace Mvk.Engine.Renderer.World
             _thread?.Join(2000);
             _skyRender?.Dispose();
             _skyRender = null;
-            Mesher.Dispose();
+            _meshScheduler.Dispose();
+            foreach (ChunkMesher mesher in _meshers) mesher.Dispose();
             LightMap.Dispose();
             ShsBlocks.Dispose();
             Entities.Dispose();

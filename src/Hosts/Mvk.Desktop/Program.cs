@@ -34,6 +34,8 @@ namespace Mvk.Desktop
     {
         private static int Main(string[] args)
         {
+            // Журнал по-русски читается и в файле, и в консоли Windows (иначе кодовая страница 866)
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
             string? assets = null;
             string? screenshot = null;
             int shotFrame = 90;
@@ -77,6 +79,21 @@ namespace Mvk.Desktop
                 else if (args[i] == "--hold-left") holdLeft = true;
                 else if (args[i] == "--fx") fx = true;
                 else if (args[i] == "--calm") phase = 32;
+                else if (args[i] == "--bench")
+                {
+                    _benchSeconds = 60;
+                    if (i + 1 < args.Length && double.TryParse(args[i + 1], System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out double seconds))
+                    {
+                        _benchSeconds = seconds;
+                        i++;
+                    }
+                }
+                else if (args[i] == "--novsync") _noVSync = true;
+                else if (args[i] == "--mesh-workers" && i + 1 < args.Length)
+                {
+                    Mvk.Engine.Renderer.World.WorldRenderer.MeshWorkers = Math.Max(1, int.Parse(args[++i]));
+                }
                 else if (args[i] == "--script" && i + 1 < args.Length) script = args[++i];
                 else if (args[i] == "--trace" && i + 1 < args.Length) trace = Path.GetFullPath(args[++i]);
                 else if (args[i] == "--phase" && i + 1 < args.Length) phase = int.Parse(args[++i]) & 0x7F;
@@ -215,6 +232,8 @@ namespace Mvk.Desktop
         /// клавиш (имена Keys оригинала) на половине ожидания, --hold-left зажимает левую кнопку мыши,
         /// --calm снимает кадр при ветре около нуля (для сравнения с оригиналом, tools/OrigShot),
         /// --phase N в такт с фазой ветра N (0..127, 0 наибольший ветер).
+        /// --bench [секунд] замер загрузки мира и кадра (BenchRun), --novsync без вертикальной синхронизации,
+        /// --mesh-workers N потоков построения сеток чанков.
         /// --script "0:W+;10:Space+;12:Space-;60:W-;80:end" через shot-after секунд жмёт клавиши по тактам,
         /// --trace файл пишет след игрока на каждом такте (позиция, скорость, на земле), в конце выход или снимок.
         /// --fx спавнит плоские частицы перед игроком. --mouse original возвращает кнопки мыши в мире как в оригинале
@@ -238,6 +257,8 @@ namespace Mvk.Desktop
             bool screenOpened = false;
             bool scriptAttached = false;
             bool scriptClosed = false;
+            BenchRun? bench = null;
+            bool benchClosed = false;
             int result = 0;
 
             window.Load += () =>
@@ -250,10 +271,13 @@ namespace Mvk.Desktop
                 Console.WriteLine("Буфер глубины: " + depthBits + " бит");
                 Mvk.Engine.Debug.IsDrawVoxelLine = wireframe;
                 MvkClient.SetAssets(assets);
-                app = new DesktopApp(window, device, commands.Count > 0 || script != null, screenshot == null || sound, mouseLayout)
+                app = new DesktopApp(window, device, commands.Count > 0 || script != null,
+                    (screenshot == null && _benchSeconds == 0) || sound, mouseLayout)
                 {
-                    IgnoreFocusLoss = script != null
+                    IgnoreFocusLoss = script != null || _benchSeconds > 0,
+                    ForceNoVSync = _noVSync
                 };
+                if (_noVSync) window.VSync = false;
             };
 
             window.FramebufferResize += fb => app?.App.OnResized(fb.X, fb.Y);
@@ -266,7 +290,8 @@ namespace Mvk.Desktop
                 if (profiler is { Running: true }) profiler.EndUpdate();
                 if (app.Error != null) result = 1;
                 // Снимок без человека: после загрузки сразу одиночная игра (как кнопки «Одиночная» и «Играть»)
-                if ((screenshot != null || script != null) && !menu && app.App.Ready && app.App.Game == null && sinceStart == null)
+                if ((screenshot != null || script != null || _benchSeconds > 0) && !menu && app.App.Ready
+                    && app.App.Game == null && sinceStart == null)
                 {
                     app.App.GameLocalRun(new GameSettings(slot, seed));
                 }
@@ -280,8 +305,18 @@ namespace Mvk.Desktop
                 // Свёрнутое окно не рисуем
                 if (w <= 0 || h <= 0) return;
                 profiler?.Begin();
+                long renderBegin = Stopwatch.GetTimestamp();
                 app.Render(w, h);
                 if (profiler is { Running: true }) profiler.EndRender();
+                if (bench != null)
+                {
+                    bench.Frame(Stopwatch.GetElapsedTime(renderBegin).TotalMilliseconds);
+                    if (bench.Done && screenshot == null && !benchClosed)
+                    {
+                        benchClosed = true;
+                        window.Close();
+                    }
+                }
                 if (profiler is { Running: false } && sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter / 2)
                 {
                     profiler.Start();
@@ -290,10 +325,14 @@ namespace Mvk.Desktop
                 if (started && sinceStart == null)
                 {
                     sinceStart = Stopwatch.StartNew();
+                    if (_benchSeconds > 0 && !menu) bench = new BenchRun(_benchSeconds);
                     foreach (string command in commands) app.SendCommand(command);
                     app.ViewCameraNext(view);
                 }
-                if (look != null && (screenshot != null || script != null) && sinceStart != null && !menu) app.Look(look[0], look[1]);
+                if (look != null && (screenshot != null || script != null || bench != null) && sinceStart != null && !menu)
+                {
+                    app.Look(look[0], look[1]);
+                }
                 if (script != null && !scriptAttached && sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter
                     && (phase < 0 || _AtPhase(app.App.Game, phase)))
                 {
@@ -463,6 +502,11 @@ namespace Mvk.Desktop
             }
             return MechanicsScript.EntitiesDigest(list);
         }
+
+        /// <summary>Замер этапа 7 (--bench [секунд]): наибольшая длительность, 0 — замера нет</summary>
+        private static double _benchSeconds;
+        /// <summary>Без вертикальной синхронизации (--novsync), для замера кадров в секунду</summary>
+        private static bool _noVSync;
 
         private static int[] _Size(string value)
         {

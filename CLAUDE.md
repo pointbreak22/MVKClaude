@@ -69,6 +69,7 @@ assets/                   ресурсы из res/Assets (копируются �
   `--mouse original` кнопки мыши в мире как в оригинале (по умолчанию правая ломает, левая ставит);
   `--calm` снимок при ветре около нуля, `--phase N` при фазе ветра N;
   `--script "0:W+;60:W-;80:end" --trace след.csv` сценарий механики по тактам;
+  `--bench --novsync` замер загрузки и кадра (`py tools/Bench/bench.py`), `--mesh-workers N`;
   `--test-scene` тестовая сцена RHI этапа 4)
 - Сервер: `dotnet run --project src/Hosts/Mvk.Server`
 
@@ -122,4 +123,5 @@ OpenGL, `Mvk.Platform` (ввод через `InputActionMap`, звук OpenAL, `
 Этап 6 готов (`docs/parity-checklist.md`). Кадры совпадают с оригиналом (`tools/OrigShot`, `compare.py`; вода и привязки текстур
 исправлены, точки на дальней воде есть и в оригинале), механика игрока побитно и мобы совпадают (`mechanics.py`).
 Баги оригинала из `docs/known-issues.md` исправлены отдельными коммитами `[ПОВЕДЕНИЕ]` (п. 10 оставлен как в оригинале).
-Ассеты в `assets/`. Следующий: этап 7 (оптимизация). Android отложен. См. `docs/progress.md`.
+Ассеты в `assets/`. Этап 7 идёт: 7.1 готов (замеры `--bench`, `ChunkStats`, `JobScheduler`, сетки многопоточно по ключу).
+Следующий: пулы буферов (865 МБ выделений за загрузку). Android отложен. См. `docs/progress.md`.

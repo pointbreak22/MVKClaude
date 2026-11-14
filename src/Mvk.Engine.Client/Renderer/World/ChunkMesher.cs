@@ -1,4 +1,5 @@
 using System;
+using Mvk.Core.Util;
 using Mvk.Engine.World.Block;
 
 namespace Mvk.Engine.Renderer.World
@@ -6,8 +7,7 @@ namespace Mvk.Engine.Renderer.World
     /// <summary>
     /// Построитель сеток чанков: буферы вершин и рендеры блоков.
     /// В оригинале это статические поля Gi (VertexDense, BlockRendFull и другие);
-    /// здесь это объект, поэтому позже можно завести несколько потоков построения сеток.
-    /// Объектом пользуется только поток построения сеток.
+    /// здесь это объект: у каждого потока построения сеток свой (WorldRenderer, этап 7).
     /// </summary>
     public sealed class ChunkMesher : IDisposable
     {
@@ -21,6 +21,8 @@ namespace Mvk.Engine.Renderer.World
         public readonly BlockRenderFull BlockAlphaRendFull;
         /// <summary>Рендер жидкостей</summary>
         public readonly BlockRenderLiquid BlockLiquidAlphaRendFull;
+        /// <summary>Буфер альфа блоков чанка для сортировки по расстоянию (в оригинале статический в ChunkRender)</summary>
+        public readonly ListFast<BlockBufferDistance> AlphaBuffer = new ListFast<BlockBufferDistance>();
 
         public ChunkMesher()
         {

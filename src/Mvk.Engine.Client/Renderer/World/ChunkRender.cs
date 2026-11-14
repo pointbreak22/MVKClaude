@@ -17,10 +17,6 @@ namespace Mvk.Engine.Renderer.World
     /// </summary>
     public class ChunkRender : ChunkClient
     {
-        /// <summary>
-        /// Массив буфера блоков альфы
-        /// </summary>
-        private static readonly ListFast<BlockBufferDistance> _listAlphaBuffer = new ListFast<BlockBufferDistance>();
 
 
         /// <summary>
@@ -66,9 +62,15 @@ namespace Mvk.Engine.Renderer.World
         /// </summary>
         private readonly WorldRenderer _render;
         /// <summary>
-        /// Построитель сеток (буферы вершин и рендеры блоков), в оригинале статические поля Gi
+        /// Построитель сеток (буферы вершин и рендеры блоков), в оригинале статические поля Gi.
+        /// Свой у каждого потока построения сеток, задаётся перед Render и RenderAlpha (SetMesher)
         /// </summary>
-        private readonly ChunkMesher _mesher;
+        private ChunkMesher _mesher;
+
+        /// <summary>
+        /// Задать построитель сеток потока, который будет строить сетку этого чанка
+        /// </summary>
+        public void SetMesher(ChunkMesher mesher) => _mesher = mesher;
 
         public ChunkRender(WorldClient worldClient, WorldRenderer render, int chunkPosX, int chunkPosY) 
             : base(worldClient, chunkPosX, chunkPosY)
@@ -350,7 +352,7 @@ namespace Mvk.Engine.Renderer.World
                 ChunkStorage chunkStorage;
                 Vector3i posPlayer = _worldClient.Game.Player.PositionAlphaBlock;
                 _mesher.VertexAlpha.Clear();
-                _listAlphaBuffer.Clear();
+                _mesher.AlphaBuffer.Clear();
                 _mesher.BlockAlphaRendFull.InitChunk(this);
                 _mesher.BlockLiquidAlphaRendFull.InitChunk(this);
 
@@ -399,7 +401,7 @@ namespace Mvk.Engine.Renderer.World
                                                 _mesher.Of(Gi.Block).Destroy = 0;
                                             }
                                             _mesher.Of(Gi.Block).RenderSide();
-                                            _listAlphaBuffer.Add(new BlockBufferDistance()
+                                            _mesher.AlphaBuffer.Add(new BlockBufferDistance()
                                             {
                                                 BufferFloat = _mesher.VertexAlpha.BufferFloat.ToArray(),
                                                 BufferByte = _mesher.VertexAlpha.BufferByte.ToArray(),
@@ -425,7 +427,7 @@ namespace Mvk.Engine.Renderer.World
                                             {
                                                 _mesher.Of(Gi.Block).Light = chunkStorage.Light[index];
                                                 _mesher.Of(Gi.Block).RenderSide();
-                                                _listAlphaBuffer.Add(new BlockBufferDistance()
+                                                _mesher.AlphaBuffer.Add(new BlockBufferDistance()
                                                 {
                                                     BufferFloat = _mesher.VertexAlpha.BufferFloat.ToArray(),
                                                     BufferByte = _mesher.VertexAlpha.BufferByte.ToArray(),
@@ -458,13 +460,13 @@ namespace Mvk.Engine.Renderer.World
         /// </summary>
         private void _AlphaBlocksSort()
         {
-            int count = _listAlphaBuffer.Count;
+            int count = _mesher.AlphaBuffer.Count;
             if (count > 0)
             {
-                _listAlphaBuffer.Sort();
+                _mesher.AlphaBuffer.Sort();
                 for (int i = count - 1; i >= 0; i--)
                 {
-                    _mesher.VertexAlpha.AddBlockBufferDistance(_listAlphaBuffer[i]);
+                    _mesher.VertexAlpha.AddBlockBufferDistance(_mesher.AlphaBuffer[i]);
                 }
             }
             _meshAlpha.SetBuffer(_mesher.VertexAlpha);

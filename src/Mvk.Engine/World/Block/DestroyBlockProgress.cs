@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
 using Mvk.Core.Maths;
@@ -36,12 +37,21 @@ namespace Mvk.Engine.World.Block
         /// </summary>
         public Vertex3d[] GetVertices(int progress, Vertex3d[] vertices)
         {
-            Vertex3d[] ds = _vertices[progress - 1];
-            ds[0].SetPosition(vertices[0]);
-            ds[1].SetPosition(vertices[1]);
-            ds[2].SetPosition(vertices[2]);
-            ds[3].SetPosition(vertices[3]);
+            Vertex3d[] step = _vertices[progress - 1];
+            // Свой массив у каждого потока построения сеток: вершины шага (текстура) с позициями грани
+            Vertex3d[] ds = _threadVertices ??= new Vertex3d[4];
+            for (int i = 0; i < 4; i++)
+            {
+                ds[i] = step[i];
+                ds[i].SetPosition(vertices[i]);
+            }
             return ds;
         }
+
+        /// <summary>
+        /// Вершины разрушения потока построения сеток (результат GetVertices до следующего вызова в том же потоке)
+        /// </summary>
+        [ThreadStatic]
+        private static Vertex3d[] _threadVertices;
     }
 }

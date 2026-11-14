@@ -173,7 +173,9 @@ namespace Mvk.Engine.World.Chunk
                 {
                     //Stopwatch stopwatch = new Stopwatch();
                     //stopwatch.Start();
+                    long statsBegin = ChunkStats.Begin();
                     chunk.LoadFileChunk();
+                    ChunkStats.End(ChunkStats.Stage.Load, statsBegin);
                     // if (chunk.IsChunkLoaded) world.Log.Log("ChunkLoad[{1}]: {0:0.00} ms", stopwatch.ElapsedTicks / (float)MvkStatic.TimerFrequency, chunk.Position);
                 }
                 catch (Exception ex)
@@ -184,7 +186,9 @@ namespace Mvk.Engine.World.Chunk
                 if (!chunk.IsChunkPresent)
                 {
                     // Начинаем генерацию рельефа
+                    long statsBegin = ChunkStats.Begin();
                     ChunkGenerate.Relief(chunk);
+                    ChunkStats.End(ChunkStats.Stage.Relief, statsBegin);
                 }
                 // Готова начальная генерация или загрузка
                 chunk.ChunkPresent();

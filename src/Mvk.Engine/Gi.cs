@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
 using Mvk.Engine.World.Block;
@@ -150,8 +151,9 @@ public sealed class Gi
 
 
     /// <summary>
-    /// Выбранный объект блока для рендера
+    /// Выбранный объект блока для рендера (у каждого потока построения сеток свой)
     /// </summary>
+    [ThreadStatic]
     public static BlockBase Block;
     /// <summary>
     /// Объект процесса разруцшения блока
