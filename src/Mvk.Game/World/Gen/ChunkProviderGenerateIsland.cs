@@ -279,7 +279,8 @@ namespace Mvk.Game.World.Gen
                 biome.DecorationsArea(chunk, chunkSpawn);
             }
 
-            biome.DecorationsColumnAfter(chunk);
+            // Декор после областей по биому самого чанка (в оригинале шёл биом последнего соседа из цикла)
+            _biomes[chunk.Biome[136]].DecorationsColumnAfter(chunk);
             //biome.Decorator.GenDecorations(World, this, chunk);
             _ExportChunk(chunk);
            // chunk.World.Filer.EndSectionLog(); // 1.5
