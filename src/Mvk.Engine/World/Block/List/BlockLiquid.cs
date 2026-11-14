@@ -390,6 +390,11 @@ namespace Mvk.Engine.World.Block.List
         }
 
         /// <summary>
+        /// Запустить такт жидкости в блоке (жидкость или доп. жидкость в другом блоке)
+        /// </summary>
+        public void ScheduleTick(WorldServer world, BlockPos pos) => _SetTickBlock(world, pos);
+
+        /// <summary>
         /// Задать тик блоку жидкости
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -50,7 +50,7 @@ namespace Mvk.Game.Item.List
         /// Текст в подсказке для GUI
         /// </summary>
         public override string GetToolTip(ItemStack stack)
-            => string.Format(_toolTip, stack.Met * 2, stack.ToStringDamaged());
+            => string.Format(_toolTip, LiquidScale.AmountOfBucket(stack.Met) * 2, stack.ToStringDamaged());
 
         /// <summary>
         /// Создать структура блок да установки
@@ -61,10 +61,8 @@ namespace Mvk.Game.Item.List
             {
                 return new BlockState(Block.IndexBlock);
             }
-            // 0 - Значит максимум
-            // 7 - Минимум
-            int water = stack.Met;
-            return new BlockState(Block.IndexBlock | water << 12);
+            int level = LiquidScale.LevelOfBucket(LiquidScale.AmountOfBucket(stack.Met));
+            return new BlockState(Block.IndexBlock | LiquidScale.MetOfLevel(level) << 12);
         }
 
         /// <summary>
@@ -138,14 +136,12 @@ namespace Mvk.Game.Item.List
 
             if (block.Material.Liquid)
             {
-                water = blockState.Met & 0xF;
-                if (water == 0 || water > 7) water = 7;
+                water = LiquidScale.LevelOfMet(blockState.Met & 0xF);
                 idBlockLiquid = block.IndexBlock;
             }
             else if (block.IsAddLiquid(blockState.Met))
             {
-                water = block.GetAddLiquidMet(blockState.Met);
-                if (water == 0 || water > 7) water = 7;
+                water = LiquidScale.LevelOfMet(block.GetAddLiquidMet(blockState.Met));
                 idBlockLiquid = block.GetAddLiquid(blockState.Met).IndexBlock;
             }
 
@@ -166,13 +162,26 @@ namespace Mvk.Game.Item.List
 
                     if (stack != null) // по сути пустоты не должно быть!
                     {
-                        if (stack.Met < 7)
+                        int have = LiquidScale.AmountOfBucket(stack.Met);
+                        if (have < LiquidScale.BucketFull)
                         {
-                            water += stack.Met;
-                            if (water > 7) water = 7;
-                            stack.SetMet((byte)water);
+                            (int bucket, int rest) = LiquidScale.Scoop(have, water);
+                            stack.SetMet((byte)bucket);
                             player.Inventory.SetCurrentItem(stack);
-                            world.SetLiquidBlockToAir(blockPos);
+                            if (rest == 0)
+                            {
+                                world.SetLiquidBlockToAir(blockPos);
+                            }
+                            else
+                            {
+                                // Остаток жидкости в блоке (или доп. жидкостью в другом блоке), дальше течёт как обычно
+                                world.SetBlockState(blockPos, new BlockState(Block.IndexBlock
+                                    | LiquidScale.MetOfLevel(rest) << 12), BlockFlag.cNotify);
+                                if (world is WorldServer worldServer && Block is BlockLiquid blockLiquid)
+                                {
+                                    blockLiquid.ScheduleTick(worldServer, blockPos);
+                                }
+                            }
                             return true;
                         }
                     }

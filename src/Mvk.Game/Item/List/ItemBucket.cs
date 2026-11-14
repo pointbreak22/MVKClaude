@@ -108,7 +108,9 @@ namespace Mvk.Game.Item.List
                 idBlockLiquid = block.GetAddLiquid(blockState.Met).IndexBlock;
             }
 
-            if (water == 0 || water > 7) water = 7;
+            // Уровень блока в количество ведра: источник — полное ведро, текущая жидкость пропорционально;
+            // в пустое ведро влезает всё, блок жидкости убирается целиком
+            water = LiquidScale.Scoop(0, LiquidScale.LevelOfMet(water)).Bucket;
 
             //  Console.WriteLine((world.IsRemote ? "C" : "S") + " Water " + water);
 
