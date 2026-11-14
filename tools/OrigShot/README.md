@@ -39,5 +39,5 @@ py tools/OrigShot/compare.py shore      одна сцена
 ## Ключи OrigShot
 
 `--screenshot файл.png` (обязателен), `--shot-after сек`, `--slot`, `--seed`, `--cmd "/time n"` (можно несколько),
-`--look yaw,pitch` (градусы, как у Mvk.Desktop), `--calm`, `--size ширина высота` (внешний размер окна).
+`--look yaw,pitch` (градусы, как у Mvk.Desktop), `--calm`, `--phase N` (фаза ветра такта, 0 наибольший), `--size ширина высота` (внешний размер окна).
 Размер клиентской области пишется в `файл.png.size`.

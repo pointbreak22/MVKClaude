@@ -51,7 +51,7 @@ namespace Mvk.Desktop
             List<string> presses = new List<string>();
             bool holdLeft = false;
             bool fx = false;
-            bool calm = false;
+            int phase = -1;
             WorldMouseLayout mouseLayout = DesktopApp.DefaultMouseLayout;
             string? screen = null;
             int[]? size = null;
@@ -74,7 +74,8 @@ namespace Mvk.Desktop
                 else if (args[i] == "--press" && i + 1 < args.Length) presses.Add(args[++i]);
                 else if (args[i] == "--hold-left") holdLeft = true;
                 else if (args[i] == "--fx") fx = true;
-                else if (args[i] == "--calm") calm = true;
+                else if (args[i] == "--calm") phase = 32;
+                else if (args[i] == "--phase" && i + 1 < args.Length) phase = int.Parse(args[++i]) & 0x7F;
                 else if (args[i] == "--mouse" && i + 1 < args.Length)
                     mouseLayout = args[++i] == "original" ? WorldMouseLayout.Original : WorldMouseLayout.Swapped;
                 else if (args[i] == "--screen" && i + 1 < args.Length) screen = args[++i];
@@ -93,7 +94,7 @@ namespace Mvk.Desktop
                 Console.Error.WriteLine("Не найдена папка Assets. Укажите её: --assets <путь>");
                 return 2;
             }
-            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound, presses, holdLeft, fx, mouseLayout, calm);
+            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound, presses, holdLeft, fx, mouseLayout, phase);
 
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -207,7 +208,8 @@ namespace Mvk.Desktop
         /// --screen chat|inventory|creative|storage|pause открывает экран клавишей на половине ожидания.
         /// Снимки идут без звука (быстрее загрузка), --sound включает его. --press F3+G нажимает комбинацию
         /// клавиш (имена Keys оригинала) на половине ожидания, --hold-left зажимает левую кнопку мыши,
-        /// --calm снимает кадр при ветре около нуля (для сравнения с оригиналом, tools/OrigShot).
+        /// --calm снимает кадр при ветре около нуля (для сравнения с оригиналом, tools/OrigShot),
+        /// --phase N в такт с фазой ветра N (0..127, 0 наибольший ветер).
         /// --fx спавнит плоские частицы перед игроком. --mouse original возвращает кнопки мыши в мире как в оригинале
         /// (левая ломает, правая ставит); по умолчанию наоборот.
         /// --cmd отправляет команды чата после входа в мир (и включает отладочную /summon), --look задаёт
@@ -218,7 +220,7 @@ namespace Mvk.Desktop
         private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe,
             List<string> commands, float[]? look, int view, int[]? size, int[]? resize, bool profile,
             bool menu, string? screen, bool sound, List<string> presses, bool holdLeft, bool fx,
-            WorldMouseLayout mouseLayout, bool calm)
+            WorldMouseLayout mouseLayout, int phase)
         {
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude",
                 size?[0] ?? 1280, size?[1] ?? 720);
@@ -333,7 +335,7 @@ namespace Mvk.Desktop
                     }
                 }
                 if (screenshot != null && sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter
-                    && (!calm || _Calm(app.App.Game)))
+                    && (phase < 0 || _AtPhase(app.App.Game, phase)))
                 {
                     // Отчёт до снимка: буфер пикселей и PNG не относятся к кадру игры
                     if (profiler != null) Console.WriteLine(profiler.Report());
@@ -389,11 +391,11 @@ namespace Mvk.Desktop
         }
 
         /// <summary>
-        /// Ветер около нуля (--calm): волна воды не сдвигает вершины, кадры оригинала и порта
-        /// сравнимы в любой момент. Ветер Environment32: cos((такт &amp; 0x7F) * .049) * .16, ноль у фазы 32.
+        /// Такт с фазой ветра phase (--phase, --calm = 32). Ветер Environment32: cos((такт &amp; 0x7F) * .049) * .16,
+        /// у фазы 32 около нуля (волна воды не сдвигает вершины), у 0 наибольший.
         /// </summary>
-        private static bool _Calm(Mvk.Engine.Games.GameBase? game)
-            => game?.World == null || (game.World.GetTickCounter() & 0x7F) == 32;
+        private static bool _AtPhase(Mvk.Engine.Games.GameBase? game, int phase)
+            => game?.World == null || (game.World.GetTickCounter() & 0x7F) == phase;
 
         private static int[] _Size(string value)
         {

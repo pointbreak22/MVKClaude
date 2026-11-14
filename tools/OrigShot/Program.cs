@@ -15,7 +15,7 @@ namespace OrigShot
     /// <summary>
     /// Снимок кадра оригинального клиента для сравнения с портом (этап 6).
     /// Ключи как у Mvk.Desktop: --screenshot файл, --shot-after сек, --slot, --seed, --cmd "/time n",
-    /// --look yaw,pitch (градусы), --calm (снимать при ветре около нуля), --size ширина высота (внешний размер окна до DPI, по умолчанию 1280x720).
+    /// --look yaw,pitch (градусы), --calm (снимать при ветре около нуля), --phase N (фаза ветра такта), --size ширина высота (внешний размер окна до DPI, по умолчанию 1280x720).
     /// В консоль пишется размер клиентской области: с ним запускается порт (--size), чтобы кадры совпали по пикселям.
     /// </summary>
     public static class Program
@@ -34,7 +34,8 @@ namespace OrigShot
                 else if (args[i] == "--slot" && i + 1 < args.Length) shot.Slot = int.Parse(args[++i]);
                 else if (args[i] == "--seed" && i + 1 < args.Length) shot.Seed = long.Parse(args[++i]);
                 else if (args[i] == "--cmd" && i + 1 < args.Length) shot.Commands.Add(args[++i]);
-                else if (args[i] == "--calm") shot.Calm = true;
+                else if (args[i] == "--calm") shot.Phase = 32;
+                else if (args[i] == "--phase" && i + 1 < args.Length) shot.Phase = int.Parse(args[++i]) & 0x7F;
                 else if (args[i] == "--look" && i + 1 < args.Length)
                 {
                     string[] parts = args[++i].Split(',');
@@ -69,8 +70,8 @@ namespace OrigShot
         public readonly List<string> Commands = new List<string>();
         public float[] Look;
         public bool Saved;
-        /// <summary>Снимать при ветре около нуля, как --calm у Mvk.Desktop</summary>
-        public bool Calm;
+        /// <summary>Фаза ветра такта снимка (--calm = 32, ветер около нуля) или -1, как у Mvk.Desktop</summary>
+        public int Phase = -1;
 
         private Stopwatch _sinceStart;
         private bool _runRequested;
@@ -142,7 +143,7 @@ namespace OrigShot
             }
             base.OnOpenGlDraw();
             if (_sinceStart != null && !Saved && _sinceStart.Elapsed.TotalSeconds >= ShotAfter
-                && (!Calm || (Game.World.GetTickCounter() & 0x7F) == 32))
+                && (Phase < 0 || (Game.World.GetTickCounter() & 0x7F) == Phase))
             {
                 int w = Gi.Width;
                 int h = Gi.Height;

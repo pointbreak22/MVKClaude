@@ -28,13 +28,18 @@ ORIG = os.path.join(ROOT, "tools", "OrigShot", "bin", "Release", "net10.0", "Ori
 PORT = os.path.join(ROOT, "logs", "portbin", "Mvk2.exe")
 OUT = os.path.join(ROOT, "logs", "shots")
 
-# Сцена: имя, взгляд (градусы), команды чата
+# Сцена: имя, взгляд (градусы), команды чата, [ключи момента снимка, по умолчанию --calm]
 SCENES = [
     ("shore", "30,-20", ["/weather c"]),
     ("down", "120,-60", ["/weather c"]),
     ("far", "200,0", ["/weather c"]),
     ("night", "30,-10", ["/weather c", "/time n"]),
     ("evening", "270,5", ["/weather c", "/time 11500"]),
+    # Наибольший ветер: волна воды (known-issues п. 10)
+    ("shore-wind", "30,-20", ["/weather c"], ["--phase", "0"]),
+    ("down-wind", "120,-60", ["/weather c"], ["--phase", "0"]),
+    # Вид снимка stage5-hand: тёмная изогнутая полоса у берега была текстурой облаков на воде
+    ("spawn-wind", "0,0", ["/weather c"], ["--phase", "0"]),
 ]
 
 
@@ -43,19 +48,19 @@ def _run(exe, args, cwd, log):
         subprocess.run([exe] + args, cwd=cwd, stdout=f, stderr=subprocess.STDOUT, timeout=180)
 
 
-def shoot(name, look, commands, shot_after="12"):
+def shoot(name, look, commands, moment=("--calm",), shot_after="12"):
     os.makedirs(OUT, exist_ok=True)
     orig_png = os.path.join(OUT, name + "-orig.png")
     port_png = os.path.join(OUT, name + "-port.png")
     cmd_args = []
     for c in commands:
         cmd_args += ["--cmd", c]
-    _run(ORIG, ["--screenshot", orig_png, "--shot-after", shot_after, "--calm", "--look", look] + cmd_args,
+    _run(ORIG, ["--screenshot", orig_png, "--shot-after", shot_after, *moment, "--look", look] + cmd_args,
          os.path.dirname(ORIG), os.path.join(OUT, name + "-orig.txt"))
     w, h = open(orig_png + ".size").read().split()
     # Мир порта тоже с нуля: слот 0 лежит в Games/1 рядом с рабочей папкой
     shutil.rmtree(os.path.join(ROOT, "Games", "1"), ignore_errors=True)
-    _run(PORT, ["--screenshot", port_png, "--shot-after", shot_after, "--calm", "--look", look, "--size", f"{w}x{h}"] + cmd_args,
+    _run(PORT, ["--screenshot", port_png, "--shot-after", shot_after, *moment, "--look", look, "--size", f"{w}x{h}"] + cmd_args,
          ROOT, os.path.join(OUT, name + "-port.txt"))
     return orig_png, port_png
 
@@ -82,10 +87,12 @@ def compare(name, orig_png, port_png):
 
 def main():
     names = sys.argv[1:]
-    for name, look, commands in SCENES:
+    for scene in SCENES:
+        name, look, commands = scene[:3]
         if names and name not in names:
             continue
-        orig_png, port_png = shoot(name, look, commands)
+        moment = tuple(scene[3]) if len(scene) > 3 else ("--calm",)
+        orig_png, port_png = shoot(name, look, commands, moment)
         compare(name, orig_png, port_png)
 
 
