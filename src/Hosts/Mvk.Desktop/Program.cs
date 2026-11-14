@@ -82,6 +82,8 @@ namespace Mvk.Desktop
                 else if (args[i] == "--bench")
                 {
                     _benchSeconds = 60;
+                    // Свёртка сеток всех чанков с самого начала игры (проверка оптимизаций сеток)
+                    Mvk.Engine.Renderer.World.MeshDigest.Enabled = true;
                     if (i + 1 < args.Length && double.TryParse(args[i + 1], System.Globalization.NumberStyles.Float,
                         System.Globalization.CultureInfo.InvariantCulture, out double seconds))
                     {
@@ -325,7 +327,11 @@ namespace Mvk.Desktop
                 if (started && sinceStart == null)
                 {
                     sinceStart = Stopwatch.StartNew();
-                    if (_benchSeconds > 0 && !menu) bench = new BenchRun(_benchSeconds);
+                    if (_benchSeconds > 0 && !menu)
+                    {
+                        DesktopApp benchApp = app;
+                        bench = new BenchRun(_benchSeconds, () => benchApp.App.Game?.Player.RerenderAllChunks());
+                    }
                     foreach (string command in commands) app.SendCommand(command);
                     app.ViewCameraNext(view);
                 }

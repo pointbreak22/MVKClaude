@@ -312,6 +312,7 @@ namespace Mvk.Engine.Renderer.World
                 }
             }
             _meshDense.SetBuffer(_mesher.VertexDense);
+            if (MeshDigest.Enabled) MeshDigest.Add(CurrentChunkX, CurrentChunkY, false, _mesher.VertexDense);
 
             // Для отладочной статистики
             float time = (_worldClient.Game.ElapsedTicks() - timeBegin) / (float)Ticker.TimerFrequency;
@@ -323,6 +324,7 @@ namespace Mvk.Engine.Renderer.World
             {
                 // Надо принудительно перезаписать, так-как в прошлый раз могли быть альфа блоки
                 _meshAlpha.SetBufferClear();
+                if (MeshDigest.Enabled) MeshDigest.AddEmpty(CurrentChunkX, CurrentChunkY, true);
             }
             else
             {
@@ -435,6 +437,7 @@ namespace Mvk.Engine.Renderer.World
             {
                 // Надо принудительно перезаписать, так-как в прошлый раз могли быть альфа блоки
                 _meshAlpha.SetBufferClear();
+                if (MeshDigest.Enabled) MeshDigest.AddEmpty(CurrentChunkX, CurrentChunkY, true);
             }
         }
 
@@ -453,6 +456,7 @@ namespace Mvk.Engine.Renderer.World
                 }
             }
             _meshAlpha.SetBuffer(_mesher.VertexAlpha);
+            if (MeshDigest.Enabled) MeshDigest.Add(CurrentChunkX, CurrentChunkY, true, _mesher.VertexAlpha);
         }
 
         /// <summary>

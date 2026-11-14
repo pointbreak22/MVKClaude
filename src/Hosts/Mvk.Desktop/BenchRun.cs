@@ -10,6 +10,7 @@ namespace Mvk.Desktop
     /// 1) Загрузка: от входа в мир до момента, когда сетки чанков перестали строиться 3 секунды подряд;
     ///    каждую секунду в журнал число чанков по этапам (ChunkStats) и кадров.
     /// 2) Кадр: 5 секунд на готовом мире, среднее время кадра в потоке окна и число кадров в секунду.
+    /// 3) Перестройка всех сеток на готовом мире и свёртка вершин (MeshDigest): одинакова, если сетки совпали.
     /// В конце отчёт ChunkStats (время рельефа, декора, света, сеток на чанк).
     /// </summary>
     internal sealed class BenchRun
@@ -33,14 +34,21 @@ namespace Mvk.Desktop
         private readonly int _gen2Start = GC.CollectionCount(2);
         private long _allocLoad;
         private int _gen0Load, _gen1Load, _gen2Load;
+        private readonly Action _rerenderAll;
+        /// <summary>Идёт фаза перестройки всех сеток (свёртка сеток на готовом мире)</summary>
+        private bool _remeshing;
+        private double _remeshStart;
+        private long _remeshMeshStart;
 
         /// <summary>Замер закончен, отчёт напечатан</summary>
         public bool Done { get; private set; }
 
         /// <param name="limitSeconds">Наибольшая длительность замера</param>
-        public BenchRun(double limitSeconds)
+        /// <param name="rerenderAll">Пометить все чанки вокруг игрока к перестройке сеток</param>
+        public BenchRun(double limitSeconds, Action rerenderAll)
         {
             _limitSeconds = limitSeconds;
+            _rerenderAll = rerenderAll;
             ChunkStats.Reset();
             Console.WriteLine("Замер: вход в мир");
         }
@@ -88,6 +96,19 @@ namespace Mvk.Desktop
                 return;
             }
 
+            if (_remeshing)
+            {
+                // 3) Все сетки перестроены на готовом мире: свёртка одинакова, если сетки совпали байт в байт
+                if (mesh > _remeshMeshStart && t - _meshChanged >= _StableSeconds || t - _remeshStart >= _limitSeconds)
+                {
+                    Console.WriteLine(string.Format(CultureInfo.InvariantCulture,
+                        "Перестройка всех сеток: {0} сеток за {1:F2} с", mesh - _remeshMeshStart, _meshChanged - _remeshStart));
+                    Console.WriteLine("Свёртка сеток: " + Mvk.Engine.Renderer.World.MeshDigest.Report());
+                    Done = true;
+                }
+                return;
+            }
+
             _frames++;
             _frameMs += frameMs;
             if (t - _frameStart >= _FrameSeconds)
@@ -99,7 +120,13 @@ namespace Mvk.Desktop
                     "Память при загрузке: выделено {0:F1} МБ, сборок Gen0 {1}, Gen1 {2}, Gen2 {3}",
                     _allocLoad / 1048576.0, _gen0Load, _gen1Load, _gen2Load));
                 Console.WriteLine("Этапы: " + ChunkStats.Report());
-                Done = true;
+                // Перестроить все сетки на готовом мире (свет и соседи уже на месте) и посчитать свёртку
+                Mvk.Engine.Renderer.World.MeshDigest.Clear();
+                _remeshing = true;
+                _remeshStart = t;
+                _remeshMeshStart = mesh;
+                _meshChanged = t;
+                _rerenderAll();
             }
         }
     }

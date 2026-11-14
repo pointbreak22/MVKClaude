@@ -47,6 +47,12 @@ def run_once(path, fresh=True):
         r["gen0"] = int(m.group(2))
         r["gen1"] = int(m.group(3))
         r["gen2"] = int(m.group(4))
+    m = re.search(r"Перестройка всех сеток: (\d+) сеток за ([\d.]+) с", text)
+    if m:
+        r["remesh_n"] = int(m.group(1))
+        r["remesh_s"] = float(m.group(2))
+    m = re.search(r"Свёртка сеток: (\S+)", text)
+    if m: r["mesh_digest"] = m.group(1)
     for stage in ["Relief", "Decoration", "HeightMap", "SideLight", "Mesh", "MeshAlpha", "Pack", "Unpack"]:
         m = re.search(stage + r": (\d+) шт, (\d+) мс, ([\d.]+) мс/шт, ([\d.]+) КБ/шт", text)
         if m:
@@ -70,6 +76,9 @@ def main():
     lines = [f"== {label}: {runs} запусков, медиана"]
     for k in keys:
         values = [r[k] for r in results if k in r]
+        if isinstance(values[0], str):
+            lines.append(f"  {k}: {', '.join(values)}")
+            continue
         lines.append(f"  {k}: {statistics.median(values):g}  (все: {', '.join(f'{v:g}' for v in values)})")
     text = "\n".join(lines)
     print(text)
