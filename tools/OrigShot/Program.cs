@@ -27,6 +27,7 @@ namespace OrigShot
             string startDir = Environment.CurrentDirectory;
             Directory.SetCurrentDirectory(AppContext.BaseDirectory);
             var shot = new WindowShot();
+            string script = null, trace = null;
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i] == "--screenshot" && i + 1 < args.Length) shot.Screenshot = Path.GetFullPath(args[++i], startDir);
@@ -35,6 +36,8 @@ namespace OrigShot
                 else if (args[i] == "--seed" && i + 1 < args.Length) shot.Seed = long.Parse(args[++i]);
                 else if (args[i] == "--cmd" && i + 1 < args.Length) shot.Commands.Add(args[++i]);
                 else if (args[i] == "--calm") shot.Phase = 32;
+                else if (args[i] == "--script" && i + 1 < args.Length) script = args[++i];
+                else if (args[i] == "--trace" && i + 1 < args.Length) trace = Path.GetFullPath(args[++i], startDir);
                 else if (args[i] == "--phase" && i + 1 < args.Length) shot.Phase = int.Parse(args[++i]) & 0x7F;
                 else if (args[i] == "--look" && i + 1 < args.Length)
                 {
@@ -45,16 +48,19 @@ namespace OrigShot
                 }
                 else if (args[i] == "--size" && i + 2 < args.Length) shot.SetSize(int.Parse(args[++i]), int.Parse(args[++i]));
             }
-            if (shot.Screenshot == null)
+            if (script != null) shot.Script = new Mvk.Desktop.MechanicsScript(script, trace ?? Path.Combine(startDir, "trace.csv"));
+            if (shot.Screenshot == null && shot.Script == null)
             {
-                Console.Error.WriteLine("Нужен --screenshot файл.png");
+                Console.Error.WriteLine("Нужен --screenshot файл.png или --script");
                 return 2;
             }
             // Мир с нуля: старый слот удаляем, иначе игрок окажется там, где его сохранили
             string slotPath = Path.Combine(AppContext.BaseDirectory, "Games");
             if (Directory.Exists(slotPath)) Directory.Delete(slotPath, true);
             Window.Run(shot);
-            return shot.Saved ? 0 : 1;
+            // Потоки оригинала (звук) могут пережить окно: процесс завершаем явно
+            Environment.Exit(shot.Saved ? 0 : 1);
+            return 0;
         }
     }
 
@@ -72,6 +78,9 @@ namespace OrigShot
         public bool Saved;
         /// <summary>Фаза ветра такта снимка (--calm = 32, ветер около нуля) или -1, как у Mvk.Desktop</summary>
         public int Phase = -1;
+        /// <summary>Сценарий механики (--script, --trace), как у Mvk.Desktop</summary>
+        public Mvk.Desktop.MechanicsScript Script;
+        private bool _scriptRunning;
 
         private Stopwatch _sinceStart;
         private bool _runRequested;
@@ -97,6 +106,21 @@ namespace OrigShot
         [DllImport("opengl32.dll")]
         private static extern void glReadPixels(int x, int y, int width, int height, uint format, uint type, byte[] pixels);
 
+        /// <summary>Сущности мира клиента для следа механики</summary>
+        private static string _Entities(Vge.World.WorldClient world)
+        {
+            var list = new List<(int, float, float, float)>();
+            for (int i = 0; i < world.LoadedEntityList.Count; i++)
+            {
+                var e = world.LoadedEntityList.GetAt(i);
+                list.Add((e.Id, e.PosX, e.PosY, e.PosZ));
+            }
+            return Mvk.Desktop.MechanicsScript.EntitiesDigest(list);
+        }
+
+        /// <summary>Мод сервера с отладочной командой /summon, как у Mvk.Desktop</summary>
+        public override Vge.Games.GameModServer CreateGameModServer() => new GameModServerShot();
+
         public void SetSize(int width, int height)
         {
             _width = width;
@@ -109,9 +133,49 @@ namespace OrigShot
             Console.WriteLine($"OnResized {width}x{height}");
         }
 
+        /// <summary>
+        /// Сценарий механики идёт как в окне с фокусом: окно снимков запускается в фоне, а оригинал
+        /// при потере фокуса выключает вид от первого лица и отпускает действия руки
+        /// </summary>
+        protected override void OnActivate(bool active)
+        {
+            if (Script != null) return;
+            base.OnActivate(active);
+        }
+
         protected override void OnTick()
         {
+            if (_scriptRunning && !Script.Finished && Game != null)
+            {
+                Script.BeforeTick((name, down) =>
+                {
+                    if (name.StartsWith('/'))
+                    {
+                        Game.TrancivePacket(new PacketC14Message(name, Game.Player.MovingObject));
+                        return;
+                    }
+                    if (name.StartsWith("Mouse"))
+                    {
+                        var button = name == "MouseLeft" ? WinGL.Actions.MouseButton.Left : WinGL.Actions.MouseButton.Right;
+                        if (down) OnMouseDown(button, Gi.Width / 2, Gi.Height / 2);
+                        else OnMouseUp(button, Gi.Width / 2, Gi.Height / 2);
+                        return;
+                    }
+                    var key = Enum.Parse<WinGL.Actions.Keys>(name);
+                    if (down) OnKeyDown(key);
+                    else OnKeyUp(key);
+                });
+            }
             base.OnTick();
+            if (_scriptRunning && !Script.Finished && Game != null)
+            {
+                var pl = Game.Player;
+                var mo = pl.MovingObject;
+                Script.AfterTick(pl.PosX, pl.PosY, pl.PosZ,
+                    pl.Physics.MotionX, pl.Physics.MotionY, pl.Physics.MotionZ, pl.OnGround,
+                    mo.IsBlock() ? $"{mo.BlockPosition.X},{mo.BlockPosition.Y},{mo.BlockPosition.Z}:{mo.Block.Id}" : "-",
+                    _Entities(Game.World));
+            }
             // Как кнопки «Одиночная» и «Играть»: новый мир в слоте с заданным зерном
             if (Ready && Game == null && !_runRequested)
             {
@@ -135,6 +199,11 @@ namespace OrigShot
                     Game.TrancivePacket(new PacketC14Message(command, Game.Player.MovingObject));
                 }
             }
+            if (Script != null && !_scriptRunning && _sinceStart != null && _sinceStart.Elapsed.TotalSeconds >= ShotAfter
+                && (Phase < 0 || (Game.World.GetTickCounter() & 0x7F) == Phase))
+            {
+                _scriptRunning = true;
+            }
             if (Look != null && _sinceStart != null && Game != null)
             {
                 var p = Game.Player;
@@ -142,8 +211,15 @@ namespace OrigShot
                 p.RotationPitch = p.RotationPrevPitch = p.RotationFramePitch = Look[1];
             }
             base.OnOpenGlDraw();
-            if (_sinceStart != null && !Saved && _sinceStart.Elapsed.TotalSeconds >= ShotAfter
-                && (Phase < 0 || (Game.World.GetTickCounter() & 0x7F) == Phase))
+            if (Script != null && Script.Finished && Screenshot == null && !Saved)
+            {
+                Console.WriteLine("Сценарий механики закончен");
+                Saved = true;
+                Exit();
+                return;
+            }
+            if (Screenshot != null && _sinceStart != null && !Saved && (Script != null ? Script.Finished
+                : _sinceStart.Elapsed.TotalSeconds >= ShotAfter && (Phase < 0 || (Game.World.GetTickCounter() & 0x7F) == Phase)))
             {
                 int w = Gi.Width;
                 int h = Gi.Height;

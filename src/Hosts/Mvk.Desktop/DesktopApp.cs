@@ -42,6 +42,11 @@ namespace Mvk.Desktop
         /// Вернуть как в оригинале: WorldMouseLayout.Original (или ключ --mouse original).
         /// </summary>
         public const WorldMouseLayout DefaultMouseLayout = WorldMouseLayout.Swapped;
+        /// <summary>
+        /// Не сообщать игре о потере фокуса (сценарий механики --script идёт в фоновом окне, а игра
+        /// при потере фокуса выключает вид от первого лица и отпускает действия руки)
+        /// </summary>
+        public bool IgnoreFocusLoss;
         /// <summary>Действия мыши в мире (ломать, ставить)</summary>
         public readonly WorldMouseActions WorldMouse;
         private readonly InputActionMap _actions = new InputActionMap();
@@ -54,7 +59,7 @@ namespace Mvk.Desktop
             _window = window;
             WorldMouse = new WorldMouseActions(_actions, mouseLayout);
             Audio = sound ? new DesktopAudio() : null;
-            App = debugCommands ? new WindowMvkDebug(this, device) : new WindowMvk(this, device);
+            App = new WindowMvkDesktop(this, device, debugCommands);
             _input = window.CreateInput();
             foreach (IKeyboard k in _input.Keyboards)
             {
@@ -69,7 +74,11 @@ namespace Mvk.Desktop
                 m.MouseMove += (_, p) => _MouseMove(p);
                 m.Scroll += (_, w) => App.OnMouseWheel(Math.Sign(w.Y), (int)_mouse.X, (int)_mouse.Y);
             }
-            window.FocusChanged += focused => App.OnActivate(focused);
+            window.FocusChanged += focused =>
+            {
+                if (!focused && IgnoreFocusLoss) return;
+                App.OnActivate(focused);
+            };
             App.OnResized(window.FramebufferSize.X, window.FramebufferSize.Y);
             App.Begin();
         }
@@ -299,12 +308,28 @@ namespace Mvk.Desktop
     }
 
     /// <summary>
-    /// Окно Малювек с отладочными командами сервера (/summon), только для снимков и замеров (--cmd)
+    /// Окно Малювек хоста ПК: отладочные команды сервера (/summon, только для снимков и замеров с --cmd)
+    /// и обработчики до и после такта (сценарий механики --script)
     /// </summary>
-    internal sealed class WindowMvkDebug : WindowMvk
+    internal sealed class WindowMvkDesktop : WindowMvk
     {
-        public WindowMvkDebug(IWindowHost host, IGraphicsDevice device) : base(host, device) { }
+        /// <summary>Перед тактом клиента</summary>
+        public Action? BeforeTick;
+        /// <summary>После такта клиента</summary>
+        public Action? AfterTick;
+        private readonly bool _debugCommands;
 
-        public override GameModServer CreateGameModServer() => new GameModServerDebug();
+        public WindowMvkDesktop(IWindowHost host, IGraphicsDevice device, bool debugCommands) : base(host, device)
+            => _debugCommands = debugCommands;
+
+        public override GameModServer CreateGameModServer()
+            => _debugCommands ? new GameModServerDebug() : base.CreateGameModServer();
+
+        protected override void OnTick()
+        {
+            BeforeTick?.Invoke();
+            base.OnTick();
+            AfterTick?.Invoke();
+        }
     }
 }

@@ -13,6 +13,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\src\Mvk.Core\Util\PngWriter.cs" Link="PngWriter.cs" />
+    <Compile Include="..\..\src\Hosts\Mvk.Desktop\MechanicsScript.cs" Link="MechanicsScript.cs" />
     <None Include="..\..\original\res\Assets\**\*" LinkBase="Assets" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>

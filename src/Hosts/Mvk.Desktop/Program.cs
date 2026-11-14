@@ -52,6 +52,8 @@ namespace Mvk.Desktop
             bool holdLeft = false;
             bool fx = false;
             int phase = -1;
+            string? script = null;
+            string? trace = null;
             WorldMouseLayout mouseLayout = DesktopApp.DefaultMouseLayout;
             string? screen = null;
             int[]? size = null;
@@ -75,6 +77,8 @@ namespace Mvk.Desktop
                 else if (args[i] == "--hold-left") holdLeft = true;
                 else if (args[i] == "--fx") fx = true;
                 else if (args[i] == "--calm") phase = 32;
+                else if (args[i] == "--script" && i + 1 < args.Length) script = args[++i];
+                else if (args[i] == "--trace" && i + 1 < args.Length) trace = Path.GetFullPath(args[++i]);
                 else if (args[i] == "--phase" && i + 1 < args.Length) phase = int.Parse(args[++i]) & 0x7F;
                 else if (args[i] == "--mouse" && i + 1 < args.Length)
                     mouseLayout = args[++i] == "original" ? WorldMouseLayout.Original : WorldMouseLayout.Swapped;
@@ -94,7 +98,8 @@ namespace Mvk.Desktop
                 Console.Error.WriteLine("Не найдена папка Assets. Укажите её: --assets <путь>");
                 return 2;
             }
-            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound, presses, holdLeft, fx, mouseLayout, phase);
+            if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound, presses, holdLeft, fx, mouseLayout, phase,
+                script != null ? new MechanicsScript(script, trace ?? Path.GetFullPath("trace.csv")) : null);
 
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
@@ -210,6 +215,8 @@ namespace Mvk.Desktop
         /// клавиш (имена Keys оригинала) на половине ожидания, --hold-left зажимает левую кнопку мыши,
         /// --calm снимает кадр при ветре около нуля (для сравнения с оригиналом, tools/OrigShot),
         /// --phase N в такт с фазой ветра N (0..127, 0 наибольший ветер).
+        /// --script "0:W+;10:Space+;12:Space-;60:W-;80:end" через shot-after секунд жмёт клавиши по тактам,
+        /// --trace файл пишет след игрока на каждом такте (позиция, скорость, на земле), в конце выход или снимок.
         /// --fx спавнит плоские частицы перед игроком. --mouse original возвращает кнопки мыши в мире как в оригинале
         /// (левая ломает, правая ставит); по умолчанию наоборот.
         /// --cmd отправляет команды чата после входа в мир (и включает отладочную /summon), --look задаёт
@@ -220,7 +227,7 @@ namespace Mvk.Desktop
         private static int RunGame(string assets, string? screenshot, double shotAfter, int slot, long seed, bool wireframe,
             List<string> commands, float[]? look, int view, int[]? size, int[]? resize, bool profile,
             bool menu, string? screen, bool sound, List<string> presses, bool holdLeft, bool fx,
-            WorldMouseLayout mouseLayout, int phase)
+            WorldMouseLayout mouseLayout, int phase, MechanicsScript? script)
         {
             using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude",
                 size?[0] ?? 1280, size?[1] ?? 720);
@@ -229,6 +236,8 @@ namespace Mvk.Desktop
             Stopwatch? sinceStart = null;
             FrameProfiler? profiler = profile ? new FrameProfiler() : null;
             bool screenOpened = false;
+            bool scriptAttached = false;
+            bool scriptClosed = false;
             int result = 0;
 
             window.Load += () =>
@@ -241,7 +250,10 @@ namespace Mvk.Desktop
                 Console.WriteLine("Буфер глубины: " + depthBits + " бит");
                 Mvk.Engine.Debug.IsDrawVoxelLine = wireframe;
                 MvkClient.SetAssets(assets);
-                app = new DesktopApp(window, device, commands.Count > 0, screenshot == null || sound, mouseLayout);
+                app = new DesktopApp(window, device, commands.Count > 0 || script != null, screenshot == null || sound, mouseLayout)
+                {
+                    IgnoreFocusLoss = script != null
+                };
             };
 
             window.FramebufferResize += fb => app?.App.OnResized(fb.X, fb.Y);
@@ -254,7 +266,7 @@ namespace Mvk.Desktop
                 if (profiler is { Running: true }) profiler.EndUpdate();
                 if (app.Error != null) result = 1;
                 // Снимок без человека: после загрузки сразу одиночная игра (как кнопки «Одиночная» и «Играть»)
-                if (screenshot != null && !menu && app.App.Ready && app.App.Game == null && sinceStart == null)
+                if ((screenshot != null || script != null) && !menu && app.App.Ready && app.App.Game == null && sinceStart == null)
                 {
                     app.App.GameLocalRun(new GameSettings(slot, seed));
                 }
@@ -281,7 +293,50 @@ namespace Mvk.Desktop
                     foreach (string command in commands) app.SendCommand(command);
                     app.ViewCameraNext(view);
                 }
-                if (look != null && screenshot != null && sinceStart != null && !menu) app.Look(look[0], look[1]);
+                if (look != null && (screenshot != null || script != null) && sinceStart != null && !menu) app.Look(look[0], look[1]);
+                if (script != null && !scriptAttached && sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter
+                    && (phase < 0 || _AtPhase(app.App.Game, phase)))
+                {
+                    // Сценарий механики: клавиши по тактам и след игрока, как tools/OrigShot у оригинала
+                    scriptAttached = true;
+                    var desktop = (WindowMvkDesktop)app.App;
+                    desktop.BeforeTick = () => script.BeforeTick((name, down) =>
+                    {
+                        if (name.StartsWith('/'))
+                        {
+                            app.SendCommand(name);
+                            return;
+                        }
+                        if (name.StartsWith("Mouse"))
+                        {
+                            // Кнопки игры оригинала, мимо раскладки мыши хоста
+                            var button = name == "MouseLeft" ? Mvk.Engine.Actions.MouseButton.Left : Mvk.Engine.Actions.MouseButton.Right;
+                            if (down) app.App.OnMouseDown(button, Gi.Width / 2, Gi.Height / 2);
+                            else app.App.OnMouseUp(button, Gi.Width / 2, Gi.Height / 2);
+                            return;
+                        }
+                        var key = Enum.Parse<Mvk.Engine.Actions.Keys>(name);
+                        if (down) app.App.OnKeyDown(key);
+                        else app.App.OnKeyUp(key);
+                    });
+                    desktop.AfterTick = () =>
+                    {
+                        // После конца сценария игра останавливается при закрытии окна
+                        if (script.Finished || app.App.Game == null) return;
+                        var pl = app.App.Game.Player;
+                        var mo = pl.MovingObject;
+                        script.AfterTick(pl.PosX, pl.PosY, pl.PosZ,
+                            pl.Physics.MotionX, pl.Physics.MotionY, pl.Physics.MotionZ, pl.OnGround,
+                            mo.IsBlock() ? $"{mo.BlockPosition.X},{mo.BlockPosition.Y},{mo.BlockPosition.Z}:{mo.Block.Id}" : "-",
+                            _Entities(app.App.Game.World));
+                    };
+                }
+                if (script != null && script.Finished && screenshot == null && !scriptClosed)
+                {
+                    scriptClosed = true;
+                    Console.WriteLine("Сценарий механики закончен");
+                    window.Close();
+                }
                 if (sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter / 2)
                 {
                     if (resize != null)
@@ -334,8 +389,8 @@ namespace Mvk.Desktop
                         app.App.OnKeyUp(key);
                     }
                 }
-                if (screenshot != null && sinceStart != null && sinceStart.Elapsed.TotalSeconds >= shotAfter
-                    && (phase < 0 || _AtPhase(app.App.Game, phase)))
+                if (screenshot != null && sinceStart != null && (script != null ? script.Finished
+                    : sinceStart.Elapsed.TotalSeconds >= shotAfter && (phase < 0 || _AtPhase(app.App.Game, phase))))
                 {
                     // Отчёт до снимка: буфер пикселей и PNG не относятся к кадру игры
                     if (profiler != null) Console.WriteLine(profiler.Report());
@@ -396,6 +451,18 @@ namespace Mvk.Desktop
         /// </summary>
         private static bool _AtPhase(Mvk.Engine.Games.GameBase? game, int phase)
             => game?.World == null || (game.World.GetTickCounter() & 0x7F) == phase;
+
+        /// <summary>Сущности мира клиента для следа механики (без игрока-владельца)</summary>
+        private static string _Entities(Mvk.Engine.World.WorldClient world)
+        {
+            var list = new List<(int, float, float, float)>();
+            for (int i = 0; i < world.LoadedEntityList.Count; i++)
+            {
+                var e = world.LoadedEntityList.GetAt(i);
+                list.Add((e.Id, e.PosX, e.PosY, e.PosZ));
+            }
+            return MechanicsScript.EntitiesDigest(list);
+        }
 
         private static int[] _Size(string value)
         {
