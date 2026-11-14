@@ -81,3 +81,16 @@ ClothBackpack:Рюкзак
 ClothPants:Штаны
 ClothBelt:Пояс
 ClothShoes:Обувь
+
+# [ПОВЕДЕНИЕ] Строки, которых не было в оригинале (на экране был ключ)
+CreateBlocks:Создание блоков
+CreateBlocksEntity:Создание блоков-сущностей
+CreateItems:Создание предметов
+CreateModelsEntities:Создание моделей сущностей
+ItemsForBlock:Предметы для блоков
+Liter:Литров
+Time:Время
+Token:Токен
+Fps:Кадров в секунду
+VSync:Вертикальная синхронизация
+AmbientOcclusion:Мягкое затенение

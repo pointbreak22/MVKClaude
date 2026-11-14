@@ -2,3 +2,34 @@
 
 CommandsTimeDay:Команда установить время на день
 CommandsTimeNight:Команда установить время на ночь
+# [ПОВЕДЕНИЕ] Строки, которых не было в оригинале (команды и вход игроков писали в чат ключи)
+CommandsAddTime:Время сдвинуто на
+CommandsGenericNotFound:Команда не найдена
+CommandsTimeNotPlayer:Команду времени может выполнить только игрок
+CommandsTimeNotParmas:Не указано время
+CommandsTimeNotDayWorld:В этом мире нет смены дня и ночи
+CommandsTimeErrorParmas:Неверный параметр времени
+CommandsWeatherNotPlayer:Команду погоды может выполнить только игрок
+CommandsWeatherNotParmas:Не указана погода
+CommandsWeatherErrorParmas:Неверный параметр погоды
+CommandsWeatherClear:Погода: ясно
+CommandsWeatherMostlyCloudy:Погода: облачно
+CommandsWeatherOvercast:Погода: пасмурно
+CommandsWeatherShowers:Погода: ливень
+CommandsWeatherRain:Погода: дождь
+CommandsWeatherThunder:Погода: гроза
+CommandsTpNotPlayer:Команду телепорта может выполнить только игрок
+CommandsTpErrorParmas:Неверные параметры телепорта
+CommandsTp:Телепорт в
+CommandsTpPlayer:Телепорт к игроку
+WorldTp:Перемещение в мир
+WorldTpNone:Такого мира нет
+CommandsGamemodeNotPlayer:Команду режима игры может выполнить только игрок
+CommandsGamemodeNotParams:Не указан режим игры
+CommandsGamemodeErrorParmas:Неверный режим игры
+CommandsGamemodeSurvival:Режим выживания
+CommandsGamemodeCreative:Творческий режим
+CommandsGamemodeSpectator:Режим наблюдателя
+CommandsRegenNotPlayer:Команду перегенерации может выполнить только игрок
+PlayerEntry{0}:Игрок {0} вошёл в игру
+PlayerRemove{0}{1}:Игрок {0} вышел из игры: {1}
