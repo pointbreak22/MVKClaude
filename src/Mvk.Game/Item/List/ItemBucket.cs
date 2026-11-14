@@ -94,6 +94,9 @@ namespace Mvk.Game.Item.List
             int water;
             int idBlockLiquid;
 
+            // Черпать можно только жидкость или блок с доп. жидкостью (координата могла прийти из пакета)
+            if (!block.Material.Liquid && !block.IsAddLiquid(blockState.Met)) return false;
+
             if (block.Material.Liquid)
             {
                 water = blockState.Met & 0xF;
