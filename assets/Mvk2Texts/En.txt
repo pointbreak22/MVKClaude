@@ -1,0 +1,93 @@
+# [ПОВЕДЕНИЕ] Английский перевод: в оригинале файл был пуст (на экране были ключи)
+
+Chat:Chat
+Inventory:Inventory
+Creative:Creative
+Hole:Hole
+All:All
+Blocks:Blocks
+Craft:Crafting
+Tools:Tools
+Cloth:Clothing
+Food:Food
+GameDifferentVersion:Game of a different version
+GameBroken:Broken game
+PlayerNameMustNotBeEmpty:Player name must not be empty
+ErrorWhileLoadingFile:Error while loading file
+Saving:Saving
+Leaving:Leaving
+VersionAnother:Different version
+LoginDuplicate:Duplicate nickname
+LoginIncorrect:Invalid nickname
+InvalidToken:Invalid token
+GameEmpty:Empty game
+GameKicked:Game removed
+BackGame:Back to game
+ExitGame:Exit game
+Single:Singleplayer
+Multiplayer:Multiplayer
+Options:Options
+Exit:Exit
+Seed:Seed
+Create:Create
+Cancel:Cancel
+IpAddress:IP address
+Connect:Connect
+Menu:Menu
+Notification:Notification
+Language:Language
+English:English
+Russian:Russian
+Sound:Sound
+Graphics:Graphics
+Done:Done
+Nikname:Nickname
+MaxFps:Maximum fps
+SoundVolume:Sound volume
+SoundVolumeOff:Sound off
+SoundVolumeMax:Maximum sound
+MusicVolume:Music volume
+MusicVolumeOff:Music off
+MusicVolumeMax:Maximum music
+MouseSensitivity:Mouse sensitivity
+OverviewChunk:View distance
+BigInterface:Large interface
+FullScreen:Fullscreen
+Shadow:Shadows
+BlockPlacementPreview:Placement preview
+NetOn:Network on
+Net:Network
+Singleplayer:Singleplayer
+SingleCreateSlot{0}:Create slot {0}
+GameDeleteSlot{0}:Delete game slot {0}?
+Yes:Yes
+No:No
+Warning:Warning
+Connection:Connecting
+LoadingTheWorld:Loading the world
+SlotHandLeft:Left hand slot
+SlotHat:Headwear slot
+SlotNeck:Neck slot
+SlotJacket:Jacket slot
+SlotBackpack:Backpack slot
+SlotPants:Pants slot
+SlotBelt:Belt slot
+SlotShoes:Shoes slot
+ClothHat:Headwear
+ClothNeck:Neckwear
+ClothJacket:Jackets
+ClothBackpack:Backpack
+ClothPants:Pants
+ClothBelt:Belt
+ClothShoes:Shoes
+CreateBlocks:Creating blocks
+CreateBlocksEntity:Creating block entities
+CreateItems:Creating items
+CreateModelsEntities:Creating entity models
+ItemsForBlock:Items for blocks
+Liter:Liters
+Time:Time
+Token:Token
+Fps:Frames per second
+VSync:Vertical sync
+AmbientOcclusion:Ambient occlusion

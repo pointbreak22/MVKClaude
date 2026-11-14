@@ -1,0 +1,35 @@
+# [ПОВЕДЕНИЕ] Английский перевод: в оригинале файл был пуст (в чат шли ключи)
+
+CommandsTimeDay:Time set to day
+CommandsTimeNight:Time set to night
+CommandsAddTime:Time advanced by
+CommandsGenericNotFound:Command not found
+CommandsTimeNotPlayer:Only a player can use the time command
+CommandsTimeNotParmas:Time is not specified
+CommandsTimeNotDayWorld:This world has no day and night cycle
+CommandsTimeErrorParmas:Invalid time parameter
+CommandsWeatherNotPlayer:Only a player can use the weather command
+CommandsWeatherNotParmas:Weather is not specified
+CommandsWeatherErrorParmas:Invalid weather parameter
+CommandsWeatherClear:Weather: clear
+CommandsWeatherMostlyCloudy:Weather: mostly cloudy
+CommandsWeatherOvercast:Weather: overcast
+CommandsWeatherShowers:Weather: showers
+CommandsWeatherRain:Weather: rain
+CommandsWeatherThunder:Weather: thunderstorm
+CommandsTpNotPlayer:Only a player can use the teleport command
+CommandsTpErrorParmas:Invalid teleport parameters
+CommandsTp:Teleported to
+CommandsTpPlayer:Teleport to player
+WorldTp:Moving to world
+WorldTpNone:No such world
+CommandsGamemodeNotPlayer:Only a player can use the game mode command
+CommandsGamemodeNotParams:Game mode is not specified
+CommandsGamemodeErrorParmas:Invalid game mode
+CommandsGamemodeSurvival:Survival mode
+CommandsGamemodeCreative:Creative mode
+CommandsGamemodeSpectator:Spectator mode
+CommandsRegenNotPlayer:Only a player can use the regen command
+CommandsRegenNoChunk:The chunk under the player is not loaded
+PlayerEntry{0}:Player {0} joined the game
+PlayerRemove{0}{1}:Player {0} left the game: {1}

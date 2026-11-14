@@ -1,0 +1,4 @@
+# [ПОВЕДЕНИЕ] Английский перевод: в оригинале файл был пуст
+
+StickTechnical:Technical stick
+StickTechnical.tip:Technical stick§u§cFor debugging§r

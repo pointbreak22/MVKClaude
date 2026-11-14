@@ -7,9 +7,9 @@ using System.Text.RegularExpressions;
 namespace Mvk.Game.Tests
 {
     /// <summary>
-    /// [ПОВЕДЕНИЕ] known-issues п. 9: у всех ключей перевода в коде (L.S, L.T) есть русская строка в assets/Mvk2Texts.
-    /// В оригинале не было строк команд (погода, время, телепорт, режим игры) и части экранов: в чат и на экран
-    /// попадал ключ.
+    /// [ПОВЕДЕНИЕ] known-issues п. 9 и 11: у всех ключей перевода в коде (L.S, L.T) есть русская и английская строка
+    /// в assets/Mvk2Texts. В оригинале не было русских строк команд (погода, время, телепорт, режим игры) и части
+    /// экранов, а английские файлы были пусты: в чат и на экран попадал ключ.
     /// </summary>
     public class TranslationTests
     {
@@ -22,8 +22,10 @@ namespace Mvk.Game.Tests
             "Slot", "InTable", "RegenChunk[{0}:{1}] {2:0.00}ms"
         };
 
-        [Fact]
-        public void EveryRussianKeyExists()
+        [Theory]
+        [InlineData("Ru")]
+        [InlineData("En")]
+        public void EveryKeyTranslated(string language)
         {
             string root = _Root();
             var used = new Dictionary<string, HashSet<string>> { ["S"] = new(), ["T"] = new() };
@@ -37,12 +39,27 @@ namespace Mvk.Game.Tests
                 }
             }
             string texts = Path.Combine(root, "assets", "Mvk2Texts");
-            var missing = used["S"].Except(_Keys(Path.Combine(texts, "RuServer.txt")))
-                .Concat(used["T"].Except(_Keys(Path.Combine(texts, "Ru.txt"))))
+            var missing = used["S"].Except(_Keys(Path.Combine(texts, language + "Server.txt")))
+                .Concat(used["T"].Except(_Keys(Path.Combine(texts, language + ".txt"))))
                 .Where(k => !_skip.Contains(k))
                 .OrderBy(k => k)
                 .ToList();
-            Assert.True(missing.Count == 0, "Нет русской строки: " + string.Join(", ", missing));
+            Assert.True(missing.Count == 0, $"Нет строки {language}: " + string.Join(", ", missing));
+        }
+
+        /// <summary>
+        /// Английские файлы содержат те же ключи, что русские
+        /// </summary>
+        [Theory]
+        [InlineData("")]
+        [InlineData("Server")]
+        [InlineData("Items")]
+        public void EnglishHasRussianKeys(string file)
+        {
+            string texts = Path.Combine(_Root(), "assets", "Mvk2Texts");
+            var missing = _Keys(Path.Combine(texts, "Ru" + file + ".txt"))
+                .Except(_Keys(Path.Combine(texts, "En" + file + ".txt"))).OrderBy(k => k).ToList();
+            Assert.True(missing.Count == 0, "Нет английской строки: " + string.Join(", ", missing));
         }
 
         private static HashSet<string> _Keys(string path)
