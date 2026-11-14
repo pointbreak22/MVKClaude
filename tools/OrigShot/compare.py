@@ -40,6 +40,11 @@ SCENES = [
     ("down-wind", "120,-60", ["/weather c"], ["--phase", "0"]),
     # Вид снимка stage5-hand: тёмная изогнутая полоса у берега была текстурой облаков на воде
     ("spawn-wind", "0,0", ["/weather c"], ["--phase", "0"]),
+    # Экраны: клавиша как у человека, снимок в конце сценария
+    ("inventory", "30,-20", ["/weather c"], ["--script", "0:E+;1:E-;40:end"]),
+    ("creative", "30,-20", ["/weather c"], ["--script", "0:C+;1:C-;40:end"]),
+    ("pause", "30,-20", ["/weather c"], ["--script", "0:Escape+;1:Escape-;40:end"]),
+    ("chat", "30,-20", ["/weather c"], ["--script", "0:T+;1:T-;40:end"]),
 ]
 
 
