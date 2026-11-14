@@ -92,6 +92,7 @@ namespace Mvk.Desktop
                     }
                 }
                 else if (args[i] == "--novsync") _noVSync = true;
+                else if (args[i] == "--backend" && i + 1 < args.Length) GraphicsHost.Vulkan = args[++i] == "vulkan";
                 else if (args[i] == "--mesh-workers" && i + 1 < args.Length)
                 {
                     Mvk.Engine.Renderer.World.WorldRenderer.MeshWorkers = Math.Max(1, int.Parse(args[++i]));
@@ -120,7 +121,7 @@ namespace Mvk.Desktop
             if (!testScene) return RunGame(assets, screenshot, shotAfter, slot, seed, wireframe, commands, look, view, size, resize, profile, menu, screen, sound, presses, holdLeft, fx, mouseLayout, phase,
                 script != null ? new MechanicsScript(script, trace ?? Path.GetFullPath("trace.csv")) : null);
 
-            using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude", 1280, 720);
+            using IWindow window = GraphicsHost.CreateWindow("Малювекi 2 - MvkClaude", 1280, 720);
             IGraphicsDevice? device = null;
             TestScene? scene = null;
             InputDevice? input = null;
@@ -134,8 +135,7 @@ namespace Mvk.Desktop
 
             window.Load += () =>
             {
-                device = new OpenGLDevice(GL.GetApi(window));
-                Console.WriteLine(device.Description);
+                device = GraphicsHost.CreateDevice(window);
                 scene = new TestScene(device, assets) { Wireframe = wireframe };
 
                 input = new InputDevice(window);
@@ -183,6 +183,8 @@ namespace Mvk.Desktop
                 if (screenshot == null && !paused) time += (float)delta;
             };
 
+            window.FramebufferResize += fb => GraphicsHost.Resize(device, fb.X, fb.Y);
+            window.Render += _ => GraphicsHost.BeginFrame(device);
             window.Render += _ =>
             {
                 if (device == null || scene == null) return;
@@ -204,6 +206,8 @@ namespace Mvk.Desktop
                 }
                 scene.Render(w, h, time);
             };
+
+            window.Render += _ => GraphicsHost.EndFrame(device);
 
             window.Closing += () =>
             {
@@ -235,7 +239,7 @@ namespace Mvk.Desktop
         /// --calm снимает кадр при ветре около нуля (для сравнения с оригиналом, tools/OrigShot),
         /// --phase N в такт с фазой ветра N (0..127, 0 наибольший ветер).
         /// --bench [секунд] замер загрузки мира и кадра (BenchRun), --novsync без вертикальной синхронизации,
-        /// --mesh-workers N потоков построения сеток чанков.
+        /// --mesh-workers N потоков построения сеток чанков. --backend vulkan|opengl бэкенд графики (по умолчанию OpenGL).
         /// --script "0:W+;10:Space+;12:Space-;60:W-;80:end" через shot-after секунд жмёт клавиши по тактам,
         /// --trace файл пишет след игрока на каждом такте (позиция, скорость, на земле), в конце выход или снимок.
         /// --fx спавнит плоские частицы перед игроком. --mouse original возвращает кнопки мыши в мире как в оригинале
@@ -250,7 +254,7 @@ namespace Mvk.Desktop
             bool menu, string? screen, bool sound, List<string> presses, bool holdLeft, bool fx,
             WorldMouseLayout mouseLayout, int phase, MechanicsScript? script)
         {
-            using IWindow window = WindowFactory.CreateOpenGL("Малювекi 2 - MvkClaude",
+            using IWindow window = GraphicsHost.CreateWindow("Малювекi 2 - MvkClaude",
                 size?[0] ?? 1280, size?[1] ?? 720);
             IGraphicsDevice? device = null;
             DesktopApp? app = null;
@@ -265,12 +269,7 @@ namespace Mvk.Desktop
 
             window.Load += () =>
             {
-                GL gl = GL.GetApi(window);
-                device = new OpenGLDevice(gl);
-                Console.WriteLine(device.Description);
-                gl.GetFramebufferAttachmentParameter(FramebufferTarget.Framebuffer, (FramebufferAttachment)0x1801,
-                    FramebufferAttachmentParameterName.DepthSize, out int depthBits);
-                Console.WriteLine("Буфер глубины: " + depthBits + " бит");
+                device = GraphicsHost.CreateDevice(window);
                 Mvk.Engine.Debug.IsDrawVoxelLine = wireframe;
                 MvkClient.SetAssets(assets);
                 app = new DesktopApp(window, device, commands.Count > 0 || script != null,
@@ -279,10 +278,16 @@ namespace Mvk.Desktop
                     IgnoreFocusLoss = script != null || _benchSeconds > 0,
                     ForceNoVSync = _noVSync
                 };
-                if (_noVSync) window.VSync = false;
+                if (_noVSync) GraphicsHost.SetVSync(window, device, false);
             };
 
-            window.FramebufferResize += fb => app?.App.OnResized(fb.X, fb.Y);
+            window.FramebufferResize += fb =>
+            {
+                GraphicsHost.Resize(device, fb.X, fb.Y);
+                app?.App.OnResized(fb.X, fb.Y);
+            };
+            // Кадр окна Vulkan: изображение берётся до рисования, показывается после (снимок между ними)
+            window.Render += _ => GraphicsHost.BeginFrame(device);
 
             window.Update += _ =>
             {
@@ -454,6 +459,8 @@ namespace Mvk.Desktop
                     screenshot = null;
                 }
             };
+
+            window.Render += _ => GraphicsHost.EndFrame(device);
 
             window.Closing += () =>
             {

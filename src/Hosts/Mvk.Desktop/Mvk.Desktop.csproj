@@ -7,6 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Mvk.Game.Client\Mvk.Game.Client.csproj" />
     <ProjectReference Include="..\..\Mvk.Rendering.OpenGL\Mvk.Rendering.OpenGL.csproj" />
+    <ProjectReference Include="..\..\Mvk.Rendering.Vulkan\Mvk.Rendering.Vulkan.csproj" />
     <ProjectReference Include="..\..\Mvk.Platform\Mvk.Platform.csproj" />
   </ItemGroup>
   <ItemGroup>

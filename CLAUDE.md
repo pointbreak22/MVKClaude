@@ -70,6 +70,7 @@ assets/                   ресурсы из res/Assets (копируются �
   `--calm` снимок при ветре около нуля, `--phase N` при фазе ветра N;
   `--script "0:W+;60:W-;80:end" --trace след.csv` сценарий механики по тактам;
   `--bench --novsync` замер загрузки и кадра (`py tools/Bench/bench.py`), `--mesh-workers N`;
+  `--backend vulkan|opengl` бэкенд графики (по умолчанию OpenGL);
   `--test-scene` тестовая сцена RHI этапа 4)
 - Сервер: `dotnet run --project src/Hosts/Mvk.Server`
 
@@ -126,4 +127,5 @@ OpenGL, `Mvk.Platform` (ввод через `InputActionMap`, звук OpenAL, `
 Ассеты в `assets/`. Этап 7 идёт: 7.1 готов (замеры `--bench`, `ChunkStats`, `JobScheduler`, сетки многопоточно по ключу).
 7.2–7.3 готовы (пулы буферов сеток: 865 → 599 МБ за загрузку, свёртка сеток `MeshDigest`). Этап 7 закрыт, перенос
 оригинала завершён (`docs/migration-map.md`). Генерация однопоточная (решение пользователя), R26 ждёт решения.
-Следующий: этап 8 (две руки) или 10 (Vulkan) по выбору пользователя; новых тестов на каждый шаг не пишем. Android отложен. См. `docs/progress.md`.
+Этап 10 идёт: 10.1 готов (`Mvk.Rendering.Vulkan`, `--backend vulkan`, игра целиком на Vulkan, шейдеры GLSL 330 → 450
+через `GlslToVulkan` и Shaderc). Дальше: кадры в полёте вместо синхронного Submit. Новых тестов на каждый шаг не пишем. Android отложен. См. `docs/progress.md`.

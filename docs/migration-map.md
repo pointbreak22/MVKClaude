@@ -28,3 +28,4 @@
 | Mvk2/Games | Mvk.Game (+ Client) | 3/5 | ✅ | `GameModClientMvk`, `GameModServerMvk` (run_game.py), клиентская часть в `Mvk.Game.Client` |
 | res/Assets | assets/ | 6 | ✅ | байт в байт (`.gitattributes`: `-text`), `Mvk.Desktop` копирует в вывод сборки; правки только `[ПОВЕДЕНИЕ]` |
 | (инструмент) | tools/OrigShot | 6 | ✅ | кадры оригинала без изменений для сравнения с портом, `compare.py` |
+| (новое) | src/Mvk.Rendering.Vulkan | 10 | 🟨 | бэкенд RHI на Vulkan: устройство, цепочка показа, буферы, текстуры, шейдеры GLSL 330 → SPIR-V, конвейеры, карта теней; кадры в полёте — дальше |

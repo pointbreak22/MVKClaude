@@ -49,6 +49,8 @@ namespace Mvk.Desktop
         public bool IgnoreFocusLoss;
         /// <summary>Действия мыши в мире (ломать, ставить)</summary>
         public readonly WorldMouseActions WorldMouse;
+        /// <summary>Устройство графики (вертикальная синхронизация у Vulkan задаётся устройством)</summary>
+        private readonly IGraphicsDevice _device;
         private readonly InputActionMap _actions = new InputActionMap();
         /// <summary>Какой кнопкой игры ушло нажатие физической кнопки (отпускание идёт той же)</summary>
         private readonly EngineMouse[] _pressedAs = new EngineMouse[16];
@@ -57,6 +59,7 @@ namespace Mvk.Desktop
             WorldMouseLayout mouseLayout = DefaultMouseLayout)
         {
             _window = window;
+            _device = device;
             WorldMouse = new WorldMouseActions(_actions, mouseLayout);
             Audio = sound ? new DesktopAudio() : null;
             App = new WindowMvkDesktop(this, device, debugCommands);
@@ -145,7 +148,7 @@ namespace Mvk.Desktop
         public void SetFullScreen(bool fullScreen)
             => _window.WindowState = fullScreen ? WindowState.Fullscreen : WindowState.Normal;
 
-        public void SetVSync(bool on) => _window.VSync = on && !ForceNoVSync;
+        public void SetVSync(bool on) => GraphicsHost.SetVSync(_window, _device, on && !ForceNoVSync);
 
         /// <summary>Вертикальная синхронизация выключена ключом --novsync (замер кадров), опции её не включают</summary>
         public bool ForceNoVSync;

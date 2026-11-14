@@ -23,5 +23,16 @@ namespace Mvk.Platform
                 ContextFlags.ForwardCompatible, new APIVersion(3, 3));
             return Window.Create(options);
         }
+
+        /// <summary>
+        /// Создать окно для Vulkan (без контекста OpenGL, показ кадра делает устройство Vulkan)
+        /// </summary>
+        public static IWindow CreateVulkan(string title, int width, int height)
+        {
+            WindowOptions options = WindowOptions.DefaultVulkan;
+            options.Title = title;
+            options.Size = new Vector2D<int>(width, height);
+            return Window.Create(options);
+        }
     }
 }

@@ -11,6 +11,7 @@
     <Project Path="src/Mvk.Engine.Client/Mvk.Engine.Client.csproj" />
     <Project Path="src/Mvk.Rendering/Mvk.Rendering.csproj" />
     <Project Path="src/Mvk.Rendering.OpenGL/Mvk.Rendering.OpenGL.csproj" />
+    <Project Path="src/Mvk.Rendering.Vulkan/Mvk.Rendering.Vulkan.csproj" />
     <Project Path="src/Mvk.Platform/Mvk.Platform.csproj" />
     <Project Path="src/Mvk.Game/Mvk.Game.csproj" />
     <Project Path="src/Mvk.Game.Client/Mvk.Game.Client.csproj" />
