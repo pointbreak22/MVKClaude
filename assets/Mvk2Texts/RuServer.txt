@@ -33,3 +33,4 @@ CommandsGamemodeSpectator:Режим наблюдателя
 CommandsRegenNotPlayer:Команду перегенерации может выполнить только игрок
 PlayerEntry{0}:Игрок {0} вошёл в игру
 PlayerRemove{0}{1}:Игрок {0} вышел из игры: {1}
+CommandsRegenNoChunk:Чанк под игроком не загружен

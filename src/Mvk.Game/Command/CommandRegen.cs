@@ -4,6 +4,7 @@ using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Games;
 using Mvk.Engine.Realms;
 using Mvk.Engine.World;
+using Mvk.Engine.World.Chunk;
 
 namespace Mvk.Game.Command
 {
@@ -31,7 +32,12 @@ namespace Mvk.Game.Command
             WorldServer worldServer = player.GetWorldServer();
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-            worldServer.GetChunkServer(player.ChunkPositionX, player.ChunkPositionZ).Regen();
+            ChunkServer chunk = worldServer.GetChunkServer(player.ChunkPositionX, player.ChunkPositionZ);
+            if (chunk == null)
+            {
+                return ChatStyle.Red + L.S("CommandsRegenNoChunk");
+            }
+            chunk.Regen();
             string result = L.S("RegenChunk[{0}:{1}] {2:0.00}ms",
                 player.ChunkPositionX, player.ChunkPositionZ,
                 stopwatch.ElapsedTicks / (float)(Stopwatch.Frequency / 1000f)

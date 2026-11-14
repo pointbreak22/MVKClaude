@@ -11,7 +11,10 @@
 4. **Декорация берёт биом соседа.** `Mvk2/World/Gen/ChunkProviderGenerateIsland.cs:265–279`: `DecorationsColumnAfter` вызывается для биома последнего чанка из `AreaOne9priority`. Исправление меняет генерацию, поэтому сначала снять golden-хэши как есть.
 5. **Утечка меша дождя.** `Mvk2/Renderer/World/SkyIslandRender.cs:1019`: `_meshRain` не освобождается в `Dispose`.
 6. **Аллокации в кадре.** `SkyIslandRender`: закат пересобирается каждый кадр (стр. 532), дождь ~170 `new float[]` за кадр (стр. 908), `Mat4.ToArray()` на каждый вызов.
-7. **Мелочи.** `CommandRegen.cs:34` NRE при отсутствии чанка; `GenLayerIsland.cs:159` возвращает пустой массив при ошибке; `ItemAbTool.cs:57` теряет исходное исключение; общий `ChunkPrimer` у генератора не потокобезопасен.
+7. **Мелочи.** `CommandRegen.cs:34` NRE при отсутствии чанка; `GenLayerIsland.cs:159` возвращает пустой массив при ошибке; `ItemAbTool.cs:57` теряет исходное исключение; общий `ChunkPrimer` у генератора не потокобезопасен. **Исправлено** [ПОВЕДЕНИЕ] швом `tools/port/game_seam8_fix_misc.py`:
+   `/regen` без чанка пишет «Чанк под игроком не загружен», `GenLayerIsland` после записи в лог пробрасывает ошибку,
+   `ItemAbTool` сохраняет исходное исключение во `InnerException`. `ChunkPrimer` правки не требует: чанки
+   генерируются только в потоке сервера (`ServerLoop`), в том числе `/regen`.
 8. **Растянутая картинка после изменения размера окна.** `Vge/WindowMain.cs:382` (`OnResized`) меняет `Gi.Width/Height` и viewport, но матрицу проекции игрока (`PlayerClientOwner._UpdateMatrixCamera`) пересчитывает только движение камеры: до первого движения мышью или шага кадр сжат или растянут. Снимок `docs/img/stage5-resize-before.png` (1280x720 → 720x720). **Исправлено** [ПОВЕДЕНИЕ] швом `tools/port/fix_resize_camera.py`, сравнение `docs/img/stage5-resize.png`.
 
 Состояние в порте: п. 5 (утечка меша дождя) и п. 6 (аллокации неба в кадре) устранены при переносе неба (этап 5.2, `docs/improvements.md` R9).

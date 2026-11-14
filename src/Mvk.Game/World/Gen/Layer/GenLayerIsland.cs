@@ -157,7 +157,7 @@ namespace Mvk.Game.World.Gen.Layer
             catch (Exception ex)
             {
                 Logger.Crash(ex);
-                return new int[0];
+                throw;
             }
         }
 

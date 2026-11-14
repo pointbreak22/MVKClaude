@@ -55,9 +55,9 @@ namespace Mvk.Game.Item.List.Tool
                         else if(json.IsKey(Cti.Acceleration)) Acceleration = json.GetFloat();
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    throw new Exception(Sr.GetString(Sr.ErrorReadJsonItemStat, Alias));
+                    throw new Exception(Sr.GetString(Sr.ErrorReadJsonItemStat, Alias), ex);
                 }
             }
         }
