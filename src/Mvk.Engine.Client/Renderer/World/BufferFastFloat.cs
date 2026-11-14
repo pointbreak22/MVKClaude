@@ -33,6 +33,15 @@ namespace Mvk.Engine.Renderer.World
         }
 
         /// <summary>
+        /// Добавить count значений массива с позиции start
+        /// </summary>
+        public void AddRange(float[] items, int start, int count)
+        {
+            Buffer.BlockCopy(items, start * sizeof(float), _buffer, Count * sizeof(float), count * sizeof(float));
+            Count += count;
+        }
+
+        /// <summary>
         /// Получить адрес буфера
         /// </summary>
         public override IntPtr ToBuffer()

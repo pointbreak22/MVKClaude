@@ -47,11 +47,12 @@ def run_once(path, fresh=True):
         r["gen0"] = int(m.group(2))
         r["gen1"] = int(m.group(3))
         r["gen2"] = int(m.group(4))
-    for stage in ["Relief", "Decoration", "HeightMap", "SideLight", "Mesh", "MeshAlpha"]:
-        m = re.search(stage + r": (\d+) шт, (\d+) мс, ([\d.]+) мс/шт", text)
+    for stage in ["Relief", "Decoration", "HeightMap", "SideLight", "Mesh", "MeshAlpha", "Pack", "Unpack"]:
+        m = re.search(stage + r": (\d+) шт, (\d+) мс, ([\d.]+) мс/шт, ([\d.]+) КБ/шт", text)
         if m:
             r[stage + "_n"] = int(m.group(1))
             r[stage + "_ms"] = float(m.group(3))
+            r[stage + "_kb"] = float(m.group(4))
     return r
 
 

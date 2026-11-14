@@ -314,7 +314,9 @@ namespace Mvk.Engine.Entity.Player
                     quantityBatch++;
                     // TODO::2024-12-07 подумать как (PacketS21ChunkData) создание вынести в поток мира!
                     // В основном потоке загрузка компрессия чанков, занимает примерн 1 мс за чанк
+                    long statsBegin = ChunkStats.Begin();
                     SendPacket(new PacketS21ChunkData(chunk, true, uint.MaxValue));
+                    ChunkStats.End(ChunkStats.Stage.Pack, statsBegin);
                 }
                 else
                 {

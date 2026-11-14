@@ -67,6 +67,16 @@ namespace Mvk.Engine.Renderer.World
         /// </summary>
         public void Clear() => Count = 0;
 
+        /// <summary>
+        /// Скопировать первые count значений в массив
+        /// </summary>
+        public void CopyTo(T[] destination, int count) => Array.Copy(_buffer, destination, count);
+
+        /// <summary>
+        /// Весь внутренний массив (значимы первые Count), для копирования части без лишнего массива
+        /// </summary>
+        public T[] GetBufferAll() => _buffer;
+
         public T[] ToArray()
         {
             T[] result = new T[Count];

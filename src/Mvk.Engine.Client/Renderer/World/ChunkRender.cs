@@ -285,18 +285,13 @@ namespace Mvk.Engine.Renderer.World
                                 }
                             }
                         }
-                        _sectionsBuffer[cbY].BufferFloat = _mesher.VertexDense.BufferFloat.ToArray();
-                        _sectionsBuffer[cbY].BufferByte = _mesher.VertexDense.BufferByte.ToArray();
+                        _sectionsBuffer[cbY].Set(_mesher.VertexDense);
                         _mesher.VertexDense.Clear();
                     }
                     else
                     {
                         // Нет блоков, все блоки воздуха очищаем буфера
-                        if (_sectionsBuffer[cbY].BufferFloat.Length != 0)
-                        {
-                            _sectionsBuffer[cbY].BufferFloat = new float[0];
-                            _sectionsBuffer[cbY].BufferByte = new byte[0];
-                        }
+                        _sectionsBuffer[cbY].SetEmpty();
                     }
                     _isRenderingSection[cbY] = false;
 
@@ -310,10 +305,10 @@ namespace Mvk.Engine.Renderer.World
             for (cbY = 0; cbY < NumberSections; cbY++)
             {
                 _countAlpha += _listAlphaBlock[cbY].Count;
-                if (_sectionsBuffer[cbY].BufferFloat.Length != 0)
+                if (_sectionsBuffer[cbY].CountFloat != 0)
                 {
-                    _mesher.VertexDense.BufferFloat.AddRange(_sectionsBuffer[cbY].BufferFloat);
-                    _mesher.VertexDense.BufferByte.AddRange(_sectionsBuffer[cbY].BufferByte);
+                    _mesher.VertexDense.BufferFloat.AddRange(_sectionsBuffer[cbY].BufferFloat, 0, _sectionsBuffer[cbY].CountFloat);
+                    _mesher.VertexDense.BufferByte.AddRange(_sectionsBuffer[cbY].BufferByte, 0, _sectionsBuffer[cbY].CountByte);
                 }
             }
             _meshDense.SetBuffer(_mesher.VertexDense);
@@ -352,7 +347,7 @@ namespace Mvk.Engine.Renderer.World
                 ChunkStorage chunkStorage;
                 Vector3i posPlayer = _worldClient.Game.Player.PositionAlphaBlock;
                 _mesher.VertexAlpha.Clear();
-                _mesher.AlphaBuffer.Clear();
+                _mesher.ClearAlpha();
                 _mesher.BlockAlphaRendFull.InitChunk(this);
                 _mesher.BlockLiquidAlphaRendFull.InitChunk(this);
 
@@ -401,13 +396,7 @@ namespace Mvk.Engine.Renderer.World
                                                 _mesher.Of(Gi.Block).Destroy = 0;
                                             }
                                             _mesher.Of(Gi.Block).RenderSide();
-                                            _mesher.AlphaBuffer.Add(new BlockBufferDistance()
-                                            {
-                                                BufferFloat = _mesher.VertexAlpha.BufferFloat.ToArray(),
-                                                BufferByte = _mesher.VertexAlpha.BufferByte.ToArray(),
-                                                Distance = Glm.Distance(posPlayer,
-                                                    new Vector3i(cbX | x, realY, cbZ | z))
-                                            });
+                                            _mesher.AddAlphaBlock(Glm.Distance(posPlayer, new Vector3i(cbX | x, realY, cbZ | z)));
                                             _mesher.VertexAlpha.Clear();
                                         }
                                     }
@@ -427,13 +416,7 @@ namespace Mvk.Engine.Renderer.World
                                             {
                                                 _mesher.Of(Gi.Block).Light = chunkStorage.Light[index];
                                                 _mesher.Of(Gi.Block).RenderSide();
-                                                _mesher.AlphaBuffer.Add(new BlockBufferDistance()
-                                                {
-                                                    BufferFloat = _mesher.VertexAlpha.BufferFloat.ToArray(),
-                                                    BufferByte = _mesher.VertexAlpha.BufferByte.ToArray(),
-                                                    Distance = Glm.Distance(posPlayer,
-                                                        new Vector3i(cbX | x, realY, cbZ | z))
-                                                });
+                                                _mesher.AddAlphaBlock(Glm.Distance(posPlayer, new Vector3i(cbX | x, realY, cbZ | z)));
                                                 _mesher.VertexAlpha.Clear();
                                             }
                                         }
@@ -466,7 +449,7 @@ namespace Mvk.Engine.Renderer.World
                 _mesher.AlphaBuffer.Sort();
                 for (int i = count - 1; i >= 0; i--)
                 {
-                    _mesher.VertexAlpha.AddBlockBufferDistance(_mesher.AlphaBuffer[i]);
+                    _mesher.VertexAlpha.AddBlockBufferDistance(_mesher.AlphaBuffer[i], _mesher.AlphaScratch);
                 }
             }
             _meshAlpha.SetBuffer(_mesher.VertexAlpha);

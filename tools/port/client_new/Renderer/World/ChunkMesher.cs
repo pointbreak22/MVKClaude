@@ -23,6 +23,33 @@ namespace Mvk.Engine.Renderer.World
         public readonly BlockRenderLiquid BlockLiquidAlphaRendFull;
         /// <summary>Буфер альфа блоков чанка для сортировки по расстоянию (в оригинале статический в ChunkRender)</summary>
         public readonly ListFast<BlockBufferDistance> AlphaBuffer = new ListFast<BlockBufferDistance>();
+        /// <summary>Вершины альфа блоков чанка подряд, AlphaBuffer хранит смещения в нём (этап 7: без ToArray на блок)</summary>
+        public readonly VertexBlockBuffer AlphaScratch = new VertexBlockBuffer(128000);
+
+        /// <summary>
+        /// Альфа блок построен в VertexAlpha: перенести его вершины в общий буфер и запомнить для сортировки
+        /// </summary>
+        public void AddAlphaBlock(float distance)
+        {
+            AlphaBuffer.Add(new BlockBufferDistance()
+            {
+                StartFloat = AlphaScratch.BufferFloat.Count,
+                CountFloat = VertexAlpha.BufferFloat.Count,
+                StartByte = AlphaScratch.BufferByte.Count,
+                CountByte = VertexAlpha.BufferByte.Count,
+                Distance = distance
+            });
+            AlphaScratch.Append(VertexAlpha);
+        }
+
+        /// <summary>
+        /// Начать альфа блоки чанка
+        /// </summary>
+        public void ClearAlpha()
+        {
+            AlphaBuffer.Clear();
+            AlphaScratch.Clear();
+        }
 
         public ChunkMesher()
         {
@@ -48,6 +75,7 @@ namespace Mvk.Engine.Renderer.World
         {
             VertexDense.Dispose();
             VertexAlpha.Dispose();
+            AlphaScratch.Dispose();
         }
     }
 }

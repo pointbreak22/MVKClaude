@@ -18,6 +18,15 @@ namespace Mvk.Engine.Renderer.World
         /// <summary>
         /// Добавить массив значений
         /// </summary>
+        /// <summary>
+        /// Добавить count значений массива с позиции start
+        /// </summary>
+        public void AddRange(byte[] items, int start, int count)
+        {
+            Buffer.BlockCopy(items, start, _buffer, Count, count);
+            Count += count;
+        }
+
         public void AddRange(byte[] items)
         {
             try

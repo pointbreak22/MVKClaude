@@ -56,10 +56,19 @@ namespace Mvk.Engine.Renderer.World
         /// Добавить буфер с дистанции
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddBlockBufferDistance(BlockBufferDistance blockBuffer)
+        public void AddBlockBufferDistance(BlockBufferDistance blockBuffer, VertexBlockBuffer scratch)
         {
-            BufferFloat.AddRange(blockBuffer.BufferFloat);
-            BufferByte.AddRange(blockBuffer.BufferByte);
+            BufferFloat.AddRange(scratch.BufferFloat.GetBufferAll(), blockBuffer.StartFloat, blockBuffer.CountFloat);
+            BufferByte.AddRange(scratch.BufferByte.GetBufferAll(), blockBuffer.StartByte, blockBuffer.CountByte);
+        }
+
+        /// <summary>
+        /// Дописать все вершины другого буфера
+        /// </summary>
+        public void Append(VertexBlockBuffer other)
+        {
+            BufferFloat.AddRange(other.BufferFloat.GetBufferAll(), 0, other.BufferFloat.Count);
+            BufferByte.AddRange(other.BufferByte.GetBufferAll(), 0, other.BufferByte.Count);
         }
 
         /// <summary>

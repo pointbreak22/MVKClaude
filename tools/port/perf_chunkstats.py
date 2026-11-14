@@ -40,4 +40,20 @@ t = rep(t, """                Light.StartRecheckGaps(World.Settings.HasNoSky); /
                 Light.StartRecheckGaps(World.Settings.HasNoSky); // 0.12 - 0.2 мс
                 ChunkStats.End(ChunkStats.Stage.SideLight, statsBegin);""", rel, 1)
 save(rel, t)
+rel = r"Entity\Player\PlayerServer.cs"
+t = load(rel)
+t = rep(t, """                    SendPacket(new PacketS21ChunkData(chunk, true, uint.MaxValue));""", """                    long statsBegin = ChunkStats.Begin();
+                    SendPacket(new PacketS21ChunkData(chunk, true, uint.MaxValue));
+                    ChunkStats.End(ChunkStats.Stage.Pack, statsBegin);""", rel, 1)
+save(rel, t)
+
+rel = r"Network\ProcessClientPackets.cs"
+t = load(rel)
+t = rep(t, """            long time = Game.Time();
+            if (Game.World.ChunkPrClient.PacketChunckData(packet))""", """            long time = Game.Time();
+            long statsBegin = ChunkStats.Begin();
+            bool received = Game.World.ChunkPrClient.PacketChunckData(packet);
+            ChunkStats.End(ChunkStats.Stage.Unpack, statsBegin);
+            if (received)""", rel, 1)
+save(rel, t)
 print("perf_chunkstats ok")

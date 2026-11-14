@@ -392,7 +392,10 @@ namespace Mvk.Engine.Network
         private void _Handle21ChunkData(PacketS21ChunkData packet)
         {
             long time = Game.Time();
-            if (Game.World.ChunkPrClient.PacketChunckData(packet))
+            long statsBegin = ChunkStats.Begin();
+            bool received = Game.World.ChunkPrClient.PacketChunckData(packet);
+            ChunkStats.End(ChunkStats.Stage.Unpack, statsBegin);
+            if (received)
             {
                 // Считаем время
                 _countReceiveChunk++;
