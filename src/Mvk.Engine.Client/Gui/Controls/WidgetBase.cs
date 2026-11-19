@@ -57,7 +57,7 @@
 
         protected WidgetBase(WindowMain window) : base(window)
         {
-            _si = Gi.Si;
+            _si = window.View.Si;
         }
 
         /// <summary>
@@ -65,9 +65,9 @@
         /// </summary>
         public virtual void OnResized()
         {
-            if (_si != Gi.Si)
+            if (_si != window.View.Si)
             {
-                _si = Gi.Si;
+                _si = window.View.Si;
                 IsRender = true;
             }
         }

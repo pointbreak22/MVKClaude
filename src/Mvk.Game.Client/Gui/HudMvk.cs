@@ -84,11 +84,11 @@ namespace Mvk.Game.Client.Gui
         protected virtual void _RenderInventoryBg()
         {
             _limitPocket = _inventoryPlayer.LimitPocket;
-            int wc = Gi.Width / 2;
-            int w = 222 * Gi.Si;
-            int h = 50 * Gi.Si;
+            int wc = _game.View.Width / 2;
+            int w = 222 * _game.View.Si;
+            int h = 50 * _game.View.Si;
             int x = wc - w;
-            int y = Gi.Height - h - 8 * Gi.Si;
+            int y = _game.View.Height - h - 8 * _game.View.Si;
 
             _listBuffer.Clear();
 
@@ -100,21 +100,21 @@ namespace Mvk.Game.Client.Gui
             for (int i = _limitPocket; i < InventoryPlayerMvk.PocketCount; i++)
             {
                 // 36 * 50
-                int x2 = x + (i * 36 + 6) * Gi.Si;
-                _listBuffer.AddRange(RenderFigure.Rectangle(x2, y, x2 + 36 * Gi.Si, y + h,
+                int x2 = x + (i * 36 + 6) * _game.View.Si;
+                _listBuffer.AddRange(RenderFigure.Rectangle(x2, y, x2 + 36 * _game.View.Si, y + h,
                     .25f, .125f, .3203125f, .22265625f));
             }
 
             // Левая рука 48 * 50
-            _listBuffer.AddRange(RenderFigure.Rectangle(x - 56 * Gi.Si, y, x - 8 * Gi.Si, y + h,
+            _listBuffer.AddRange(RenderFigure.Rectangle(x - 56 * _game.View.Si, y, x - 8 * _game.View.Si, y + h,
                 0, .125f, .09375f, .22265625f));
 
             // Заполняем сетку фона
             _meshInventoryBg.Reload(_listBuffer.GetBufferAll(), _listBuffer.Count);
 
             // Сетка выбранного слота правой руки
-            x += Gi.Si;
-            _meshInventorySelect.Reload(RenderFigure.Rectangle(x, y, x + 46 * Gi.Si, y + 47 * Gi.Si,
+            x += _game.View.Si;
+            _meshInventorySelect.Reload(RenderFigure.Rectangle(x, y, x + 46 * _game.View.Si, y + 47 * _game.View.Si,
                 .125f, .125f, .21484375f, .216796875f));
         }
 
@@ -126,8 +126,8 @@ namespace Mvk.Game.Client.Gui
             // Перед рендером
             _renderSlots.BeforeRender();
 
-            int x = Gi.Width / 2 / Gi.Si - 222;
-            int y = Gi.Height / Gi.Si - 53;
+            int x = _game.View.Width / 2 / _game.View.Si - 222;
+            int y = _game.View.Height / _game.View.Si - 53;
 
             // Левая рука
             ItemStack itemStack = _inventoryPlayer.GetCurrentLeftItem();
@@ -178,9 +178,9 @@ namespace Mvk.Game.Client.Gui
             Render.DepthOn();
 
             // Предметы
-            int size = 36 * Gi.Si;
-            int x = Gi.Width / 2 - 222 * Gi.Si + 24 * Gi.Si;
-            int y = Gi.Height - 58 * Gi.Si + 23 * Gi.Si;
+            int size = 36 * _game.View.Si;
+            int x = _game.View.Width / 2 - 222 * _game.View.Si + 24 * _game.View.Si;
+            int y = _game.View.Height - 58 * _game.View.Si + 23 * _game.View.Si;
             ItemStack itemStack;
             // Перечень правой руки
             for (int i = 0; i < _limitPocket; i++)
@@ -196,7 +196,7 @@ namespace Mvk.Game.Client.Gui
             itemStack = _inventoryPlayer.GetCurrentLeftItem();
             if (itemStack != null)
             {
-                Host.WorldRender.Entities.GetItemGuiRender(itemStack.Item.IndexItem).MeshDraw(x - 56 * Gi.Si, y);
+                Host.WorldRender.Entities.GetItemGuiRender(itemStack.Item.IndexItem).MeshDraw(x - 56 * _game.View.Si, y);
             }
 
             Render.DepthOff();

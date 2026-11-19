@@ -4,7 +4,7 @@ using Mvk.Rendering;
 namespace Mvk.Engine.Renderer
 {
     /// <summary>
-    /// Общие объекты рендера клиента: устройство RHI и общий индексный буфер квадов.
+    /// Общие объекты рендера клиента: устройство RHI, общий индексный буфер квадов и состояние вида окна.
     /// Заменяет доступ к GL через окно (window.GetOpenGL()) из оригинала.
     /// </summary>
     public sealed class RenderContext : IDisposable
@@ -31,10 +31,15 @@ namespace Mvk.Engine.Renderer
         /// Общие индексы квадов 0,1,2, 0,2,3 для всех мешей из четырёхугольников
         /// </summary>
         public readonly QuadIndexBuffer Quads;
+        /// <summary>
+        /// Состояние вида окна: размер, Si, матрицы (в оригинале статический Gi)
+        /// </summary>
+        public readonly ViewState View;
 
-        public RenderContext(IGraphicsDevice device)
+        public RenderContext(IGraphicsDevice device, ViewState view)
         {
             Device = device;
+            View = view;
             Quads = new QuadIndexBuffer(device);
         }
 

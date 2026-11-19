@@ -126,7 +126,7 @@ namespace Mvk.Game.Client.Gui
         public void TextRender(ItemStack itemStack)
         {
             // Готовим рендер текста
-            _font.RenderString(3 * Gi.Si, 3 * Gi.Si, ChatStyle.Bolb + itemStack.Amount.ToString());
+            _font.RenderString(3 * _renderMvk.View.Si, 3 * _renderMvk.View.Si, ChatStyle.Bolb + itemStack.Amount.ToString());
             _isText = true;
         }
 
@@ -138,7 +138,7 @@ namespace Mvk.Game.Client.Gui
             if (itemStack.Amount != 1)
             {
                 // Готовим рендер текста
-                _font.RenderString((x + 3) * Gi.Si, (y + 3) * Gi.Si, ChatStyle.Bolb + itemStack.Amount.ToString());
+                _font.RenderString((x + 3) * _renderMvk.View.Si, (y + 3) * _renderMvk.View.Si, ChatStyle.Bolb + itemStack.Amount.ToString());
                 _isText = true;
             }
         }
@@ -154,10 +154,10 @@ namespace Mvk.Game.Client.Gui
                 if (line > 30) line = 30;
 
                 _listBufferDamage.AddRange(RenderFigure.Rectangle(
-                    (x + 2) * Gi.Si, (y + 30) * Gi.Si, (x + 34) * Gi.Si, (y + 34) * Gi.Si, .16f, .16f, .16f));
+                    (x + 2) * _renderMvk.View.Si, (y + 30) * _renderMvk.View.Si, (x + 34) * _renderMvk.View.Si, (y + 34) * _renderMvk.View.Si, .16f, .16f, .16f));
 
                 _listBufferDamage.AddRange(RenderFigure.Rectangle(
-                    (x + 3) * Gi.Si, (y + 31) * Gi.Si, (x + 33 - line) * Gi.Si, (y + 33) * Gi.Si,
+                    (x + 3) * _renderMvk.View.Si, (y + 31) * _renderMvk.View.Si, (x + 33 - line) * _renderMvk.View.Si, (y + 33) * _renderMvk.View.Si,
                     line < 15 ? line / 15f : 1,
                     line > 15 ? (30 - line) / 15f : 1,
                     .16f));
@@ -170,7 +170,7 @@ namespace Mvk.Game.Client.Gui
         {
             if (itemStack.Met != 0)
             {
-                float[] buffers = itemStack.Item.RenderBufferMetGui(itemStack.Met, x + 2, y + 2, Gi.Si);
+                float[] buffers = itemStack.Item.RenderBufferMetGui(itemStack.Met, x + 2, y + 2, _renderMvk.View.Si);
                 if (buffers.Length > 0)
                 {
                     _listBufferMet.AddRange(buffers);

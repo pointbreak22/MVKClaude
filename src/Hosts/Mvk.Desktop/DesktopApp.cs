@@ -137,7 +137,7 @@ namespace Mvk.Desktop
         {
             Vector2 delta = position - _mouse;
             _mouse = position;
-            if (_mouseLook) App.OnMouseMove(Gi.Width / 2 + (int)delta.X, Gi.Height / 2 + (int)delta.Y);
+            if (_mouseLook) App.OnMouseMove(App.View.Width / 2 + (int)delta.X, App.View.Height / 2 + (int)delta.Y);
             else App.OnMouseMove((int)position.X, (int)position.Y);
         }
 

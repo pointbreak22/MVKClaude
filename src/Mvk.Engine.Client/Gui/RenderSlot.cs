@@ -35,7 +35,7 @@ namespace Mvk.Engine.Gui
         public RenderSlot(WindowMain window, ItemStack stack)
         {
             _window = window;
-            _si = Gi.Si;
+            _si = _window.View.Si;
             Stack = stack;
         }
 
@@ -45,9 +45,9 @@ namespace Mvk.Engine.Gui
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void OnResized()
         {
-            if (_si != Gi.Si)
+            if (_si != _window.View.Si)
             {
-                _si = Gi.Si;
+                _si = _window.View.Si;
             }
         }
 

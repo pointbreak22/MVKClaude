@@ -109,7 +109,7 @@ namespace Mvk.Engine.Renderer.World
             _meshJob = new MeshJob(this);
             LightMap = new TextureLightMap(context.Device);
             ShsBlocks = new ShadersBlocks(context, shaderBlocksLow, "BlocksHigh", "BlocksDepthMap");
-            Shadow = new ShadowMapping(context.Device);
+            Shadow = new ShadowMapping(context.Device, context.View);
             Atlas = new BlockAtlasTextures(context.Device);
             Entities = new EntitiesRenderer(game, this, _arrayChunkRender, shaderEntityLow);
             Particles = new ParticlesRenderer(game, this);
@@ -305,17 +305,17 @@ namespace Mvk.Engine.Renderer.World
             if (_game.World?.Settings != null)
             {
                 IEnvironment environment = _game.World.Settings.Environment;
-                Gi.ViewLightDir = environment.GetVectorLight();
+                _game.View.ViewLightDir = environment.GetVectorLight();
                 ColorSky = environment.GetColorSky();
                 ColorFog = environment.GetColorFog();
 
                 // Матрица карты теней от солнца (_GenVectorLightСalendar оригинала)
-                Vector3 vr = Glm.Cross(new Vector3(0, 1, 0), Gi.ViewLightDir);
-                Vector3 vu = Glm.Cross(Gi.ViewLightDir, vr);
+                Vector3 vr = Glm.Cross(new Vector3(0, 1, 0), _game.View.ViewLightDir);
+                Vector3 vu = Glm.Cross(_game.View.ViewLightDir, vr);
                 int sosm = ShadowMapping.SizeOrthShadowMap;
                 Mat4 matrix = Glm.Ortho(-sosm, sosm, -sosm, sosm, -sosm * 4, sosm);
-                matrix.Multiply(Glm.LookAt(Gi.ViewLightDir, new Vector3(0, 0, 0), vu));
-                matrix.ConvArray(Gi.MatrixViewDepthMap);
+                matrix.Multiply(Glm.LookAt(_game.View.ViewLightDir, new Vector3(0, 0, 0), vu));
+                matrix.ConvArray(_game.View.MatrixViewDepthMap);
             }
             _skyRender?.Update();
         }
@@ -357,7 +357,7 @@ namespace Mvk.Engine.Renderer.World
                 // Облака
                 _skyRender!.DrawCloudsDepthMap(commands, timeIndex);
                 // --- Конец сцены ТЕНЕЙ, обратно в окно
-                Shadow.RenderSceneEnd(commands, Gi.Width, Gi.Height);
+                Shadow.RenderSceneEnd(commands, _game.View.Width, _game.View.Height);
             }
 
             // Небо

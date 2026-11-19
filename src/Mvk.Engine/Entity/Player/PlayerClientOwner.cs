@@ -279,8 +279,8 @@ namespace Mvk.Engine.Entity.Player
                 // Чувствительность мыши
                 float speedMouse = Options.MouseSensitivityFloat;
                 // Определяем углы смещения
-                RotationPitchBiasInput -= centerBiasY / (float)Gi.Height * speedMouse;
-                RotationYawBiasInput += centerBiasX / (float)Gi.Width * speedMouse;
+                RotationPitchBiasInput -= centerBiasY / (float)_game.View.Height * speedMouse;
+                RotationYawBiasInput += centerBiasX / (float)_game.View.Width * speedMouse;
                 // Пробуждать физику не надо! Cмещение Hitbox-а не было
             }
         }
@@ -317,8 +317,8 @@ namespace Mvk.Engine.Entity.Player
         /// </summary>
         public void DebugOrtoNext()
         {
-            Gi.DebugOrtoNext();
-            _SetViewCamera(Gi.IsDrawOrto ? EnumViewCamera.Back : EnumViewCamera.Eye);
+            _game.View.DebugOrtoNext();
+            _SetViewCamera(_game.View.IsDrawOrto ? EnumViewCamera.Back : EnumViewCamera.Eye);
             
         }
 
@@ -396,28 +396,28 @@ namespace Mvk.Engine.Entity.Player
             //}
             // Матрица Projection
             Mat4 matrix;
-            if (Gi.IsDrawOrto)
+            if (_game.View.IsDrawOrto)
             {
-                int ort = Gi.ZoomDrawOrto * Gi.ZoomDrawOrto;
-                int width = Gi.Width / ort;
-                int height = Gi.Height / ort;
+                int ort = _game.View.ZoomDrawOrto * _game.View.ZoomDrawOrto;
+                int width = _game.View.Width / ort;
+                int height = _game.View.Height / ort;
                 matrix = Glm.Ortho(-width, width, -height, height, -500, 500);
             }
             else
             {
-                matrix = Glm.PerspectiveFov(Fov.ValueFrame, Gi.Width, Gi.Height,
+                matrix = Glm.PerspectiveFov(Fov.ValueFrame, _game.View.Width, _game.View.Height,
                    0.01f, 1450);// (OverviewChunk + 6) * 16f);
             }
             // Матрица Look
             matrix.Multiply(Glm.LookAt(pos, pos + front, new Vector3(0, 1, 0)));
-            matrix.ConvArray(Gi.MatrixView);
+            matrix.ConvArray(_game.View.MatrixView);
 
             if (ViewCamera == EnumViewCamera.Eye)
             {
                 // Если с глаз, нужна ещё матрица
-                matrix = Glm.PerspectiveFov(Fov.ValueFrame, Gi.Width, Gi.Height, 0.01f, -.2f);
+                matrix = Glm.PerspectiveFov(Fov.ValueFrame, _game.View.Width, _game.View.Height, 0.01f, -.2f);
                 matrix.Multiply(Glm.LookAt(pos, pos + front, new Vector3(0, 1, 0)));
-                matrix.ConvArray(Gi.MatrixViewEye);
+                matrix.ConvArray(_game.View.MatrixViewEye);
             }
 
             // Матрица солнца, для тени
@@ -451,7 +451,7 @@ namespace Mvk.Engine.Entity.Player
         /// </summary>
         private void _InitFrustumCulling()
         {
-            _frustumCulling.Init(Gi.MatrixView);
+            _frustumCulling.Init(_game.View.MatrixView);
 
             int chunkPosX = ChunkPositionX;
             int chunkPosZ = ChunkPositionZ;

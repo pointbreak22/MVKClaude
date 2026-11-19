@@ -44,8 +44,14 @@ namespace Mvk.Engine.Renderer.Shaders
         /// <summary>Текстуры кадра из Begin: Switch ставит их заново</summary>
         private ITexture? _atlasBlurry, _atlasSharpness, _lightMap, _depthMap;
 
+        /// <summary>
+        /// Состояние вида окна (матрицы, свет)
+        /// </summary>
+        private readonly ViewState _view;
+
         public ShadersBlocks(RenderContext context, string nameLow, string nameHigh, string nameDepthMap)
         {
+            _view = context.View;
             IGraphicsDevice device = context.Device;
             _low = new Program(device, nameLow, false);
             _high = new Program(device, nameHigh, true);
@@ -98,7 +104,7 @@ namespace Mvk.Engine.Renderer.Shaders
             _lightMap = lightMap;
             _depthMap = depthMap;
             Program p = _action;
-            commands.SetUniformMatrix4(p.View, Gi.MatrixView);
+            commands.SetUniformMatrix4(p.View, _view.MatrixView);
             commands.SetUniform(p.Takt, takt);
             commands.SetUniform(p.AnimOffset, Ce.ShaderAnimOffset);
             // Ветер, значение от -1 до 1
@@ -107,11 +113,11 @@ namespace Mvk.Engine.Renderer.Shaders
             commands.SetUniform(p.Overview, overview);
             commands.SetUniform(p.Colorfog, colorFog);
             commands.SetUniform(p.Torch, torchInHand);
-            commands.SetUniform(p.Brightness, Gi.BlockBrightness);
-            commands.SetUniform(p.LightDir, Gi.ViewLightDir);
+            commands.SetUniform(p.Brightness, _view.BlockBrightness);
+            commands.SetUniform(p.LightDir, _view.ViewLightDir);
             if (_qualitatively)
             {
-                commands.SetUniformMatrix4(p.LightMatrix, Gi.MatrixViewDepthMap);
+                commands.SetUniformMatrix4(p.LightMatrix, _view.MatrixViewDepthMap);
             }
         }
 
@@ -125,7 +131,7 @@ namespace Mvk.Engine.Renderer.Shaders
             commands.SetPipeline(_depthPipeline);
             commands.SetTexture(SlotAtlasBlurry, atlasBlurry);
             commands.SetTexture(SlotAtlasSharpness, atlasSharpness);
-            commands.SetUniformMatrix4(_dView, Gi.MatrixViewDepthMap);
+            commands.SetUniformMatrix4(_dView, _view.MatrixViewDepthMap);
             commands.SetUniform(_dTakt, takt);
             commands.SetUniform(_dAnimOffset, Ce.ShaderAnimOffset);
             // Ветер, значение от -1 до 1

@@ -41,8 +41,8 @@ namespace Mvk.Game.Client.Gui
             base._Rendering();
             int x1 = 0;
             int y1 = 0; 
-            int x2 = _sizeText.X + 16 * Gi.Si;
-            int y2 = _sizeText.Y + 12 * Gi.Si;
+            int x2 = _sizeText.X + 16 * _window.View.Si;
+            int y2 = _sizeText.Y + 12 * _window.View.Si;
 
             float a = 1f;
             float rBg = .396f;
@@ -52,7 +52,7 @@ namespace Mvk.Game.Client.Gui
             float g = 0;
             float b = 0;
 
-            int si = Gi.Si;
+            int si = _window.View.Si;
 
             _meshBg.Reload(new float[]
             {
@@ -97,8 +97,8 @@ namespace Mvk.Game.Client.Gui
                 x2 + si, y1, 0, 0, r, g, b, a
             });
 
-            _biasX = 8 * Gi.Si;
-            _biasY = 8 * Gi.Si;
+            _biasX = 8 * _window.View.Si;
+            _biasY = 8 * _window.View.Si;
         }
 
         protected override void _Draw()

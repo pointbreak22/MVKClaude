@@ -24,6 +24,10 @@ namespace Mvk.Engine.Games
         /// </summary>
         float DeltaTime { get; }
         /// <summary>
+        /// Состояние вида клиента: размер окна, размер интерфейса, матрицы (в оригинале статический Gi)
+        /// </summary>
+        ViewState View { get; }
+        /// <summary>
         /// Показать или скрыть курсор
         /// </summary>
         void CursorShow(bool show);

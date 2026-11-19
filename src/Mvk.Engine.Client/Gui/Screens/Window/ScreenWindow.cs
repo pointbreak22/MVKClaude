@@ -162,7 +162,7 @@ namespace Mvk.Engine.Gui.Screens
 
         protected override void _RenderingAdd()
         {
-            _meshBgDarken?.Reload(RenderFigure.RectangleSolid(0, 0, Gi.Width, Gi.Height, .4f, .4f, .4f, .5f));
+            _meshBgDarken?.Reload(RenderFigure.RectangleSolid(0, 0, window.View.Width, window.View.Height, .4f, .4f, .4f, .5f));
 
             _meshBg.Reload(RenderFigure.Rectangle(PosX * _si, PosY * _si,
                 (PosX + WidthWindow) * _si, (PosY + HeightWindow) * _si,

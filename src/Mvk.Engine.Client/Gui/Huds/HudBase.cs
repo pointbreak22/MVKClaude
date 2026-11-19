@@ -58,8 +58,8 @@ namespace Mvk.Engine.Gui.Huds
         /// </summary>
         protected virtual void _RenderCrosshair()
         {
-            int wc = Gi.Width / 2;
-            int hc = Gi.Height / 2;
+            int wc = _game.View.Width / 2;
+            int hc = _game.View.Height / 2;
 
             List<float> buffer = new List<float>();
             buffer.AddRange(RenderFigure.RectangleLine(wc - 8, hc, wc + 8, hc, 1, 1, 1, 1));

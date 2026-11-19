@@ -58,6 +58,10 @@ namespace Mvk.Engine
         public ScreenBase? Screen { get; private set; }
         /// <summary>Общие объекты рендера</summary>
         public RenderContext Context { get; }
+        /// <summary>
+        /// Состояние вида окна: размер, Si, матрицы (в оригинале статический Gi)
+        /// </summary>
+        public readonly ViewState View = new ViewState();
         /// <summary>Полноэкранный режим</summary>
         public bool FullScreen => _host.FullScreen;
         /// <summary>Звук окна</summary>
@@ -86,7 +90,7 @@ namespace Mvk.Engine
         public WindowMain(IWindowHost host, IGraphicsDevice device)
         {
             _host = host;
-            Context = new RenderContext(device);
+            Context = new RenderContext(device, View);
             VersionOpenGL = device.Description;
             Audio = new AudioBase(host.Audio);
             LScreen = new LaunchScreen(this);
@@ -267,10 +271,10 @@ namespace Mvk.Engine
         public virtual void OnResized(int width, int height)
         {
             if (width <= 0 || height <= 0) return;
-            Gi.Width = width;
-            Gi.Height = height;
+            View.Width = width;
+            View.Height = height;
             UpdateSizeInterface();
-            Gi.UpOrtho();
+            View.UpOrtho();
             Screen?.Resized();
             Game?.OnResized(width, height);
         }
@@ -282,9 +286,9 @@ namespace Mvk.Engine
         /// </summary>
         public virtual void UpdateSizeInterface()
         {
-            Gi.UpdateSizeInterface();
+            View.UpdateSizeInterface();
             Render?.UpdateSizeInterface();
-            Game?.OnResized(Gi.Width, Gi.Height);
+            Game?.OnResized(View.Width, View.Height);
         }
 
         #region WindowOverride

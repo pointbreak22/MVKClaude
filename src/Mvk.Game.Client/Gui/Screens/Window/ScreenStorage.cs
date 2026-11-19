@@ -325,9 +325,9 @@ namespace Mvk.Game.Client.Gui.Screens
                 int x = (PosX + 102) * _si;
 
                 float pitch = y > window.MouseY ? (1f - window.MouseY / (float)y)
-                    : -(window.MouseY - y) / (float)(Gi.Height - y);
+                    : -(window.MouseY - y) / (float)(window.View.Height - y);
                 float yaw = x > window.MouseX ? (1f - window.MouseX / (float)x)
-                    : -(window.MouseX - x) / (float)(Gi.Width - x);
+                    : -(window.MouseX - x) / (float)(window.View.Width - x);
 
                 renderAnimation.DrawGui((PosX + 102) * _si, (PosY + _biasY + 169 - 36) * _si,
                     Glm.Sin(yaw), Glm.Sin(pitch), 32 * _si); // 36

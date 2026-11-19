@@ -107,18 +107,18 @@ namespace Mvk.Engine.Renderer.World
             // Прорисовка
             if (!_hiddenBlock)
             {
-                _worldRenderer.Render.ShaderBindLine(Gi.MatrixView,
+                _worldRenderer.Render.ShaderBindLine(_worldRenderer.Render.View.MatrixView,
                     -_player.PosFrameX, -_player.PosFrameY, -_player.PosFrameZ, .1f);
                 _worldRenderer.Render.DepthOff();
                 _meshBlock.Draw();
                 _worldRenderer.Render.DepthOn();
-                _worldRenderer.Render.ShaderBindLine(Gi.MatrixView,
+                _worldRenderer.Render.ShaderBindLine(_worldRenderer.Render.View.MatrixView,
                     -_player.PosFrameX, -_player.PosFrameY, -_player.PosFrameZ, 1f);
                 _meshBlock.Draw();
             }
             if (!_hiddenOutline && Options.BlockPlacementPreview)
             { 
-                _worldRenderer.Render.ShaderBindLine(Gi.MatrixView,
+                _worldRenderer.Render.ShaderBindLine(_worldRenderer.Render.View.MatrixView,
                     -_player.PosFrameX, -_player.PosFrameY, -_player.PosFrameZ, 1f);
                 _meshOutline.Draw();
             }
@@ -127,7 +127,7 @@ namespace Mvk.Engine.Renderer.World
                 Vector2i posCh = new Vector2i(Mth.Floor(_player.PosFrameX) >> 4, Mth.Floor(_player.PosFrameZ) >> 4);
                 posCh.X = posCh.X << 4;
                 posCh.Y = posCh.Y << 4;
-                _worldRenderer.Render.ShaderBindLine(Gi.MatrixView,
+                _worldRenderer.Render.ShaderBindLine(_worldRenderer.Render.View.MatrixView,
                     posCh.X - _player.PosFrameX,
                     -_player.PosFrameY,
                     posCh.Y - _player.PosFrameZ, 1f);

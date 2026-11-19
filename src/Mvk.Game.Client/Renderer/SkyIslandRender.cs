@@ -580,7 +580,7 @@ namespace Mvk.Game.Client.Renderer
                 commands.SetPipeline(line ? _pipeElementLine : _pipeElement);
                 commands.SetTexture(0, _textures.Sun);
                 commands.SetUniform(_uElTransparency, _environment.GetSunLight());
-                commands.SetUniformMatrix4(_uElView, Gi.MatrixView);
+                commands.SetUniformMatrix4(_uElView, _worldRenderer.Render.View.MatrixView);
                 commands.SetUniform(_uElModel, in _matSun);
                 _DrawQuads(commands, _meshSun, 1);
             }
@@ -590,7 +590,7 @@ namespace Mvk.Game.Client.Renderer
             {
                 commands.SetPipeline(line ? _pipeStarLine : _pipeStar);
                 commands.SetUniform(_uStTransparency, _environment.StarLight);
-                commands.SetUniformMatrix4(_uStView, Gi.MatrixView);
+                commands.SetUniformMatrix4(_uStView, _worldRenderer.Render.View.MatrixView);
                 commands.SetUniform(_uStModel, in _matStar);
                 commands.SetUniform(_uStColor, _starRand1, _starRand2, _starRand3);
                 _DrawQuads(commands, _meshStar, _countStarQuads);
@@ -600,7 +600,7 @@ namespace Mvk.Game.Client.Renderer
                     commands.SetPipeline(line ? _pipeElementLine : _pipeElement);
                     commands.SetTexture(0, _textures.Moon);
                     commands.SetUniform(_uElTransparency, _environment.StarLight + .15f);
-                    commands.SetUniformMatrix4(_uElView, Gi.MatrixView);
+                    commands.SetUniformMatrix4(_uElView, _worldRenderer.Render.View.MatrixView);
                     commands.SetUniform(_uElModel, in _matMoon);
                     _DrawQuads(commands, _meshMoon, 1);
                 }
@@ -719,7 +719,7 @@ namespace Mvk.Game.Client.Renderer
                 commands.SetTexture(0, _textureCloud);
                 _ShCloudsBind(commands, timeIndex);
                 commands.SetUniform(_uClTransparency, 1f);
-                commands.SetUniformMatrix4(_uClView, Gi.MatrixViewDepthMap);
+                commands.SetUniformMatrix4(_uClView, _worldRenderer.Render.View.MatrixViewDepthMap);
                 commands.SetUniform(_uClPosY, _player.PosFrameY + 4);
                 commands.SetUniform(_uClFew, _environment.FewClouds + .14f);
                 _DrawQuads(commands, _meshClouds, _countCloudQuads);
@@ -737,7 +737,7 @@ namespace Mvk.Game.Client.Renderer
                 commands.SetPipeline(Engine.Debug.IsDrawVoxelLine ? _pipeCloudsLine : _pipeClouds);
                 commands.SetTexture(0, _textureCloud);
                 _ShCloudsBind(commands, timeIndex);
-                commands.SetUniformMatrix4(_uClView, Gi.MatrixView);
+                commands.SetUniformMatrix4(_uClView, _worldRenderer.Render.View.MatrixView);
 
                 // Второй уровень затемнённости
                 if (_environment.FewClouds < .7f)
@@ -931,7 +931,7 @@ namespace Mvk.Game.Client.Renderer
                     commands.SetTexture(0, _environment.Precipitation == EnumPrecipitation.Showers
                         ? _textureShowers : _textureRain);
                     commands.SetUniform(_uElTransparency, 1f);
-                    commands.SetUniformMatrix4(_uElView, Gi.MatrixView);
+                    commands.SetUniformMatrix4(_uElView, _worldRenderer.Render.View.MatrixView);
                     commands.SetUniform(_uElModel, in _matIdentity);
                     _DrawQuads(commands, _meshRain, c / 20);
                 }

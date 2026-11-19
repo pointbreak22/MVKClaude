@@ -164,7 +164,7 @@ namespace Mvk.Engine.Renderer.Font
         /// </summary>
         public void UpdateSizeInterface()
         {
-            _si = Gi.Si;
+            _si = _render?.View.Si ?? 1;
             _hori = _horiAdvance * _si;
             _vert = _vertAdvance * _si;
         }

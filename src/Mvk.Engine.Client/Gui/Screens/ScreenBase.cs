@@ -29,7 +29,7 @@ namespace Mvk.Engine.Gui.Screens
         /// </summary>
         protected ToolTip _toolTip;
 
-        public ScreenBase(WindowMain window) : base(window) => _si = Gi.Si;
+        public ScreenBase(WindowMain window) : base(window) => _si = window.View.Si;
 
         /// <summary>
         /// Запускается при создании объекта и при смене режима FullScreen
@@ -55,7 +55,7 @@ namespace Mvk.Engine.Gui.Screens
         /// </summary>
         public void Resized()
         {
-            _si = Gi.Si;
+            _si = window.View.Si;
             foreach (WidgetBase control in _controls)
             {
                 control.OnResized();
@@ -127,11 +127,11 @@ namespace Mvk.Engine.Gui.Screens
         /// <summary>
         /// Получить ширину, с перерасчётом для инерфейса
         /// </summary>
-        public int Width => Gi.Width / _si;
+        public int Width => window.View.Width / _si;
         /// <summary>
         /// Получить высоту, с перерасчётом для инерфейса
         /// </summary>
-        public int Height => Gi.Height / _si;
+        public int Height => window.View.Height / _si;
 
         public override void Dispose()
         {

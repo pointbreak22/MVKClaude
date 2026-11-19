@@ -20,6 +20,10 @@ namespace Mvk.Engine.Renderer
     {
         /// <summary>Общие объекты рендера</summary>
         public readonly RenderContext Context;
+        /// <summary>
+        /// Состояние вида окна
+        /// </summary>
+        public ViewState View => Context.View;
         /// <summary>Текстуры GUI по номерам</summary>
         public readonly TextureMap Texture;
         /// <summary>Основной шрифт</summary>
@@ -103,7 +107,7 @@ namespace Mvk.Engine.Renderer
             Frame++;
             _depth = true;
             _current = null;
-            Glm.Ortho(0, Gi.Width, Gi.Height, 0, 0, 1).ConvArray(_ortho2D);
+            Glm.Ortho(0, View.Width, View.Height, 0, 0, 1).ConvArray(_ortho2D);
         }
 
         /// <summary>

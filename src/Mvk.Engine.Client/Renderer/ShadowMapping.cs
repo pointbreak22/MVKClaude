@@ -36,9 +36,15 @@ namespace Mvk.Engine.Renderer
         private readonly IGraphicsDevice _device;
         private IRenderTarget? _target;
 
-        public ShadowMapping(IGraphicsDevice device)
+        /// <summary>
+        /// Состояние вида окна (яркость теней)
+        /// </summary>
+        private readonly ViewState _view;
+
+        public ShadowMapping(IGraphicsDevice device, ViewState view)
         {
             _device = device;
+            _view = view;
             ReloadInit();
         }
 
@@ -48,8 +54,8 @@ namespace Mvk.Engine.Renderer
         public void ReloadInit()
         {
             IsShadow = Options.Shadow;
-            Gi.BlockBrightness = IsShadow ? 0.3f : 0.15f;
-            Gi.EntityBrightness = 0.3f;
+            _view.BlockBrightness = IsShadow ? 0.3f : 0.15f;
+            _view.EntityBrightness = 0.3f;
             if (IsShadow && _target == null)
             {
                 // CLAMP_TO_BORDER с белой рамкой: вне карты глубина 1, тени нет

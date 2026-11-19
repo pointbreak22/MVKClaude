@@ -138,6 +138,10 @@ namespace Mvk.Engine.Games
         /// Дельта последнего тика в mc
         /// </summary>
         public float DeltaTime => Host.DeltaTime;
+        /// <summary>
+        /// Состояние вида клиента (размер окна, матрицы), в оригинале статический Gi
+        /// </summary>
+        public ViewState View => Host.View;
 
         /// <summary>
         /// Сохранить опции
@@ -271,8 +275,8 @@ namespace Mvk.Engine.Games
         {
             if (_isMouseFirstPersonView)
             {
-                int centerX = Gi.Width / 2;
-                int centerY = Gi.Height / 2;
+                int centerX = View.Width / 2;
+                int centerY = View.Height / 2;
 
                 if (_flagFirstMouseFPV)
                 {

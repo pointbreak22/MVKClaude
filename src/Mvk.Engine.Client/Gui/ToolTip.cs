@@ -89,14 +89,14 @@ namespace Mvk.Engine.Gui
         /// </summary>
         public void OnMouseMove(int x, int y)
         {
-            _mouseX = x + _biasX * Gi.Si;
-            _mouseY = y + _biasY * Gi.Si;
+            _mouseX = x + _biasX * _window.View.Si;
+            _mouseY = y + _biasY * _window.View.Si;
 
             // Проверка, чтоб вниз за окно не выходило
-            int height = _sizeText.Y + 8 * Gi.Si;
-            if (height + _mouseY > Gi.Height)
+            int height = _sizeText.Y + 8 * _window.View.Si;
+            if (height + _mouseY > _window.View.Height)
             {
-                _mouseY = Gi.Height - height;
+                _mouseY = _window.View.Height - height;
             }
         }
 

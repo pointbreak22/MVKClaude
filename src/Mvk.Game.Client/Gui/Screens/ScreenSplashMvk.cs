@@ -31,8 +31,8 @@ namespace Mvk.Game.Client.Gui.Screens
         /// </summary>
         protected override void _RenderBegin()
         {
-            int w = Gi.Width / 2;
-            int h = (Gi.Height - 480 * _si) / 2;
+            int w = window.View.Width / 2;
+            int h = (window.View.Height - 480 * _si) / 2;
             int w2 = 256 * _si;
             int h2 = 384 * _si;
             _meshLogo.Reload(RenderFigure.Rectangle(w - w2, h, w + w2, h + h2, 0, 0, 1, .75f));

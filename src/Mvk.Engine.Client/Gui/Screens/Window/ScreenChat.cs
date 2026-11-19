@@ -54,7 +54,7 @@ namespace Mvk.Engine.Gui.Screens
             FontBase font = window.Render.FontMain;
             _labelMessages = new Label(window, 
                 window.GameHost.ChatList.Font).SetTextAlight(EnumAlight.Left, EnumAlightVert.Bottom);
-            _labelMessages.SetSize(Gi.WindowsChatWidthMessage, Gi.WindowsChatHeightMessage);
+            _labelMessages.SetSize(window.View.WindowsChatWidthMessage, window.View.WindowsChatHeightMessage);
             _labelMessages.Multiline().ColorChat();
             _textBoxMessage = new TextBox(window, window.Render.FontMain, 490, "", 
                 TextBox.EnumRestrictions.All, 255);

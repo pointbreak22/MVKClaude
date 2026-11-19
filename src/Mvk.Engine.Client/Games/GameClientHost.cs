@@ -152,6 +152,10 @@ namespace Mvk.Engine.Games
         /// </summary>
         public RenderMain Render { get; }
         /// <summary>
+        /// Состояние вида окна (у рендера)
+        /// </summary>
+        public override ViewState View => Render.View;
+        /// <summary>
         /// Строки чата для HUD (в оригинале Player.Chat), создаётся с основным шрифтом при запуске игры
         /// </summary>
         public ChatList? ChatList { get; private set; }
@@ -187,7 +191,7 @@ namespace Mvk.Engine.Games
         public override void ChatMessage(string message)
         {
             base.ChatMessage(message);
-            ChatList?.AddMessage(message, Gi.WindowsChatWidthMessage, Gi.Si);
+            ChatList?.AddMessage(message, View.WindowsChatWidthMessage, View.Si);
         }
 
         /// <summary>

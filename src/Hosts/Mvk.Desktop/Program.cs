@@ -361,8 +361,8 @@ namespace Mvk.Desktop
                         {
                             // Кнопки игры оригинала, мимо раскладки мыши хоста
                             var button = name == "MouseLeft" ? Mvk.Engine.Actions.MouseButton.Left : Mvk.Engine.Actions.MouseButton.Right;
-                            if (down) app.App.OnMouseDown(button, Gi.Width / 2, Gi.Height / 2);
-                            else app.App.OnMouseUp(button, Gi.Width / 2, Gi.Height / 2);
+                            if (down) app.App.OnMouseDown(button, app.App.View.Width / 2, app.App.View.Height / 2);
+                            else app.App.OnMouseUp(button, app.App.View.Width / 2, app.App.View.Height / 2);
                             return;
                         }
                         var key = Enum.Parse<Mvk.Engine.Actions.Keys>(name);
@@ -406,9 +406,9 @@ namespace Mvk.Desktop
                         // Зажать левую кнопку (ломать блок под прицелом) до снимка
                         holdLeft = false;
                         // Первый щелчок, как у человека, только включает обзор мышью (GameBase.OnMouseDown)
-                        app.App.OnMouseDown(Mvk.Engine.Actions.MouseButton.Left, Gi.Width / 2, Gi.Height / 2);
-                        app.App.OnMouseUp(Mvk.Engine.Actions.MouseButton.Left, Gi.Width / 2, Gi.Height / 2);
-                        app.App.OnMouseDown(Mvk.Engine.Actions.MouseButton.Left, Gi.Width / 2, Gi.Height / 2);
+                        app.App.OnMouseDown(Mvk.Engine.Actions.MouseButton.Left, app.App.View.Width / 2, app.App.View.Height / 2);
+                        app.App.OnMouseUp(Mvk.Engine.Actions.MouseButton.Left, app.App.View.Width / 2, app.App.View.Height / 2);
+                        app.App.OnMouseDown(Mvk.Engine.Actions.MouseButton.Left, app.App.View.Width / 2, app.App.View.Height / 2);
                     }
                     if (presses.Count > 0)
                     {

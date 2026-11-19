@@ -30,7 +30,7 @@ namespace Mvk.Engine.Gui.Huds
 #if DEBUG
 
             // Отладка Карты света
-            _meshLightMap.Reload(RenderFigure.Rectangle(Gi.Width - 144, 16, Gi.Width - 16, 144, 0, 0, 1, 1));
+            _meshLightMap.Reload(RenderFigure.Rectangle(_game.View.Width - 144, 16, _game.View.Width - 16, 144, 0, 0, 1, 1));
             Render.BindTexture(Host.WorldRender.LightMap.Texture);
             Render.ShaderBindGuiColor();
             _meshLightMap.Draw();

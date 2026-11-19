@@ -277,7 +277,7 @@ namespace Mvk.Engine.Renderer.World.Entity
                         entity = chunkRender.ListEntities.GetAt(j);
                         if (entity.Id != playerId)
                         {
-                            Render.ShaderBindLine(Gi.MatrixView,
+                            Render.ShaderBindLine(_game.View.MatrixView,
                                 entity.GetPosFrameX(timeIndex) - x,
                                 entity.GetPosFrameY(timeIndex) - y,
                                 entity.GetPosFrameZ(timeIndex) - z, 1f);
@@ -384,7 +384,7 @@ namespace Mvk.Engine.Renderer.World.Entity
             if (IsHitBox)
             {
                 _hitbox ??= new HitboxEntityRender(Render);
-                Render.ShaderBindLine(Gi.MatrixView, 0, 0, 0, 1f);
+                Render.ShaderBindLine(_game.View.MatrixView, 0, 0, 0, 1f);
                 _hitbox.Draw(timeIndex, _game.Player);
             }
         }

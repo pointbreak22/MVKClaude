@@ -97,8 +97,8 @@ namespace Mvk.Engine.Gui.Screens
         /// </summary>
         protected virtual void _RenderStep()
         {
-            int w = Gi.Width / 2;
-            int h = (Gi.Height - 608 * _si) / 2 + 512 * _si;
+            int w = window.View.Width / 2;
+            int h = (window.View.Height - 608 * _si) / 2 + 512 * _si;
             _list.Clear();
             int w2 = 308 * _si;
             _list.AddRange(RenderFigure.Rectangle(w - w2, h - 40 * _si, w + w2, h, .13f, .44f, .91f));

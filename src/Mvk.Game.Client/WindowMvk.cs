@@ -75,7 +75,7 @@ namespace Mvk.Game.Client
                     _isTextDebug = false;
                     font.Clear();
                     font.SetFontFX(EnumFontFX.Shadow).SetColor(new Vector3(.9f, .9f, .9f));
-                    font.RenderText(10 * Gi.Si, 10 * Gi.Si, _textDebug);
+                    font.RenderText(10 * View.Si, 10 * View.Si, _textDebug);
                     font.RenderFX();
                     font.Reload(_meshTextDebug);
                     font.Clear();

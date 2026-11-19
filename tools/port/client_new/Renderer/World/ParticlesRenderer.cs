@@ -201,7 +201,7 @@ namespace Mvk.Engine.Renderer.World
             // BindUniformParticle3d оригинала
             commands.SetTexture(0, lightMap);
             _Bind(_pipeCube);
-            commands.SetUniformMatrix4(_u3View, Gi.MatrixView);
+            commands.SetUniformMatrix4(_u3View, _game.View.MatrixView);
             int count = _list3d.Count;
             for (int i = 0; i < count; i++)
             {
@@ -233,7 +233,7 @@ namespace Mvk.Engine.Renderer.World
             if (pipeline != _pipeCube)
             {
                 // Юниформы кадра 2д-шейдера: вид и поворот к камере
-                _commands.SetUniformMatrix4(_u2View, Gi.MatrixView);
+                _commands.SetUniformMatrix4(_u2View, _game.View.MatrixView);
                 _commands.SetUniform(_u2Rotate, in _rotate);
             }
         }

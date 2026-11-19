@@ -22,7 +22,7 @@
 | Vge/Gui | Mvk.Engine.Client | 5 | ✅ | 5.3: все экраны, элементы, HUD, чат через RHI (`client_seam4/5.py`) |
 | Vge/Audio (Al, Alc, AudioSample, AudioSource, AudioSources) | Mvk.Platform.Audio (`AudioDevice`, `PcmSample`) | 4 | ✅ | DllImport → Silk.NET.OpenAL; декодирование OGG побайтно: `Golden/audio.csv` (51 звук) |
 | Vge/Audio (AudioBase, реестр звуков) | Mvk.Engine + Mvk.Engine.Client | 5 | ✅ | 5.4: `AudioBase` через `IWindowAudio`, `DesktopAudio` на OpenAL |
-| Vge/Сe.cs (кириллическая «С» в имени), Gi.cs | Mvk.Engine/Ce.cs, Gi.cs | 2 | ✅ | файл переименован; из `Gi` убраны буферы вершин и рендеры блоков, палитра → `ColorPalette`, затемнение → `BlockShading` |
+| Vge/Сe.cs (кириллическая «С» в имени), Gi.cs | Mvk.Engine/Ce.cs, Gi.cs | 2 | ✅ | файл переименован; из `Gi` убраны буферы вершин и рендеры блоков, палитра → `ColorPalette`, затемнение → `BlockShading`, состояние вида → `ViewState` (Mvk.Engine/ViewState.cs) |
 | Mvk2/World, Entity, Item, Command, Packets, Util, Games (логика), DebugMvk (без снимка биомов) | Mvk.Game | 3 | ✅ | `run_game.py`; генерация острова побитно: `IslandParityTests` против `Golden/island.csv` |
 | Mvk2/Renderer, Gui, WindowMvk, DebugMvk | Mvk.Game.Client | 5 | ✅ | 5.2: `SkyIslandRender`, `SkyTexturesMvk`, `EntityRenderOwner`; 5.3: `RenderMvk`, `HudMvk`, `RenderSlots`, `WindowMvk`, все `Gui/*`, `LoadingMvk`, `DebugMvkClient` (F6) |
 | Mvk2/Games | Mvk.Game (+ Client) | 3/5 | ✅ | `GameModClientMvk`, `GameModServerMvk` (run_game.py), клиентская часть в `Mvk.Game.Client` |

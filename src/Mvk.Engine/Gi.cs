@@ -7,117 +7,10 @@ using Mvk.Core.Maths;
 
 /// <summary>
 /// GraphicalInterface
-/// Класс статический данных для GUI
+/// Константы и общие ресурсы GUI. Состояние вида (размер окна, Si, матрицы) в объекте Mvk.Engine.ViewState
 /// </summary>
 public sealed class Gi
 {
-    /// <summary>
-    /// Ширина окна
-    /// </summary>
-    public static int Width = 1280;
-    /// <summary>
-    /// Высота окна
-    /// </summary>
-    public static int Height = 720;
-
-    /// <summary>
-    /// Размер интерфейса
-    /// </summary>
-    public static int Si = 1;
-
-    /// <summary>
-    /// Ширина текстового окна чата
-    /// </summary>
-    public static int WindowsChatWidthMessage = 472;
-    /// <summary>
-    /// Высота текстового окна чата
-    /// </summary>
-    public static int WindowsChatHeightMessage = 333;
-
-    #region Для отладки ортоганальная камера мира
-
-    /// <summary>
-    /// Демонстрируем ли мы прорисовку ортоганальной камеры
-    /// </summary>
-    public static bool IsDrawOrto { get; private set; }
-    /// <summary>
-    /// Увеличение ортоганальной камеры
-    /// </summary>
-    public static int ZoomDrawOrto { get; private set; }
-
-    /// <summary>
-    /// Клик изменения отладочной ортоганальной камеры
-    /// </summary>
-    public static void DebugOrtoNext()
-    {
-        if (--ZoomDrawOrto < 0)
-        {
-            ZoomDrawOrto = 6;
-        }
-        IsDrawOrto = ZoomDrawOrto > 0;
-    }
-
-    #endregion
-
-    #region ActiveTexture
-
-    /// <summary>
-    /// ID Активации текстуры карты света
-    /// GL_TEXTURE0 + ActiveTextureLightMap
-    /// </summary>
-    public static int ActiveTextureLightMap = 5;
-    /// <summary>
-    /// ID Активации текстуры атласа с резкостью (без Mipmap)
-    /// GL_TEXTURE0 + ActiveTextureAatlasSharpness
-    /// </summary>
-    public static int ActiveTextureAatlasSharpness = 6;
-    /// <summary>
-    /// ID Активации текстуры атласа с размытостью (с Mipmap)
-    /// GL_TEXTURE0 + ActiveTextureAatlasBlurry
-    /// </summary>
-    public static int ActiveTextureAatlasBlurry = 7;
-    /// <summary>
-    /// ID Активации текстуры маленьких сэмплов сущностей
-    /// GL_TEXTURE0 + ActiveTextureSamplerSmall
-    /// </summary>
-    public static int ActiveTextureSamplerSmall = 8;
-    /// <summary>
-    /// ID Активации текстуры больших сэмплов сущностей
-    /// GL_TEXTURE0 + ActiveTextureSamplerBig
-    /// </summary>
-    public static int ActiveTextureSamplerBig = 9;
-    /// <summary>
-    /// ID Активации текстуры карты теней
-    /// GL_TEXTURE0 + ActiveTextureShadowMap
-    /// </summary>
-    public static int ActiveTextureShadowMap = 10;
-
-    #endregion
-
-    /// <summary>
-    /// Обновить размер инерфейса
-    /// </summary>
-    public static void UpdateSizeInterface()
-    {
-        Si = Options.SizeInterface;
-        // Si = (Options.SizeInterface > 1 && Height < 960) ? 1 : Options.SizeInterface;
-
-        // Автоматический SizeInterface
-        if (Si == 2)
-        {
-            // Крупный стиль
-            if (Height < 832) Si = 1; // 960
-            else if (Height < 1664) Si = 2; // 1920
-            else Si = 4;
-        }
-        else
-        {
-            // Мелкий стиль
-            if (Height < 1664) Si = 1;
-            else Si = 2;
-        }
-    }
-
     /// <summary>
     /// Цвет текста для чата
     /// </summary>
@@ -173,42 +66,6 @@ public sealed class Gi
     /// Дистанция в чанках, для прорисовки сетки без MipMap, как правило это уникальные блоки
     /// </summary>
     public const int MaxDistanceNotMipMap = 12;
-
-    /// <summary>
-    /// Массив матрицы для проецирования дрехмерных координат на экран
-    /// </summary>
-    public static readonly float[] Ortho = new float[16];
-    /// <summary>
-    /// Матрица просмотра Projection * LookAt
-    /// </summary>
-    public static readonly float[] MatrixView = new float[16];
-    /// <summary>
-    /// Матрица просмотра Projection * LookAt для модели с глаз
-    /// </summary>
-    public static readonly float[] MatrixViewEye = new float[16];
-    /// <summary>
-    /// Матрица просмотра Projection * LookAt для карты теней, от солнца или луны
-    /// </summary>
-    public static readonly float[] MatrixViewDepthMap = new float[16];
-    /// <summary>
-    /// Вектор источника света для тени
-    /// </summary>
-    public static Vector3 ViewLightDir = new Vector3(0);
-    /// <summary>
-    /// Яркость теней сущностей
-    /// </summary>
-    public static float EntityBrightness = 0.3f;
-    /// <summary>
-    /// Яркость теней блоков
-    /// </summary>
-    public static float BlockBrightness = 0.3f;
-
-    /// <summary>
-    /// Обновить ортогональную проекцию
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void UpOrtho()
-        => Glm.Ortho(0, Width, Height, 0, -100 * Si, 100 * Si).ConvArray(Ortho);
 
     /// <summary>
     /// Получить сетку разрушения блока, согласно выбранного блока

@@ -65,8 +65,14 @@ namespace Mvk.Engine.Renderer.Shaders
         /// <summary>Текстуры последнего прохода сущностей: для GUI привязываются заново (слот 0 занят GUI)</summary>
         private ITexture? _small, _big, _atlas, _lightMap, _depthTexture;
 
+        /// <summary>
+        /// Состояние вида окна (матрицы, свет, Si)
+        /// </summary>
+        private readonly ViewState _view;
+
         public ShadersEntity(RenderContext context, string nameLow, string nameHigh, string nameDepthMap, string nameGui)
         {
+            _view = context.View;
             IGraphicsDevice device = context.Device;
             _low = new Program(device, nameLow, Kind.Low);
             _high = new Program(device, nameHigh, Kind.High);
@@ -115,14 +121,14 @@ namespace Mvk.Engine.Renderer.Shaders
         /// </summary>
         public void BindUniformBegin(CommandList commands, ITexture small, ITexture big, ITexture atlas,
             ITexture lightMap, ITexture? depthMap)
-            => _Begin(commands, small, big, atlas, lightMap, depthMap, Gi.MatrixView);
+            => _Begin(commands, small, big, atlas, lightMap, depthMap, _view.MatrixView);
 
         /// <summary>
         /// Занести начальные юниформы для моделей с глаз (BindUniformBeginEye оригинала)
         /// </summary>
         public void BindUniformBeginEye(CommandList commands, ITexture small, ITexture big, ITexture atlas,
             ITexture lightMap, ITexture? depthMap)
-            => _Begin(commands, small, big, atlas, lightMap, depthMap, Gi.MatrixViewEye);
+            => _Begin(commands, small, big, atlas, lightMap, depthMap, _view.MatrixViewEye);
 
         private void _Begin(CommandList commands, ITexture small, ITexture big, ITexture atlas,
             ITexture lightMap, ITexture? depthMap, float[] view)
@@ -139,11 +145,11 @@ namespace Mvk.Engine.Renderer.Shaders
             _BindTextures(commands);
             commands.SetUniformMatrix4(_action.View, view);
             commands.SetUniform(_action.Scale, 1f);
-            commands.SetUniform(_action.Brightness, Gi.EntityBrightness);
-            commands.SetUniform(_action.LightDir, Gi.ViewLightDir);
+            commands.SetUniform(_action.Brightness, _view.EntityBrightness);
+            commands.SetUniform(_action.LightDir, _view.ViewLightDir);
             if (_qualitatively)
             {
-                commands.SetUniformMatrix4(_action.LightMatrix, Gi.MatrixViewDepthMap);
+                commands.SetUniformMatrix4(_action.LightMatrix, _view.MatrixViewDepthMap);
             }
         }
 
@@ -168,7 +174,7 @@ namespace Mvk.Engine.Renderer.Shaders
             commands.SetTexture(SlotSamplerSmall, small);
             commands.SetTexture(SlotSamplerBig, big);
             commands.SetTexture(SlotAtlas, atlas);
-            commands.SetUniformMatrix4(_depthMap.View, Gi.MatrixViewDepthMap);
+            commands.SetUniformMatrix4(_depthMap.View, _view.MatrixViewDepthMap);
         }
 
         /// <summary>
@@ -231,8 +237,8 @@ namespace Mvk.Engine.Renderer.Shaders
             if (_small != null) Commands.SetTexture(SlotSamplerSmall, _small);
             if (_big != null) Commands.SetTexture(SlotSamplerBig, _big);
             if (_atlas != null) Commands.SetTexture(SlotAtlas, _atlas);
-            Commands.SetUniformMatrix4(_guiView, Gi.Ortho);
-            Commands.SetUniform(_guiBrightness, Gi.EntityBrightness);
+            Commands.SetUniformMatrix4(_guiView, _view.Ortho);
+            Commands.SetUniform(_guiBrightness, _view.EntityBrightness);
             // Нужен когда хотим сущность продемонстрировать
             Commands.SetUniform(_guiDepth, -1f);
             UniformVolumeGui(true);
@@ -248,8 +254,8 @@ namespace Mvk.Engine.Renderer.Shaders
             Program p = _action;
             Gui.BindPipelines(p.AnimationGui);
             _BindTextures(Commands);
-            Commands.SetUniformMatrix4(p.View, Gi.Ortho);
-            Commands.SetUniform(p.Brightness, Gi.EntityBrightness);
+            Commands.SetUniformMatrix4(p.View, _view.Ortho);
+            Commands.SetUniform(p.Brightness, _view.EntityBrightness);
             // -5, -1, -5 нормализован
             Commands.SetUniform(p.LightDir, -.700140059f, -.140028015f, -.700140059f);
             Commands.SetUniform(p.Scale, -scale);
@@ -275,12 +281,12 @@ namespace Mvk.Engine.Renderer.Shaders
             {
                 // -5, -1, -5 нормализован
                 Commands.SetUniform(_guiLightDir, -.700140059f, -.140028015f, -.700140059f);
-                Commands.SetUniform(_guiScale, -(float)Gi.Si);
+                Commands.SetUniform(_guiScale, -(float)_view.Si);
             }
             else
             {
                 Commands.SetUniform(_guiLightDir, 0, 0, -1);
-                Commands.SetUniform(_guiScale, (float)Gi.Si);
+                Commands.SetUniform(_guiScale, (float)_view.Si);
             }
         }
 

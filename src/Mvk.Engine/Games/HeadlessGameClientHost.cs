@@ -30,6 +30,7 @@ namespace Mvk.Engine.Games
 
         public float DeltaTimeFrame { get; set; } = 16f;
         public float DeltaTime { get; set; } = 50f;
+        public virtual ViewState View { get; } = new ViewState();
         public virtual void CursorShow(bool show) { }
         public virtual void SetCursorPosition(int x, int y) { }
         public virtual void OptionsSave() { }

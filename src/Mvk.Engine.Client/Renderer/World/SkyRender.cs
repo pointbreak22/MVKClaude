@@ -221,7 +221,7 @@ namespace Mvk.Engine.Renderer.World
         public virtual void DrawSky(CommandList commands, float timeIndex)
         {
             commands.SetPipeline(Debug.IsDrawVoxelLine ? _pipeSkyLine : _pipeSky);
-            commands.SetUniformMatrix4(_uSkyView, Gi.MatrixView);
+            commands.SetUniformMatrix4(_uSkyView, _worldRenderer.Render.View.MatrixView);
             commands.SetUniform(_uSkyColor, _colorSky.X, _colorSky.Y, _colorSky.Z, 1f);
             commands.SetUniform(_uSkyColorDown, _colorDown.X, _colorDown.Y, _colorDown.Z, 1f);
             commands.SetUniform(_uSkyColorFog, _colorFog.X, _colorFog.Y, _colorFog.Z, 1f);

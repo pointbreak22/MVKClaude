@@ -80,16 +80,16 @@ namespace Mvk.Engine.Gui.Huds
                     _isDrawEmpty = false;
                     FontBase font = _chat.Font;
                     font.SetFontFX(EnumFontFX.Outline);
-                    int h = Gi.Height - 40 * Gi.Si;
+                    int h = _game.View.Height - 40 * _game.View.Si;
                     if (count > _countMaxLine) count = _countMaxLine;
                     string[] list = new string[count];
                     int[] line = new int[count];
                     count--;
-                    int width = Gi.Width / 2 / Gi.Si;
+                    int width = _game.View.Width / 2 / _game.View.Si;
                     // Готовим массив строк, разбивая их если длинные
                     for (int i = count; i >= 0; i--)
                     {
-                        font.Transfer.Run(_chat.ChatLines[i].Message, width, Gi.Si);
+                        font.Transfer.Run(_chat.ChatLines[i].Message, width, _game.View.Si);
                         list[i] = font.Transfer.OutText;
                         line[i] = font.Transfer.NumberLines;
                     }
@@ -98,8 +98,8 @@ namespace Mvk.Engine.Gui.Huds
                     int number = 0;
                     for (int i = count; i >= 0; i--)
                     {
-                        h -= (font.GetVert() + 4 * Gi.Si) * line[i];
-                        font.RenderText(10 * Gi.Si, h, list[i]);
+                        h -= (font.GetVert() + 4 * _game.View.Si) * line[i];
+                        font.RenderText(10 * _game.View.Si, h, list[i]);
                         if (++number >= _countMaxLine)
                         {
                             break;
