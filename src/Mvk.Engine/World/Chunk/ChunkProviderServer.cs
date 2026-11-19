@@ -76,11 +76,85 @@ namespace Mvk.Engine.World.Chunk
         }
 
 
+        /// <summary>
+        /// Пул потоков рельефа в режиме генерации Parallel, иначе null
+        /// </summary>
+        private readonly JobScheduler _reliefScheduler;
+        /// <summary>
+        /// Рельеф пакета: генератор на поток и чанки пакета
+        /// </summary>
+        private readonly ReliefJob _reliefJob;
+        /// <summary>
+        /// Чанки пакета, которым нужен ChunkPresent (не были готовы до загрузки)
+        /// </summary>
+        private ChunkServer[] _presentChunks = new ChunkServer[64];
+
         public ChunkProviderServer(WorldServer world) : base(world)
         {
             _worldServer = world;
             Settings.SetHeightChunks(world.Settings.NumberChunkSections);
             ChunkGenerate = world.Settings.ChunkGenerate;
+            if (ChunkGenerate is IChunkProviderGenerateParallel parallel && parallel.IsParallel)
+            {
+                _reliefScheduler = new JobScheduler(Options.GenerationThreads > 0
+                    ? Options.GenerationThreads : JobScheduler.DefaultWorkers, "Relief");
+                _reliefJob = new ReliefJob(parallel, _reliefScheduler.WorkerCount);
+            }
+        }
+
+        /// <summary>
+        /// Остановить потоки рельефа (мир выгружен)
+        /// </summary>
+        public void StopRelief() => _reliefScheduler?.Dispose();
+
+        /// <summary>
+        /// Рельеф пакета чанков на потоках планировщика: у каждого потока свой генератор
+        /// </summary>
+        private sealed class ReliefJob : IParallelJob
+        {
+            private readonly IChunkProviderGenerate[] _workers;
+            public ChunkServer[] Chunks = new ChunkServer[64];
+
+            public ReliefJob(IChunkProviderGenerateParallel main, int count)
+            {
+                _workers = new IChunkProviderGenerate[count];
+                _workers[0] = main;
+                for (int i = 1; i < count; i++) _workers[i] = main.CreateParallelWorker();
+            }
+
+            public void Execute(int index, int worker) => _workers[worker].Relief(Chunks[index]);
+        }
+
+        /// <summary>
+        /// Режим Parallel: загрузка с диска последовательно, рельеф пулом потоков, затем ChunkPresent
+        /// в порядке очереди
+        /// </summary>
+        private void _LoadOrGenParallel(int count)
+        {
+            if (_presentChunks.Length < count)
+            {
+                _presentChunks = new ChunkServer[count * 2];
+                _reliefJob.Chunks = new ChunkServer[count * 2];
+            }
+            int present = 0, relief = 0;
+            ChunkServer chunk;
+            for (int i = 0; i < count; i++)
+            {
+                chunk = _loadingChunks[i];
+                if (chunk.IsChunkPresent) continue;
+                _presentChunks[present++] = chunk;
+                _LoadFile(chunk);
+                if (!chunk.IsChunkPresent) _reliefJob.Chunks[relief++] = chunk;
+            }
+            long statsBegin = ChunkStats.Begin();
+            _reliefScheduler.ParallelFor(relief, _reliefJob);
+            ChunkStats.End(ChunkStats.Stage.Relief, statsBegin);
+            for (int i = 0; i < present; i++)
+            {
+                _presentChunks[i].ChunkPresent();
+                _presentChunks[i] = null;
+            }
+            for (int i = 0; i < relief; i++) _reliefJob.Chunks[i] = null;
         }
 
         /// <summary>
@@ -142,10 +216,14 @@ namespace Mvk.Engine.World.Chunk
                 int i;
 
                 long timeBegin = _worldServer.Server.Time();
-                for (i = 0; i < count; i++)
+                if (_reliefScheduler != null) _LoadOrGenParallel(count);
+                else
                 {
-                    chunk = _loadingChunks[i];
-                    _LoadOrGen(chunk);
+                    for (i = 0; i < count; i++)
+                    {
+                        chunk = _loadingChunks[i];
+                        _LoadOrGen(chunk);
+                    }
                 }
 
                 _counterLBS += count;
@@ -168,21 +246,7 @@ namespace Mvk.Engine.World.Chunk
         {
             if (!chunk.IsChunkPresent)
             {
-                // Пробуем загрузить с файла
-                try
-                {
-                    //Stopwatch stopwatch = new Stopwatch();
-                    //stopwatch.Start();
-                    long statsBegin = ChunkStats.Begin();
-                    chunk.LoadFileChunk();
-                    ChunkStats.End(ChunkStats.Stage.Load, statsBegin);
-                    // if (chunk.IsChunkLoaded) world.Log.Log("ChunkLoad[{1}]: {0:0.00} ms", stopwatch.ElapsedTicks / (float)MvkStatic.TimerFrequency, chunk.Position);
-                }
-                catch (Exception ex)
-                {
-                    _worldServer.SetLog(Srl.CouldNotReadChunkInRegion,
-                        ex.Message, ex.StackTrace, chunk.ToPosition(), chunk.ToRegion());
-                }
+                _LoadFile(chunk);
                 if (!chunk.IsChunkPresent)
                 {
                     // Начинаем генерацию рельефа
@@ -192,6 +256,27 @@ namespace Mvk.Engine.World.Chunk
                 }
                 // Готова начальная генерация или загрузка
                 chunk.ChunkPresent();
+            }
+        }
+
+        /// <summary>
+        /// Пробуем загрузить чанк с файла
+        /// </summary>
+        private void _LoadFile(ChunkServer chunk)
+        {
+            try
+            {
+                //Stopwatch stopwatch = new Stopwatch();
+                //stopwatch.Start();
+                long statsBegin = ChunkStats.Begin();
+                chunk.LoadFileChunk();
+                ChunkStats.End(ChunkStats.Stage.Load, statsBegin);
+                // if (chunk.IsChunkLoaded) world.Log.Log("ChunkLoad[{1}]: {0:0.00} ms", stopwatch.ElapsedTicks / (float)MvkStatic.TimerFrequency, chunk.Position);
+            }
+            catch (Exception ex)
+            {
+                _worldServer.SetLog(Srl.CouldNotReadChunkInRegion,
+                    ex.Message, ex.StackTrace, chunk.ToPosition(), chunk.ToRegion());
             }
         }
 

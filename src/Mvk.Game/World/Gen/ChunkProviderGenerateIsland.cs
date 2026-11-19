@@ -15,7 +15,7 @@ namespace Mvk.Game.World.Gen
     /// <summary>
     /// Объект генерации чанка для мира, генерация Остров
     /// </summary>
-    public class ChunkProviderGenerateIsland : IChunkProviderGenerate, IGenTree
+    public class ChunkProviderGenerateIsland : IChunkProviderGenerateParallel, IGenTree
     {
         /// <summary>
         /// Количество секций в чанке. Максимально 32
@@ -102,8 +102,15 @@ namespace Mvk.Game.World.Gen
         /// </summary>
         private readonly ushort _blockIdWater;
 
-        public ChunkProviderGenerateIsland(byte numberChunkSections, long seed)
+        /// <summary>
+        /// Режим генерации Parallel: Rand рельефа засевается от зерна и координат чанка
+        /// </summary>
+        public bool IsParallel { get; }
+
+        /// <param name="parallel">Режим генерации Parallel (EnumGenerationMode.Parallel)</param>
+        public ChunkProviderGenerateIsland(byte numberChunkSections, long seed, bool parallel = false)
         {
+            IsParallel = parallel;
             Seed = seed;
             Rnd = new Rand(Seed);
             _numberChunkSections = numberChunkSections;
@@ -160,6 +167,11 @@ namespace Mvk.Game.World.Gen
                 int zbc = chunk.CurrentChunkY << 4;
 
                 ChunkPrimer.Clear();
+                if (IsParallel)
+                {
+                    // Рельеф чанка зависит только от зерна и координат, а не от прошлых чанков этого генератора
+                    Rnd.SetSeed(Seed ^ (chunk.CurrentChunkX * 341873128712L + chunk.CurrentChunkY * 132897987541L));
+                }
 
                 // Шум для бедрока
                 _noiseDown.GenerateNoise2d(DownNoise, xbc, zbc, 16, 16, .95f, .95f);
@@ -257,6 +269,12 @@ namespace Mvk.Game.World.Gen
         /// <summary>
         /// Декорация чанков, требуются соседние чанки (3*3)
         /// </summary>
+        /// <summary>
+        /// Генератор того же мира со своими буферами для рабочего потока рельефа
+        /// </summary>
+        public IChunkProviderGenerate CreateParallelWorker()
+            => new ChunkProviderGenerateIsland(_numberChunkSections, Seed, IsParallel);
+
         public void Decoration(ChunkProviderServer provider, ChunkServer chunk)
         {
           //  chunk.World.Filer.StartSection("DecorationChunk");

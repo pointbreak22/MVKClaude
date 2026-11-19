@@ -101,6 +101,15 @@ namespace Mvk.Engine.Util
         /// </summary>
         public static bool BlockPlacementPreview = true;
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Новые миры генерируются в режиме Parallel (рельеф пулом потоков, мир не как в оригинале).
+        /// Режим запоминается в сохранении мира, на старые миры опция не влияет
+        /// </summary>
+        public static bool GenerationParallel = false;
+        /// <summary>
+        /// Потоков рельефа в режиме Parallel, 0 — по числу ядер (JobScheduler.DefaultWorkers)
+        /// </summary>
+        public static int GenerationThreads = 0;
+        /// <summary>
         /// Желаемый FPS
         /// </summary>
         public static int Fps = 60;

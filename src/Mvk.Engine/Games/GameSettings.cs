@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Mvk.Engine.World.Gen;
+using System;
 using System.IO;
 using Mvk.Core.Nbt;
 using Mvk.Engine.Nbt;
@@ -16,6 +17,10 @@ namespace Mvk.Engine.Games
         /// Игровое зерно, для разнообразия игры
         /// </summary>
         public long Seed { get; private set; }
+        /// <summary>
+        /// Режим генерации мира, у загруженного мира из сохранения (без тега — Original)
+        /// </summary>
+        public EnumGenerationMode GenerationMode { get; private set; }
         /// <summary>
         /// Номер слота, где выбрана игра, Навзание папки
         /// </summary>
@@ -99,6 +104,7 @@ namespace Mvk.Engine.Games
                 seed = DateTime.Now.Ticks;
             }
             Seed = seed;
+            GenerationMode = Options.GenerationParallel ? EnumGenerationMode.Parallel : EnumGenerationMode.Original;
         }
 
         public bool Init(GameServer server)
@@ -112,6 +118,7 @@ namespace Mvk.Engine.Games
                 }
                 server.SetDataFile(nbt.GetLong("TimeCounter"));
                 Seed = nbt.GetLong("Seed");
+                GenerationMode = (EnumGenerationMode)nbt.GetByte("GenMode");
                 TableBlocks.Read("TableBlocks", nbt);
                 TableItems.Read("TableItems", nbt);
                 TableEntities.Read("TableEntities", nbt);

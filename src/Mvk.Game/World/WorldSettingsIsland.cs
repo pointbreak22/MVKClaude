@@ -1,4 +1,5 @@
-﻿using Mvk.Game.Item;
+﻿using Mvk.Engine.World.Gen;
+using Mvk.Game.Item;
 using Mvk.Game.World.BlockEntity.List;
 using Mvk.Game.World.Gen;
 using System;
@@ -38,7 +39,8 @@ namespace Mvk.Game.World
         public WorldSettingsIsland(string pathWorld, GameServer server) : base(pathWorld)
         {
             // Сид используется только в серверной части
-            ChunkGenerate = new ChunkProviderGenerateIsland(NumberChunkSections, server.Settings.Seed);
+            ChunkGenerate = new ChunkProviderGenerateIsland(NumberChunkSections, server.Settings.Seed,
+                server.Settings.GenerationMode == EnumGenerationMode.Parallel);
             StorageHole = new BlockHole(server);
 
             if (File.Exists(_pathFileSetting))

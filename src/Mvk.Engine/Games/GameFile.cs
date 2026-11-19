@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Mvk.Engine.World.Gen;
+using System;
 using System.IO;
 using Mvk.Core.Nbt;
 using Mvk.Engine.Nbt;
@@ -74,6 +75,10 @@ namespace Mvk.Engine.Games
 
                 TagCompound nbt = new TagCompound();
                 nbt.SetLong("Seed", gameSettings.Seed);
+                if (gameSettings.GenerationMode != EnumGenerationMode.Original)
+                {
+                    nbt.SetByte("GenMode", (byte)gameSettings.GenerationMode);
+                }
                 nbt.SetLong("TimeCounter", server.TimeCounter);
                 nbt.SetShort("Version", Ce.IndexVersion);
                 // Таблица блоков

@@ -93,6 +93,15 @@ namespace Mvk.Desktop
                 }
                 else if (args[i] == "--novsync") _noVSync = true;
                 else if (args[i] == "--backend" && i + 1 < args.Length) GraphicsHost.Vulkan = args[++i] == "vulkan";
+                else if (args[i] == "--gen" && i + 1 < args.Length)
+                {
+                    // Режим генерации нового мира (Parallel — [ПОВЕДЕНИЕ], мир не как в оригинале)
+                    Mvk.Engine.Util.Options.GenerationParallel = args[++i] == "parallel";
+                }
+                else if (args[i] == "--gen-threads" && i + 1 < args.Length)
+                {
+                    Mvk.Engine.Util.Options.GenerationThreads = Math.Max(0, int.Parse(args[++i]));
+                }
                 else if (args[i] == "--mesh-workers" && i + 1 < args.Length)
                 {
                     Mvk.Engine.Renderer.World.WorldRenderer.MeshWorkers = Math.Max(1, int.Parse(args[++i]));

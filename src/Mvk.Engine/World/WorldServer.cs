@@ -204,6 +204,7 @@ namespace Mvk.Engine.World
         {
             IsRuning = false;
             Wait?.Stoping();
+            ChunkPrServ.StopRelief();
             _WriteToFile();
         }
 

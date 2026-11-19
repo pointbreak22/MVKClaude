@@ -101,6 +101,8 @@ namespace Mvk.Engine.Util
                 case "ControlHandAction": Options.ControlHandAction = int.Parse(value); return true;
                 case "ControlHandSecond": Options.ControlHandSecond = int.Parse(value); return true;
                 case "BlockPlacementPreview": Options.BlockPlacementPreview = value == "1"; return true;
+                case "GenerationParallel": Options.GenerationParallel = value == "1"; return true;
+                case "GenerationThreads": Options.GenerationThreads = int.Parse(value); return true;
             }
             return false;
         }

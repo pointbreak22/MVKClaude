@@ -69,7 +69,7 @@ assets/                   ресурсы из res/Assets (копируются �
   `--mouse original` кнопки мыши в мире как в оригинале (по умолчанию правая ломает, левая ставит);
   `--calm` снимок при ветре около нуля, `--phase N` при фазе ветра N;
   `--script "0:W+;60:W-;80:end" --trace след.csv` сценарий механики по тактам;
-  `--bench --novsync` замер загрузки и кадра (`py tools/Bench/bench.py`), `--mesh-workers N`;
+  `--bench --novsync` замер загрузки и кадра (`py tools/Bench/bench.py`), `--mesh-workers N`; `--gen parallel` и `--gen-threads N` включаемый режим генерации Parallel нового мира;
   `--backend vulkan|opengl` бэкенд графики (по умолчанию OpenGL);
   `--test-scene` тестовая сцена RHI этапа 4)
 - Сервер: `dotnet run --project src/Hosts/Mvk.Server`
@@ -128,4 +128,5 @@ OpenGL, `Mvk.Platform` (ввод через `InputActionMap`, звук OpenAL, `
 7.2–7.3 готовы (пулы буферов сеток: 865 → 599 МБ за загрузку, свёртка сеток `MeshDigest`). Этап 7 закрыт, перенос
 оригинала завершён (`docs/migration-map.md`). Генерация однопоточная (решение пользователя), R26 ждёт решения.
 Этап 10 идёт: 10.1 готов (`Mvk.Rendering.Vulkan`, `--backend vulkan`, игра целиком на Vulkan, шейдеры GLSL 330 → 450
-через `GlslToVulkan` и Shaderc). 10.2 готов (два кадра в полёте, Vulkan 208 кадров/с против 191 у OpenGL, сцены совпадают). Дальше: этап 8 (две руки). Новых тестов на каждый шаг не пишем. Android отложен. См. `docs/progress.md`.
+через `GlslToVulkan` и Shaderc). 10.2 готов (два кадра в полёте, Vulkan 208 кадров/с против 191 у OpenGL, сцены совпадают). Технические улучшения: `ViewState` вместо статического `Gi`, `Registries` и регистрация один раз на процесс,
+включаемый режим генерации Parallel (по умолчанию Original). Этап 8 (две руки) ждёт описания управления от пользователя. Новых тестов на каждый шаг не пишем. Android отложен. См. `docs/progress.md`.
