@@ -91,6 +91,15 @@ namespace Mvk.Core.Util
         public string GetAlias(int index) => _alias[index];
 
         /// <summary>
+        /// Порядок регистрации (до первой корректировки под мир), null пока корректировки не было
+        /// </summary>
+        private string[]? _regAlias;
+        /// <summary>
+        /// Объекты в порядке регистрации
+        /// </summary>
+        private T[]? _regObjects;
+
+        /// <summary>
         /// Очистить массивы
         /// </summary>
         public void Clear()
@@ -98,6 +107,30 @@ namespace Mvk.Core.Util
             _objects = Array.Empty<T>();
             _alias = Array.Empty<string>();
             Count = 0;
+            _regAlias = null;
+            _regObjects = null;
+        }
+
+        /// <summary>
+        /// Начать корректировку под таблицу мира: при первой запомнить порядок регистрации, при следующих
+        /// вернуть его. В оригинале таблица очищалась после корректировки, и второй мир в процессе требовал
+        /// повторной регистрации всех блоков, предметов и сущностей.
+        /// </summary>
+        public void BeginCorrect()
+        {
+            if (_regAlias == null)
+            {
+                _regAlias = new string[Count];
+                _regObjects = new T[Count];
+                Array.Copy(_alias, _regAlias, Count);
+                Array.Copy(_objects, _regObjects, Count);
+            }
+            else
+            {
+                _alias = (string[])_regAlias.Clone();
+                _objects = (T[])_regObjects!.Clone();
+                Count = _alias.Length;
+            }
         }
 
         /// <summary>

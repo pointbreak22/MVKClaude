@@ -25,16 +25,21 @@ namespace Mvk.Game.Tests
         public void PlayerEntersWorldAndReceivesChunks()
         {
             Directory.SetCurrentDirectory(AppContext.BaseDirectory);
-            const int slot = 96;
-            string pathGame = Options.PathGames + (slot + 1).ToString();
-            if (Directory.Exists(pathGame)) Directory.Delete(pathGame, true);
-
             IslandGolden.InitRegistries();
             EntitiesReg.TextureManagerRun();
             Options.OverviewChunk = 4;
+            _PlayGame(96, true);
+            // Вторая игра в том же процессе без повторной регистрации (технический п. 1б), другое зерно
+            _PlayGame(95, false);
+        }
+
+        private static void _PlayGame(int slot, bool checkResize)
+        {
+            string pathGame = Options.PathGames + (slot + 1).ToString();
+            if (Directory.Exists(pathGame)) Directory.Delete(pathGame, true);
 
             var host = new HeadlessGameClientHost(new GameModServerMvk());
-            var game = new GameLocal(host, new GameSettings(slot, 1), new AllWorldsMvk(), new GameModClientMvk());
+            var game = new GameLocal(host, new GameSettings(slot, slot), new AllWorldsMvk(), new GameModClientMvk());
             Exception? error = null;
             string? stopped = null;
             game.Error += (_, e) => error = e.Exception;
@@ -82,7 +87,7 @@ namespace Mvk.Game.Tests
             }
             Assert.True(hasBlocks, "Чанк под игроком пустой");
 
-            _ResizeUpdatesProjection(game);
+            if (checkResize) _ResizeUpdatesProjection(game);
 
             // Остановка: сервер сохраняет мир и сообщает клиенту
             game.GameStoping("test", false);

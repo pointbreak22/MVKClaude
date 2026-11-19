@@ -70,11 +70,13 @@ namespace Mvk.Engine.Item
         /// </summary>
         public static void Correct(CorrectTable correct)
         {
+            Table.BeginCorrect();
             correct.CorrectRegLoad(Table);
             Ce.Items = new ItemArrays();
 
-            // Очистить таблицы и вспомогательные данные json
-            _Clear();
+            // Очистить вспомогательные данные json (таблица регистрации остаётся для следующего мира)
+            _parentStats.Clear();
+            _shapes.Clear();
         }
 
         /// <summary>

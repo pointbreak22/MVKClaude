@@ -100,13 +100,16 @@ namespace GoldenGen
 
         /// <param name="batch">Порт: грузить чанки пакетом, как сервер в игре (NeededChunk и LoadQueuedChunks),
         /// а не по одному, как экран загрузки</param>
-        public static List<string> Generate(long seed, int slot, int radius, bool batch)
+        public static List<string> Generate(long seed, int slot, int radius, bool batch) => Generate(seed, slot, radius, batch, true);
+
+        /// <param name="register">Регистрировать реестры заново, как оригинал при каждом запуске игры
+        /// (его GameServer.Init корректирует и очищает таблицы регистрации). Порт: false — мир в том же процессе
+        /// без повторной регистрации (технический п. 1б)</param>
+        public static List<string> Generate(long seed, int slot, int radius, bool batch, bool register)
         {
             string pathGame = Options.PathGames + (slot + 1).ToString();
             if (Directory.Exists(pathGame)) Directory.Delete(pathGame, true);
-            // Как в оригинале при каждом запуске игры (WindowMain.GameLocalRun):
-            // реестры заново, потому что GameServer.Init корректирует и очищает их таблицы
-            InitRegistries();
+            if (register) InitRegistries();
 
             GameServer server = new GameServer(new Logger("Logs"), new GameModServerMvk(),
                 new GameSettings(slot, seed), new AllWorldsMvk());

@@ -68,11 +68,13 @@ namespace Mvk.Engine.World.Block
         public static void Correct(CorrectTable correct)
         {
             //Ce.Blocks = new BlockArrays(); // 2025-06-04 Не помню почему так было, но бывали нал, возможно до создание мира
+            Table.BeginCorrect();
             correct.CorrectRegLoad(Table);
             Ce.Blocks = new BlockArrays();
 
-            // Очистить таблицы и вспомогательные данные json
-            _Clear();
+            // Очистить вспомогательные данные json (таблица регистрации остаётся для следующего мира)
+            _parentStats.Clear();
+            _shapes.Clear();
         }
 
         /// <summary>

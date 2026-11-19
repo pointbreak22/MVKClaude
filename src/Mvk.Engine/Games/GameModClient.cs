@@ -46,11 +46,8 @@ namespace Mvk.Engine.Games
         public virtual void CorrectObjects(PacketS02LoadingGame packet)
         {
             // В начальном запуске сразу передаём массивы таблиц 
-            EntitiesFXReg.Correct(new CorrectTable(packet.EntitiesFX));
-            BlocksReg.Correct(new CorrectTable(packet.Blocks));
-            ItemsReg.Correct(new CorrectTable(packet.Items));
-            EntitiesReg.Correct(new CorrectTable(packet.Entities));
-            BlocksEntityReg.Correct(new CorrectTable(packet.BlocksEntity));
+            Registries.Correct(new CorrectTable(packet.EntitiesFX), new CorrectTable(packet.Blocks),
+                new CorrectTable(packet.Items), new CorrectTable(packet.Entities), new CorrectTable(packet.BlocksEntity));
         }
 
         /// <summary>

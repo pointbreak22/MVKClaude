@@ -63,10 +63,9 @@ namespace Mvk.Engine.Entity.Particle
         /// </summary>
         public static void Correct(CorrectTable correct)
         {
+            Table.BeginCorrect();
             correct.CorrectRegLoad(Table);
             Ce.EntitiesFX = new EntityFXArrays();
-            // Очистить таблицы и вспомогательные данные json
-            _Clear();
         }
 
         /// <summary>

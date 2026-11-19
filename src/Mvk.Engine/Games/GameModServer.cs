@@ -43,11 +43,8 @@ namespace Mvk.Engine.Games
         /// </summary>
         public virtual void CorrectObjects()
         {
-            EntitiesFXReg.Correct(Server.Settings.TableEntitiesFX);
-            BlocksReg.Correct(Server.Settings.TableBlocks);
-            ItemsReg.Correct(Server.Settings.TableItems);
-            EntitiesReg.Correct(Server.Settings.TableEntities);
-            BlocksEntityReg.Correct(Server.Settings.TableBlocksEntity);
+            Server.Registries = Registries.Correct(Server.Settings.TableEntitiesFX, Server.Settings.TableBlocks,
+                Server.Settings.TableItems, Server.Settings.TableEntities, Server.Settings.TableBlocksEntity);
         }
 
         /// <summary>

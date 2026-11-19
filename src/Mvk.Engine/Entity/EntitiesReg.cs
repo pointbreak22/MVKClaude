@@ -92,11 +92,13 @@ namespace Mvk.Engine.Entity
         /// </summary>
         public static void Correct(CorrectTable correct)
         {
+            Table.BeginCorrect();
             correct.CorrectRegLoad(Table);
             Ce.Entities = new EntityArrays();
 
-            // Очистить таблицы и вспомогательные данные json
-            _Clear();
+            // Очистить вспомогательные данные json (таблица регистрации остаётся для следующего мира)
+            _jsonModels.Clear();
+            _shapes.Clear();
             // Очистить вспомогательные объекты в момент загрузки
             foreach (ShapeEntity shapeEntity in Shapes)
             {

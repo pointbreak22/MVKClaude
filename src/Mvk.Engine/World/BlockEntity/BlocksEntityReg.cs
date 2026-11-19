@@ -46,11 +46,9 @@ namespace Mvk.Engine.World.BlockEntity
         /// </summary>
         public static void Correct(CorrectTable correct)
         {
+            Table.BeginCorrect();
             correct.CorrectRegLoad(Table);
             Ce.BlocksEntity = new BlockEntityArrays();
-
-            // Очистить таблицы и вспомогательные данные json
-            _Clear();
         }
 
         /// <summary>

@@ -62,6 +62,10 @@ namespace Mvk.Engine.Games
         /// Объект игрового мода для серверной части, этот объект наследуется другими проектами
         /// </summary>
         public readonly GameModServer ModServer;
+        /// <summary>
+        /// Реестры мира под таблицы id этого сервера (задаёт GameModServer.CorrectObjects)
+        /// </summary>
+        public Registries Registries;
 
         /// <summary>
         /// Часы для Tps
@@ -239,9 +243,9 @@ namespace Mvk.Engine.Games
             if (_flagInLoop)
             {
                 // Отправляем ему таблицы для сверки
-                ResponsePacket(e.Side, new PacketS02LoadingGame(Ce.Blocks.BlockAlias, 
-                    Ce.Items.ItemAlias, Ce.Entities.EntitiesAlias, 
-                    Ce.BlocksEntity.BlockEntityAlias, Ce.EntitiesFX.EntitiesFXAlias));
+                ResponsePacket(e.Side, new PacketS02LoadingGame(Registries.Blocks.BlockAlias,
+                    Registries.Items.ItemAlias, Registries.Entities.EntitiesAlias,
+                    Registries.BlocksEntity.BlockEntityAlias, Registries.EntitiesFX.EntitiesFXAlias));
             }
             else
             {

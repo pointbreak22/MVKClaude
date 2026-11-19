@@ -420,11 +420,19 @@ namespace Mvk.Engine
         protected virtual void _InitializationEntitiesFX() => EntitiesFXReg.Initialization(_Progress());
 
         /// <summary>
-        /// Инициализация блоков, предметов, атласа и сущностей перед каждой игрой, как в оригинале.
+        /// Регистрация блоков, предметов, атласа и сущностей уже сделана
+        /// </summary>
+        private bool _registered;
+
+        /// <summary>
+        /// Регистрация блоков, предметов, атласа и сущностей один раз на процесс (в оригинале перед каждой игрой:
+        /// корректировка под мир очищала таблицы регистрации, теперь она повторяемая, см. Registries).
         /// Атлас блоков загружает на GPU рендер мира (BlockAtlasTextures).
         /// </summary>
         private void _InitializationBlocksAtlasEntities()
         {
+            if (_registered) return;
+            _registered = true;
             _InitializationBlocks();
             _InitializationItems();
             _InitializationEntities();
