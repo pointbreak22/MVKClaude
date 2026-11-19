@@ -11,18 +11,37 @@ using VkImage = Silk.NET.Vulkan.Image;
 namespace Mvk.Rendering.Vulkan
 {
     /// <summary>
-    /// Буфер вершин или индексов в памяти, видимой процессору (Submit синхронный, поэтому писать можно сразу)
+    /// Буфер вершин или индексов в памяти, видимой процессору. Кадры идут в полёте (этап 10.2), поэтому SetData
+    /// не трогает память, которую ещё читает GPU: занятая область уходит в запас до завершения своего кадра,
+    /// данные пишутся в свободную область (из запаса буфера или новую). Для программы это та же семантика GL:
+    /// команды, записанные до SetData, видят старые данные, после — новые.
     /// </summary>
     internal sealed unsafe class VkBufferObject : IGpuBuffer
     {
-        private readonly VulkanDevice _device;
-        private DeviceMemory _memory;
-        private ulong _capacity;
-        private void* _mapped;
+        private sealed class Area
+        {
+            public VkBuffer Buffer;
+            public DeviceMemory Memory;
+            public void* Mapped;
+            public ulong Capacity;
+            /// <summary>Последний кадр, в котором область использована командами</summary>
+            public ulong LastUsed;
+        }
 
-        public VkBuffer Buffer { get; private set; }
+        private readonly VulkanDevice _device;
+        private Area? _current;
+        /// <summary>Области, которые ещё может читать GPU (освобождаются по завершении их кадра)</summary>
+        private readonly List<Area> _retired = new();
+
+        public VkBuffer Buffer => _current?.Buffer ?? default;
         public BufferKind Kind { get; }
         public int Size { get; private set; }
+
+        /// <summary>Отметить использование текущей области в кадре с номером serial</summary>
+        public ulong LastUsed
+        {
+            set { if (_current != null) _current.LastUsed = value; }
+        }
 
         public VkBufferObject(VulkanDevice device, BufferKind kind)
         {
@@ -35,34 +54,71 @@ namespace Mvk.Rendering.Vulkan
             ulong bytes = (ulong)(data.Length * sizeof(T));
             Size = (int)bytes;
             if (bytes == 0) return;
-            if (bytes > _capacity)
+            bool busy = _current != null && _current.LastUsed > _device.CompletedSerial;
+            if (_current == null || busy || bytes > _current.Capacity)
             {
-                _Release();
-                _capacity = Math.Max(bytes, 256);
-                _device.CreateBuffer(_capacity,
-                    Kind == BufferKind.Index ? BufferUsageFlags.IndexBufferBit : BufferUsageFlags.VertexBufferBit,
-                    MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit, out VkBuffer buffer, out _memory);
-                Buffer = buffer;
-                void* p;
-                _device.Vk.MapMemory(_device.Device, _memory, 0, _capacity, 0, &p);
-                _mapped = p;
+                if (_current != null)
+                {
+                    if (busy) _retired.Add(_current);
+                    else _Free(_current);
+                }
+                _current = _TakeFree(bytes) ?? _Allocate(Math.Max(bytes, _current?.Capacity ?? 0));
             }
-            fixed (T* src = data) System.Buffer.MemoryCopy(src, _mapped, (long)_capacity, (long)bytes);
+            fixed (T* src = data) System.Buffer.MemoryCopy(src, _current.Mapped, (long)_current.Capacity, (long)bytes);
         }
 
-        private void _Release()
+        /// <summary>Свободная область из запаса, которую GPU уже не читает</summary>
+        private Area? _TakeFree(ulong bytes)
         {
-            if (Buffer.Handle == 0) return;
-            _device.Vk.UnmapMemory(_device.Device, _memory);
-            _device.Vk.DestroyBuffer(_device.Device, Buffer, null);
-            _device.Vk.FreeMemory(_device.Device, _memory, null);
-            Buffer = default;
+            Area? found = null;
+            for (int i = _retired.Count - 1; i >= 0; i--)
+            {
+                Area a = _retired[i];
+                if (a.LastUsed > _device.CompletedSerial) continue;
+                if (found == null && a.Capacity >= bytes)
+                {
+                    found = a;
+                    _retired.RemoveAt(i);
+                }
+                else if (_retired.Count > 4)
+                {
+                    // Лишний запас не держим
+                    _retired.RemoveAt(i);
+                    _Free(a);
+                }
+            }
+            if (found != null) found.LastUsed = 0;
+            return found;
+        }
+
+        private Area _Allocate(ulong capacity)
+        {
+            var a = new Area { Capacity = Math.Max(capacity, 256) };
+            _device.CreateBuffer(a.Capacity,
+                Kind == BufferKind.Index ? BufferUsageFlags.IndexBufferBit : BufferUsageFlags.VertexBufferBit,
+                MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit, out a.Buffer, out a.Memory);
+            void* p;
+            _device.Vk.MapMemory(_device.Device, a.Memory, 0, a.Capacity, 0, &p);
+            a.Mapped = p;
+            return a;
+        }
+
+        private void _Free(Area a)
+        {
+            _device.Vk.UnmapMemory(_device.Device, a.Memory);
+            _device.Vk.DestroyBuffer(_device.Device, a.Buffer, null);
+            _device.Vk.FreeMemory(_device.Device, a.Memory, null);
         }
 
         public void Dispose()
         {
             _device.OnBufferDisposed(this);
-            _Release();
+            var areas = new List<Area>(_retired);
+            if (_current != null) areas.Add(_current);
+            _retired.Clear();
+            _current = null;
+            // Команды текущего и прошлого кадров ещё могут читать буфер
+            _device.DeferDestroy(() => { foreach (Area a in areas) _Free(a); });
         }
     }
 
@@ -156,6 +212,7 @@ namespace Mvk.Rendering.Vulkan
             _device.Vk.UnmapMemory(_device.Device, memory);
             TextureDescription d = Description;
             VkImage image = Image;
+            VulkanDevice device = _device;
             _device.RunOnce(cb =>
             {
                 _device.Transition(cb, image, _aspect, (uint)d.MipLevels, (uint)d.Layers,
@@ -169,9 +226,12 @@ namespace Mvk.Rendering.Vulkan
                 _device.Vk.CmdCopyBufferToImage(cb, staging, image, ImageLayout.TransferDstOptimal, 1, in region);
                 _device.Transition(cb, image, _aspect, (uint)d.MipLevels, (uint)d.Layers,
                     ImageLayout.TransferDstOptimal, ImageLayout.ShaderReadOnlyOptimal);
+            }, () =>
+            {
+                // Промежуточный буфер освобождается, когда загрузка выполнена
+                device.Vk.DestroyBuffer(device.Device, staging, null);
+                device.Vk.FreeMemory(device.Device, memory, null);
             });
-            _device.Vk.DestroyBuffer(_device.Device, staging, null);
-            _device.Vk.FreeMemory(_device.Device, memory, null);
         }
 
         public void GenerateMipmaps()
@@ -250,7 +310,12 @@ namespace Mvk.Rendering.Vulkan
             Framebuffer = fb;
         }
 
-        public void Dispose() => _device.Vk.DestroyFramebuffer(_device.Device, Framebuffer, null);
+        public void Dispose()
+        {
+            Framebuffer fb = Framebuffer;
+            VulkanDevice device = _device;
+            device.DeferDestroy(() => device.Vk.DestroyFramebuffer(device.Device, fb, null));
+        }
     }
 
     /// <summary>

@@ -29,10 +29,44 @@ namespace Mvk.Rendering.Vulkan
         private readonly KhrSurface _khrSurface;
         private readonly SurfaceKHR _surface;
         private readonly KhrSwapchain _khrSwapchain;
+        /// <summary>Пул разовых команд (загрузки, переходы раскладок)</summary>
         private readonly CommandPool _commandPool;
-        private readonly CommandBuffer _cmd;
-        private readonly Fence _fence;
-        private readonly Semaphore _acquireSemaphore;
+        /// <summary>Командный буфер, который сейчас записывается</summary>
+        private CommandBuffer _cmd;
+        /// <summary>Слоты кадров в полёте (этап 10.2): пока GPU рисует прошлый кадр, процессор пишет следующий</summary>
+        private readonly FrameSlot[] _slots;
+        private FrameSlot _slot = null!;
+        private int _slotIndex = -1;
+        /// <summary>Номер текущего кадра, растёт с каждым BeginFrame</summary>
+        private ulong _frameSerial;
+        /// <summary>Номер последнего кадра, который GPU выполнил полностью</summary>
+        internal ulong CompletedSerial;
+        /// <summary>Номер текущего кадра (ресурс, использованный в нём, занят до его завершения)</summary>
+        internal ulong FrameSerial => _frameSerial;
+        /// <summary>Освободить после завершения кадра с номером Serial</summary>
+        private readonly List<(ulong Serial, Action Destroy)> _deferred = new();
+        /// <summary>Разовые команды без ожидания: освобождаются, когда сработает их забор</summary>
+        private readonly List<(Fence Fence, CommandBuffer Buffer, Action? After)> _pendingOnce = new();
+
+        /// <summary>Ресурсы одного кадра в полёте</summary>
+        private sealed class FrameSlot
+        {
+            public CommandPool Pool;
+            public readonly List<CommandBuffer> Buffers = new();
+            public int Used;
+            public Fence Fence;
+            public Semaphore Acquire;
+            public Semaphore RenderDone;
+            public VkBuffer Ring;
+            public DeviceMemory RingMemory;
+            public byte* RingPtr;
+            public ulong RingOffset;
+            public DescriptorPool Descriptors;
+            public ulong Serial;
+        }
+
+        /// <summary>Сколько кадров одновременно в полёте</summary>
+        private const int _FramesInFlight = 2;
         private readonly PhysicalDeviceMemoryProperties _memory;
         private readonly ulong _uniformAlign;
 
@@ -54,11 +88,6 @@ namespace Mvk.Rendering.Vulkan
 
         // Кольцевой буфер uniform: блок шейдера копируется перед каждым вызовом отрисовки
         private const ulong _RingSize = 16 * 1024 * 1024;
-        private VkBuffer _ring;
-        private DeviceMemory _ringMemory;
-        private byte* _ringPtr;
-        private ulong _ringOffset;
-        private DescriptorPool _descriptorPool;
 
         private uint _imageIndex;
         private bool _frameActive;
@@ -209,24 +238,12 @@ namespace Mvk.Rendering.Vulkan
                 QueueFamilyIndex = _queueFamily
             };
             _Check(Vk.CreateCommandPool(Device, in poolInfo, null, out _commandPool), "vkCreateCommandPool");
-            var allocInfo = new CommandBufferAllocateInfo
-            {
-                SType = StructureType.CommandBufferAllocateInfo,
-                CommandPool = _commandPool,
-                Level = CommandBufferLevel.Primary,
-                CommandBufferCount = 1
-            };
-            _Check(Vk.AllocateCommandBuffers(Device, in allocInfo, out _cmd), "vkAllocateCommandBuffers");
-            var fenceInfo = new FenceCreateInfo { SType = StructureType.FenceCreateInfo };
-            _Check(Vk.CreateFence(Device, in fenceInfo, null, out _fence), "vkCreateFence");
-            var semInfo = new SemaphoreCreateInfo { SType = StructureType.SemaphoreCreateInfo };
-            _Check(Vk.CreateSemaphore(Device, in semInfo, null, out _acquireSemaphore), "vkCreateSemaphore");
+            _slots = new FrameSlot[_FramesInFlight];
+            for (int i = 0; i < _slots.Length; i++) _slots[i] = _CreateSlot();
 
             _ChooseSwapFormat();
             _CreateRenderPasses();
             _CreateSwapchain(width, height);
-            _CreateRing();
-            _CreateDescriptorPool();
             _white = new VkTexture(this, TextureDescription.Texture2D(1, 1, SamplerState.PointClamp));
             _white.SetData(new byte[] { 255, 255, 255, 255 }, PixelFormat.Rgba8);
             _whiteArray = new VkTexture(this, TextureDescription.Texture2DArray(1, 1, 1, SamplerState.PointClamp));
@@ -291,9 +308,11 @@ namespace Mvk.Rendering.Vulkan
         }
 
         /// <summary>
-        /// Разовая запись команд (загрузка текстур, переходы раскладок) с ожиданием выполнения
+        /// Разовая запись команд (загрузка текстур, переходы раскладок). Отправляется в ту же очередь, что кадры,
+        /// поэтому выполняется после уже отправленных команд и до следующих, как вызовы GL. Без wait процессор
+        /// не ждёт: after (освободить промежуточный буфер) вызывается, когда команды выполнены.
         /// </summary>
-        internal void RunOnce(Action<CommandBuffer> record)
+        internal void RunOnce(Action<CommandBuffer> record, Action? after = null, bool wait = false)
         {
             var alloc = new CommandBufferAllocateInfo
             {
@@ -317,9 +336,97 @@ namespace Mvk.Rendering.Vulkan
                 CommandBufferCount = 1,
                 PCommandBuffers = &cb
             };
-            _Check(Vk.QueueSubmit(_queue, 1, in submit, default), "vkQueueSubmit");
-            Vk.QueueWaitIdle(_queue);
-            Vk.FreeCommandBuffers(Device, _commandPool, 1, in cb);
+            if (wait)
+            {
+                _Check(Vk.QueueSubmit(_queue, 1, in submit, default), "vkQueueSubmit");
+                Vk.QueueWaitIdle(_queue);
+                Vk.FreeCommandBuffers(Device, _commandPool, 1, in cb);
+                after?.Invoke();
+                return;
+            }
+            var fenceInfo = new FenceCreateInfo { SType = StructureType.FenceCreateInfo };
+            _Check(Vk.CreateFence(Device, in fenceInfo, null, out Fence fence), "vkCreateFence");
+            _Check(Vk.QueueSubmit(_queue, 1, in submit, fence), "vkQueueSubmit");
+            _pendingOnce.Add((fence, cb, after));
+        }
+
+        /// <summary>
+        /// Освободить ресурсы, которые GPU больше не использует (после завершения кадров и разовых команд)
+        /// </summary>
+        private void _ReleaseCompleted()
+        {
+            for (int i = _pendingOnce.Count - 1; i >= 0; i--)
+            {
+                var (fence, cb, after) = _pendingOnce[i];
+                if (Vk.GetFenceStatus(Device, fence) != Result.Success) continue;
+                Vk.DestroyFence(Device, fence, null);
+                Vk.FreeCommandBuffers(Device, _commandPool, 1, in cb);
+                after?.Invoke();
+                _pendingOnce.RemoveAt(i);
+            }
+            for (int i = _deferred.Count - 1; i >= 0; i--)
+            {
+                if (_deferred[i].Serial > CompletedSerial) continue;
+                _deferred[i].Destroy();
+                _deferred.RemoveAt(i);
+            }
+        }
+
+        /// <summary>
+        /// Освободить ресурс, когда GPU закончит текущий кадр (ресурс мог быть использован в отправленных командах)
+        /// </summary>
+        internal void DeferDestroy(Action destroy)
+        {
+            if (_frameSerial <= CompletedSerial && !_frameActive) destroy();
+            else _deferred.Add((_frameSerial, destroy));
+        }
+
+        private FrameSlot _CreateSlot()
+        {
+            var slot = new FrameSlot();
+            var poolInfo = new CommandPoolCreateInfo
+            {
+                SType = StructureType.CommandPoolCreateInfo,
+                QueueFamilyIndex = _queueFamily
+            };
+            _Check(Vk.CreateCommandPool(Device, in poolInfo, null, out slot.Pool), "vkCreateCommandPool");
+            // Забор создаётся сработавшим: первый кадр слота не ждёт
+            var fenceInfo = new FenceCreateInfo { SType = StructureType.FenceCreateInfo, Flags = FenceCreateFlags.SignaledBit };
+            _Check(Vk.CreateFence(Device, in fenceInfo, null, out slot.Fence), "vkCreateFence");
+            var semInfo = new SemaphoreCreateInfo { SType = StructureType.SemaphoreCreateInfo };
+            _Check(Vk.CreateSemaphore(Device, in semInfo, null, out slot.Acquire), "vkCreateSemaphore");
+            _Check(Vk.CreateSemaphore(Device, in semInfo, null, out slot.RenderDone), "vkCreateSemaphore");
+            CreateBuffer(_RingSize, BufferUsageFlags.UniformBufferBit,
+                MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit, out slot.Ring, out slot.RingMemory);
+            void* p;
+            Vk.MapMemory(Device, slot.RingMemory, 0, _RingSize, 0, &p);
+            slot.RingPtr = (byte*)p;
+            var sizes = stackalloc DescriptorPoolSize[]
+            {
+                new DescriptorPoolSize(DescriptorType.UniformBufferDynamic, 16384),
+                new DescriptorPoolSize(DescriptorType.CombinedImageSampler, 65536)
+            };
+            var info = new DescriptorPoolCreateInfo
+            {
+                SType = StructureType.DescriptorPoolCreateInfo,
+                MaxSets = 16384,
+                PoolSizeCount = 2,
+                PPoolSizes = sizes
+            };
+            _Check(Vk.CreateDescriptorPool(Device, in info, null, out slot.Descriptors), "vkCreateDescriptorPool");
+            return slot;
+        }
+
+        private void _DestroySlot(FrameSlot slot)
+        {
+            Vk.DestroyDescriptorPool(Device, slot.Descriptors, null);
+            Vk.UnmapMemory(Device, slot.RingMemory);
+            Vk.DestroyBuffer(Device, slot.Ring, null);
+            Vk.FreeMemory(Device, slot.RingMemory, null);
+            Vk.DestroySemaphore(Device, slot.Acquire, null);
+            Vk.DestroySemaphore(Device, slot.RenderDone, null);
+            Vk.DestroyFence(Device, slot.Fence, null);
+            Vk.DestroyCommandPool(Device, slot.Pool, null);
         }
 
         /// <summary>Барьер смены раскладки изображения</summary>
@@ -589,43 +696,29 @@ namespace Mvk.Rendering.Vulkan
             _Check(Vk.CreateRenderPass(Device, in shadowInfo, null, out DepthPass), "vkCreateRenderPass");
         }
 
-        private void _CreateRing()
-        {
-            CreateBuffer(_RingSize, BufferUsageFlags.UniformBufferBit,
-                MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit, out _ring, out _ringMemory);
-            void* p;
-            Vk.MapMemory(Device, _ringMemory, 0, _RingSize, 0, &p);
-            _ringPtr = (byte*)p;
-        }
-
-        private void _CreateDescriptorPool()
-        {
-            var sizes = stackalloc DescriptorPoolSize[]
-            {
-                new DescriptorPoolSize(DescriptorType.UniformBufferDynamic, 16384),
-                new DescriptorPoolSize(DescriptorType.CombinedImageSampler, 65536)
-            };
-            var info = new DescriptorPoolCreateInfo
-            {
-                SType = StructureType.DescriptorPoolCreateInfo,
-                MaxSets = 16384,
-                PoolSizeCount = 2,
-                PPoolSizes = sizes
-            };
-            _Check(Vk.CreateDescriptorPool(Device, in info, null, out _descriptorPool), "vkCreateDescriptorPool");
-        }
-
         /// <summary>
         /// Начало кадра окна: взять изображение цепочки показа (хост перед рисованием кадра)
         /// </summary>
         public void BeginFrame()
         {
             if (_frameActive || _disposed) return;
-            Result r = _khrSwapchain.AcquireNextImage(Device, _swapchain, ulong.MaxValue, _acquireSemaphore, default, ref _imageIndex);
+            // Слот кадра: ждём только кадр, который был в нём _FramesInFlight кадров назад
+            _slotIndex = (_slotIndex + 1) % _slots.Length;
+            _slot = _slots[_slotIndex];
+            Vk.WaitForFences(Device, 1, in _slot.Fence, true, ulong.MaxValue);
+            if (_slot.Serial > CompletedSerial) CompletedSerial = _slot.Serial;
+            _ReleaseCompleted();
+            Vk.ResetCommandPool(Device, _slot.Pool, 0);
+            _slot.Used = 0;
+            _slot.RingOffset = 0;
+            Vk.ResetDescriptorPool(Device, _slot.Descriptors, 0);
+            _slot.Serial = ++_frameSerial;
+
+            Result r = _khrSwapchain.AcquireNextImage(Device, _swapchain, ulong.MaxValue, _slot.Acquire, default, ref _imageIndex);
             if (r == Result.ErrorOutOfDateKhr)
             {
                 Resize(Width, Height);
-                r = _khrSwapchain.AcquireNextImage(Device, _swapchain, ulong.MaxValue, _acquireSemaphore, default, ref _imageIndex);
+                r = _khrSwapchain.AcquireNextImage(Device, _swapchain, ulong.MaxValue, _slot.Acquire, default, ref _imageIndex);
             }
             if (r != Result.Success && r != Result.SuboptimalKhr) _Check(r, "vkAcquireNextImageKHR");
             _frameActive = true;
@@ -634,7 +727,7 @@ namespace Mvk.Rendering.Vulkan
             _RecordBegin();
             Transition(_cmd, _swapImages[_imageIndex], ImageAspectFlags.ColorBit, 1, 1,
                 ImageLayout.Undefined, ImageLayout.ColorAttachmentOptimal);
-            _RecordSubmit();
+            _RecordSubmit(false);
         }
 
         /// <summary>
@@ -646,12 +739,15 @@ namespace Mvk.Rendering.Vulkan
             _RecordBegin();
             Transition(_cmd, _swapImages[_imageIndex], ImageAspectFlags.ColorBit, 1, 1,
                 ImageLayout.ColorAttachmentOptimal, ImageLayout.PresentSrcKhr);
-            _RecordSubmit();
+            _RecordSubmit(true);
             uint index = _imageIndex;
             SwapchainKHR swapchain = _swapchain;
+            Semaphore done = _slot.RenderDone;
             var present = new PresentInfoKHR
             {
                 SType = StructureType.PresentInfoKhr,
+                WaitSemaphoreCount = 1,
+                PWaitSemaphores = &done,
                 SwapchainCount = 1,
                 PSwapchains = &swapchain,
                 PImageIndices = &index
@@ -667,7 +763,20 @@ namespace Mvk.Rendering.Vulkan
 
         private void _RecordBegin()
         {
-            Vk.ResetCommandBuffer(_cmd, 0);
+            // Командный буфер кадра из пула слота (пул сбрасывается в начале кадра слота)
+            if (_slot.Used == _slot.Buffers.Count)
+            {
+                var alloc = new CommandBufferAllocateInfo
+                {
+                    SType = StructureType.CommandBufferAllocateInfo,
+                    CommandPool = _slot.Pool,
+                    Level = CommandBufferLevel.Primary,
+                    CommandBufferCount = 1
+                };
+                _Check(Vk.AllocateCommandBuffers(Device, in alloc, out CommandBuffer created), "vkAllocateCommandBuffers");
+                _slot.Buffers.Add(created);
+            }
+            _cmd = _slot.Buffers[_slot.Used++];
             var begin = new CommandBufferBeginInfo
             {
                 SType = StructureType.CommandBufferBeginInfo,
@@ -676,12 +785,16 @@ namespace Mvk.Rendering.Vulkan
             Vk.BeginCommandBuffer(_cmd, in begin);
         }
 
-        /// <summary>Отправить командный буфер и дождаться выполнения</summary>
-        private void _RecordSubmit()
+        /// <summary>
+        /// Отправить командный буфер без ожидания. Первый буфер кадра ждёт изображение цепочки показа,
+        /// последний (конец кадра) сигналит семафор показа и забор слота.
+        /// </summary>
+        private void _RecordSubmit(bool last)
         {
             Vk.EndCommandBuffer(_cmd);
             CommandBuffer cb = _cmd;
-            Semaphore wait = _acquireSemaphore;
+            Semaphore wait = _slot.Acquire;
+            Semaphore done = _slot.RenderDone;
             PipelineStageFlags stage = PipelineStageFlags.AllCommandsBit;
             var submit = new SubmitInfo
             {
@@ -690,15 +803,18 @@ namespace Mvk.Rendering.Vulkan
                 PCommandBuffers = &cb,
                 WaitSemaphoreCount = _waitAcquire ? 1u : 0u,
                 PWaitSemaphores = &wait,
-                PWaitDstStageMask = &stage
+                PWaitDstStageMask = &stage,
+                SignalSemaphoreCount = last ? 1u : 0u,
+                PSignalSemaphores = &done
             };
             _waitAcquire = false;
-            Vk.ResetFences(Device, 1, in _fence);
-            _Check(Vk.QueueSubmit(_queue, 1, in submit, _fence), "vkQueueSubmit");
-            Vk.WaitForFences(Device, 1, in _fence, true, ulong.MaxValue);
-            // GPU всё выполнил: кольцо uniform и наборы дескрипторов можно переиспользовать
-            _ringOffset = 0;
-            Vk.ResetDescriptorPool(Device, _descriptorPool, 0);
+            Fence fence = default;
+            if (last)
+            {
+                fence = _slot.Fence;
+                Vk.ResetFences(Device, 1, in fence);
+            }
+            _Check(Vk.QueueSubmit(_queue, 1, in submit, fence), "vkQueueSubmit");
         }
 
         public void Submit(CommandList commands)
@@ -757,6 +873,7 @@ namespace Mvk.Rendering.Vulkan
                         if (_indexBuffer == null) throw new InvalidOperationException("DrawIndexed без индексного буфера");
                         if (_PrepareDraw())
                         {
+                            _indexBuffer.LastUsed = _frameSerial;
                             Vk.CmdBindIndexBuffer(_cmd, _indexBuffer.Buffer, 0,
                                 _indexFormat == IndexFormat.UInt32 ? IndexType.Uint32 : IndexType.Uint16);
                             Vk.CmdDrawIndexed(_cmd, (uint)c.A, 1, (uint)c.B, 0, 0);
@@ -765,7 +882,7 @@ namespace Mvk.Rendering.Vulkan
                 }
             }
             _EndPass();
-            _RecordSubmit();
+            _RecordSubmit(false);
         }
 
         private void _BeginPass()
@@ -867,6 +984,7 @@ namespace Mvk.Rendering.Vulkan
                 VkBufferObject? b = _vertexBuffers[s];
                 if (b == null || b.Buffer.Handle == 0) return false;
                 VkBuffer buffer = b.Buffer;
+                b.LastUsed = _frameSerial;
                 ulong offset = 0;
                 Vk.CmdBindVertexBuffers(_cmd, (uint)s, 1, in buffer, in offset);
             }
@@ -874,17 +992,17 @@ namespace Mvk.Rendering.Vulkan
             // Uniform шейдера в кольцо
             VkShader shader = p.Shader;
             ulong size = (ulong)shader.BlockSize;
-            if (_ringOffset + size > _RingSize) throw new InvalidOperationException("Кольцо uniform Vulkan переполнено");
-            fixed (byte* src = shader.Block) System.Buffer.MemoryCopy(src, _ringPtr + _ringOffset, size, size);
-            uint dynamicOffset = (uint)_ringOffset;
-            _ringOffset = (_ringOffset + size + _uniformAlign - 1) / _uniformAlign * _uniformAlign;
+            if (_slot.RingOffset + size > _RingSize) throw new InvalidOperationException("Кольцо uniform Vulkan переполнено");
+            fixed (byte* src = shader.Block) System.Buffer.MemoryCopy(src, _slot.RingPtr + _slot.RingOffset, size, size);
+            uint dynamicOffset = (uint)_slot.RingOffset;
+            _slot.RingOffset = (_slot.RingOffset + size + _uniformAlign - 1) / _uniformAlign * _uniformAlign;
 
             // Набор дескрипторов: блок uniform и текстуры слотов
             DescriptorSetLayout layout = shader.SetLayout;
             var alloc = new DescriptorSetAllocateInfo
             {
                 SType = StructureType.DescriptorSetAllocateInfo,
-                DescriptorPool = _descriptorPool,
+                DescriptorPool = _slot.Descriptors,
                 DescriptorSetCount = 1,
                 PSetLayouts = &layout
             };
@@ -892,7 +1010,7 @@ namespace Mvk.Rendering.Vulkan
             int samplers = shader.SamplerCount;
             var writes = stackalloc WriteDescriptorSet[1 + samplers];
             var images = stackalloc DescriptorImageInfo[Math.Max(1, samplers)];
-            var bufferInfo = new DescriptorBufferInfo(_ring, 0, size);
+            var bufferInfo = new DescriptorBufferInfo(_slot.Ring, 0, size);
             writes[0] = new WriteDescriptorSet
             {
                 SType = StructureType.WriteDescriptorSet,
@@ -934,6 +1052,7 @@ namespace Mvk.Rendering.Vulkan
             CreateBuffer(size, BufferUsageFlags.TransferDstBit,
                 MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit, out VkBuffer buffer, out DeviceMemory memory);
             VkImage image = _swapImages[_imageIndex];
+            Vk.QueueWaitIdle(_queue);
             // Строки сверху вниз (окно нарисовано с переворотом), y задан от низа, как в GL
             int top = (int)_extent.Height - y - height;
             RunOnce(cb =>
@@ -948,7 +1067,7 @@ namespace Mvk.Rendering.Vulkan
                 };
                 Vk.CmdCopyImageToBuffer(cb, image, ImageLayout.TransferSrcOptimal, buffer, 1, in region);
                 Transition(cb, image, ImageAspectFlags.ColorBit, 1, 1, ImageLayout.TransferSrcOptimal, ImageLayout.ColorAttachmentOptimal);
-            });
+            }, null, true);
             void* p;
             Vk.MapMemory(Device, memory, 0, size, 0, &p);
             new ReadOnlySpan<byte>(p, (int)size).CopyTo(rgba);
@@ -987,15 +1106,12 @@ namespace Mvk.Rendering.Vulkan
             Vk.DeviceWaitIdle(Device);
             _white.Dispose();
             _whiteArray.Dispose();
-            Vk.DestroyDescriptorPool(Device, _descriptorPool, null);
-            Vk.UnmapMemory(Device, _ringMemory);
-            Vk.DestroyBuffer(Device, _ring, null);
-            Vk.FreeMemory(Device, _ringMemory, null);
+            CompletedSerial = ulong.MaxValue;
+            _ReleaseCompleted();
+            foreach (FrameSlot slot in _slots) _DestroySlot(slot);
             _DestroySwapchain();
             Vk.DestroyRenderPass(Device, MainPass, null);
             Vk.DestroyRenderPass(Device, DepthPass, null);
-            Vk.DestroySemaphore(Device, _acquireSemaphore, null);
-            Vk.DestroyFence(Device, _fence, null);
             Vk.DestroyCommandPool(Device, _commandPool, null);
             Vk.DestroyDevice(Device, null);
             _khrSurface.DestroySurface(_instance, _surface, null);
