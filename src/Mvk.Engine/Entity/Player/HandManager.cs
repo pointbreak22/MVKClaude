@@ -313,6 +313,13 @@ namespace Mvk.Engine.Entity.Player
                 _pauseAction = 8;
                 return;
             }
+            if (moving.IsEntity() && moving.Entity is not EntityLiving)
+            {
+                // [ПОВЕДЕНИЕ] Поднять лежащий предмет этой рукой
+                _game.TrancivePacket(new PacketC03UseEntity(moving.Entity!.Id, PacketC03UseEntity.EnumAction.Interact).Hand(_left));
+                _pauseAction = 4;
+                return;
+            }
             _Action(true);
         }
 

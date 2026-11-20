@@ -191,6 +191,18 @@ namespace Mvk.Engine.Entity.Inventory
         }
 
         /// <summary>
+        /// Есть ли в карманах стак такого предмета (туда подбор докладывает, как в оригинале)
+        /// </summary>
+        private bool _InPockets(ItemStack stack)
+        {
+            for (int i = 0; i < LimitPocket && i < _pocketCount; i++)
+            {
+                if (_items[i] != null && _items[i].Item == stack.Item) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Поменять стаки двух слотов местами с рассылкой
         /// </summary>
         private void _SwapSlots(int a, int b)
@@ -207,6 +219,15 @@ namespace Mvk.Engine.Entity.Inventory
         public override bool AddItemStackToInventory(ItemStack itemStack)
         {
             ItemStack stackSlot = itemStack?.Copy()!;
+
+            // [ПОВЕДЕНИЕ] Пустая рука (правая или та, что подняла) получает предмет, если такого нет в карманах
+            int hand = GetCurrentIndex();
+            if (itemStack != null && _pocketCount > 0 && (HandLeft || _currentIndex < LimitPocket) && _items[hand] == null
+                && !_InPockets(stackSlot))
+            {
+                SetInventorySlotContents(hand, stackSlot);
+                return true;
+            }
 
             // Сразу в карманы пробуем
             _conteiner.IdDamageCategory = 2;
