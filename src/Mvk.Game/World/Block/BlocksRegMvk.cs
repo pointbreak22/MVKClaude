@@ -360,6 +360,11 @@ namespace Mvk.Game.World.Block
             BlocksReg.RegisterBlockClass("Rope", Rope = new BlockRope(materials.Rope));
             // Новые блоки порта — только в конце регистрации
             Torch = BlocksReg.RegisterBlockClass("Torch", materials.Rope);
+            // [ПОВЕДЕНИЕ] Свет факела в руке: как воздух, но светит (своего json нет, как у воздуха)
+            BlockTorchLight torchLight = new BlockTorchLight(materials.Air);
+            torchLight.InitAirAlias("TorchLight");
+            BlocksReg.Table.Add("TorchLight", torchLight);
+            Mvk.Engine.World.HandLight.Block = torchLight;
             
 
             // Регистрация текстуры разрушения блока

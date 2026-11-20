@@ -252,6 +252,8 @@ namespace Mvk.Engine.Entity.Player
 
             // [ПОВЕДЕНИЕ] Фитиль в руке
             _UpdateFuse();
+            // [ПОВЕДЕНИЕ] Свет предмета в руке
+            HandLight.Update(this, ref _handLightPos);
 
             // Обновление урона
             Damage?.Update();
@@ -810,6 +812,11 @@ namespace Mvk.Engine.Entity.Player
         /// [ПОВЕДЕНИЕ] Такт сервера конца фитиля подожжённого предмета в руке (0 — нет) и рука
         /// </summary>
         public uint FuseEnd;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Клетка света предмета в руке (HandLight) или null
+        /// </summary>
+        private BlockPos? _handLightPos;
         public bool FuseLeft;
 
         /// <summary>

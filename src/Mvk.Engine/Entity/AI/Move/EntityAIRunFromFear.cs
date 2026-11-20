@@ -37,6 +37,12 @@ namespace Mvk.Engine.Entity.AI
                 && _entity.Tracker.DistantionPlayer < _maxDistanceForPlayer)
             {
                 float probability = _probability;
+                // [ПОВЕДЕНИЕ] Огонь в руке игрока пугает всегда
+                if (_entity.Tracker.ClosestPlayer.Inventory.GetCurrentRightItem()?.Item.HandLight > 0
+                    || _entity.Tracker.ClosestPlayer.Inventory.GetCurrentLeftItem()?.Item.HandLight > 0)
+                {
+                    probability = 1;
+                }
                 if (_entity.Tracker.ClosestPlayer.IsSneaking()
                     && _entity.Tracker.DistantionPlayer > _maxDistanceForPlayer * .5f)
                 {

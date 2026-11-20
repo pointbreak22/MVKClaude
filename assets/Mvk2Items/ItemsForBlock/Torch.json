@@ -1,4 +1,5 @@
 {
+    HandLight: 14,
     ThrowMin: 0.4,
     ThrowMax: 1.0,
     ThrowCharge: 20,

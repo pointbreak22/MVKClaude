@@ -305,6 +305,15 @@ namespace Mvk.Engine.World.Block
         /// <summary>
         /// Инициализация блока Воздух
         /// </summary>
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Блок как воздух со своим псевдонимом (свет факела в руке)
+        /// </summary>
+        public void InitAirAlias(string alias)
+        {
+            InitAir();
+            Alias = alias;
+        }
+
         public void InitAir()
         {
             Alias = "Air";

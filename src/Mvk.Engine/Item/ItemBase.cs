@@ -115,6 +115,11 @@ namespace Mvk.Engine.Item
         public bool Throwable => ThrowMax > 0;
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Свет предмета в руке (json HandLight, 0 — не светит)
+        /// </summary>
+        public int HandLight { get; protected set; } = 0;
+
+        /// <summary>
         /// [ПОВЕДЕНИЕ] Поджечь предмет (сервер) предметом другой руки lighter; true — подожжён
         /// </summary>
         public virtual bool OnIgnite(ItemStack stack, PlayerServer player, ItemStack lighter, bool left) => false;
@@ -451,6 +456,7 @@ namespace Mvk.Engine.Item
                         else if (json.IsKey("Forearm")) Forearm = json.GetBool();
                         else if (json.IsKey("Knockback")) Knockback = json.GetFloat();
                         else if (json.IsKey("ThrowMin")) ThrowMin = json.GetFloat();
+                        else if (json.IsKey("HandLight")) HandLight = json.GetInt();
                         else if (json.IsKey("ThrowMax")) ThrowMax = json.GetFloat();
                         else if (json.IsKey("ThrowCharge")) ThrowCharge = Math.Max(1, json.GetInt());
                         else if (json.IsKey("ThrowEntity")) ThrowEntity = json.GetString();
