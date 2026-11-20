@@ -32,6 +32,9 @@ jobs:
       - name: Test (Linux)
         if: runner.os == 'Linux'
         run: xvfb-run -a -s "-screen 0 1920x1080x24" dotnet test MvkClaude.slnx -c Release --no-build
+      - name: Render backends report (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a -s "-screen 0 1920x1080x24" dotnet test tests/Mvk.Platform.Tests -c Release --no-build --filter RenderBackendTests --logger "console;verbosity=detailed"
       - name: Test (Windows)
         if: runner.os != 'Linux'
         run: dotnet test MvkClaude.slnx -c Release --no-build
