@@ -1,4 +1,6 @@
 #nullable enable
+using System;
+using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.List;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Item;
@@ -7,8 +9,10 @@ using Mvk.Game.Entity.List;
 namespace Mvk.Game.Item.List
 {
     /// <summary>
-    /// Лук (двуручный, json Two): натяжение удержанием второй кнопки до 20 тактов, выстрел при отпускании.
-    /// Клиент сообщает только силу натяжения; стрелу из инвентаря, выстрел, попадание и износ лука считает сервер.
+    /// Лук (двуручный, json Two: держится кистью одной руки, тетиву тянет другая; щит на предплечье не мешает).
+    /// Клик — слабый удар, как рукой; удержание — натяжение до 20 тактов, отпускание — выстрел. [ПОВЕДЕНИЕ] Клиент
+    /// сообщает только начало и конец натяжения; время натяжения по своим тактам, стрелу из инвентаря, выстрел,
+    /// попадание и износ лука считает сервер.
     /// </summary>
     public class ItemBow : ItemBase
     {
@@ -16,6 +20,11 @@ namespace Mvk.Game.Item.List
         /// Такты полного натяжения
         /// </summary>
         public const int FullDraw = 20;
+
+        /// <summary>
+        /// Такт сервера начала натяжения у игрока (сервер)
+        /// </summary>
+        private readonly ConditionalWeakTable<PlayerServer, StrongBox<uint>> _drawStart = new();
 
         public override ResultHandSecond OnSecond(bool begin, ItemStack stack, PlayerClientOwner player, int counter)
         {
@@ -32,8 +41,19 @@ namespace Mvk.Game.Item.List
 
         public override void OnUseSecond(ItemStack stack, PlayerServer player, int number)
         {
-            if (number < 100 || number == 255 || player is not PlayerServerMvk mvk) return;
-            int draw = number - 100;
+            uint tick = player.GetWorldServer().Server.TickCounterGlobal;
+            if (number == 0)
+            {
+                // Начало натяжения
+                _drawStart.AddOrUpdate(player, new StrongBox<uint>(tick));
+                return;
+            }
+            if (number < 100 || player is not PlayerServerMvk mvk) return;
+            if (!_drawStart.TryGetValue(player, out StrongBox<uint>? start)) return;
+            _drawStart.Remove(player);
+            if (number == 255) return;
+            // Натяжение по тактам сервера, не больше присланного клиентом
+            int draw = (int)Math.Min(Math.Min(tick - start.Value, (uint)FullDraw), (uint)(number - 100));
             if (draw < 3) return; // не натянул
             int slot = ItemAmmo.Find(mvk, item => item is ItemArrow);
             if (slot < 0) return;
