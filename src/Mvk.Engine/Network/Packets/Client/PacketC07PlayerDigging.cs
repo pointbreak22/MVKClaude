@@ -19,6 +19,20 @@ namespace Mvk.Engine.Network.Packets.Client
         /// </summary>
         public byte Process { get; private set; }
 
+        /// <summary>
+        /// Действие левой рукой (выживание, две руки)
+        /// </summary>
+        public bool Left { get; private set; }
+
+        /// <summary>
+        /// Задать руку действия
+        /// </summary>
+        public PacketC07PlayerDigging Hand(bool left)
+        {
+            Left = left;
+            return this;
+        }
+
         public BlockPos GetBlockPos() => _blockPos;
 
         public PacketC07PlayerDigging(BlockPos blockPos, byte process)
@@ -38,7 +52,9 @@ namespace Mvk.Engine.Network.Packets.Client
         public void ReadPacket(ReadPacket stream)
         {
             _blockPos.ReadStream(stream);
-            Digging = (EnumDigging)stream.Byte();
+            byte digging = stream.Byte();
+            Left = (digging & 0x80) != 0;
+            Digging = (EnumDigging)(digging & 0x7F);
             if (Digging == EnumDigging.ProcessDestroy)
             {
                 Process = stream.Byte();
@@ -48,7 +64,7 @@ namespace Mvk.Engine.Network.Packets.Client
         public void WritePacket(WritePacket stream)
         {
             _blockPos.WriteStream(stream);
-            stream.Byte((byte)Digging);
+            stream.Byte((byte)((byte)Digging | (Left ? 0x80 : 0)));
             if (Digging == EnumDigging.ProcessDestroy)
             {
                 stream.Byte(Process);

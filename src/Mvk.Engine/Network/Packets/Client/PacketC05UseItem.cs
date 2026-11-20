@@ -18,6 +18,20 @@ namespace Mvk.Engine.Network.Packets.Client
         public int Number { get; private set; }
 
         /// <summary>
+        /// Действие левой рукой (выживание, две руки)
+        /// </summary>
+        public bool Left { get; private set; }
+
+        /// <summary>
+        /// Задать руку действия
+        /// </summary>
+        public PacketC05UseItem Hand(bool left)
+        {
+            Left = left;
+            return this;
+        }
+
+        /// <summary>
         /// Взаимодействие вспомогательного предмета без блока с параметром
         /// </summary>
         public PacketC05UseItem(int number)
@@ -28,7 +42,9 @@ namespace Mvk.Engine.Network.Packets.Client
 
         public void ReadPacket(ReadPacket stream)
         {
-            IsSecond = stream.Bool();
+            byte flags = stream.Byte();
+            IsSecond = (flags & 1) != 0;
+            Left = (flags & 2) != 0;
             if (IsSecond)
             {
                 Number = stream.Int();
@@ -37,7 +53,7 @@ namespace Mvk.Engine.Network.Packets.Client
 
         public void WritePacket(WritePacket stream)
         {
-            stream.Bool(IsSecond);
+            stream.Byte((byte)((IsSecond ? 1 : 0) | (Left ? 2 : 0)));
             if (IsSecond)
             {
                 stream.Int(Number);

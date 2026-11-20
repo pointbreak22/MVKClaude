@@ -48,3 +48,4 @@
 | (новое) огнестрел | `Mvk.Game/Item/List/ItemGun.cs`, `ItemAmmoPart.cs`, `Entity/List/EntityBulletMvk.cs` (game_new), шов `game_seam8_projectile_sword_shield_bow_gun.py`; wav-звуки: шов `item_sound_wav.py`, `PcmSample.DecodeWav`, `assets/Mvk2Sounds/Shot.wav` | ✅ всё на сервере |
 | (новое) звук взрыва | `assets/Mvk2Sounds/Explode.wav` (синтез), `ExplosionMvk` | ✅ |
 | (новое) модели брони | `assets/Mvk2Entities/Layers/Base.json` (слои `Armor*`), текстура `LayerArmor.png` в `Models/Humanoid.bbmodel`, `NameLayer` в `Cloth/*Iron.json` | ✅ |
+| (новое) две руки в выживании | `HandManager` (руки, клик и удержание), `InventoryBase.HandLeft`, пакет `PacketC0CHandControl` (new), швы `controls_two_hands.py`, `game_seam8_projectile_torch_hands.py` | ✅ этап 8.1 |

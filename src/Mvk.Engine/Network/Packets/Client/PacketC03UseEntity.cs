@@ -22,6 +22,20 @@ namespace Mvk.Engine.Network.Packets.Client
         public float HitY { get; private set; }
 
         /// <summary>
+        /// Действие левой рукой (выживание, две руки)
+        /// </summary>
+        public bool Left { get; private set; }
+
+        /// <summary>
+        /// Задать руку действия
+        /// </summary>
+        public PacketC03UseEntity Hand(bool left)
+        {
+            Left = left;
+            return this;
+        }
+
+        /// <summary>
         /// Взаимодействие сущности, Атаки!
         /// </summary>
         /// <param name="hitY">Высота удара, 0 до высоты size.Y</param>
@@ -73,7 +87,9 @@ namespace Mvk.Engine.Network.Packets.Client
         public void ReadPacket(ReadPacket stream)
         {
             Index = stream.Int();
-            Action = (EnumAction)stream.Byte();
+            byte action = stream.Byte();
+            Left = (action & 0x80) != 0;
+            Action = (EnumAction)(action & 0x7F);
             X = stream.Float();
             Y = stream.Float();
             Z = stream.Float();
@@ -86,7 +102,7 @@ namespace Mvk.Engine.Network.Packets.Client
         public void WritePacket(WritePacket stream)
         {
             stream.Int(Index);
-            stream.Byte((byte)Action);
+            stream.Byte((byte)((byte)Action | (Left ? 0x80 : 0)));
             stream.Float(X);
             stream.Float(Y);
             stream.Float(Z);

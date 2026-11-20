@@ -103,7 +103,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// Получить выбранный слот правой руки
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override byte GetCurrentIndex() => _currentIndex;
+        public override byte GetCurrentIndex() => HandLeft && _pocketCount > 0 ? _pocketCount : _currentIndex;
 
         /// <summary>
         /// Задать активный слот правой руки
@@ -125,13 +125,25 @@ namespace Mvk.Engine.Entity.Inventory
         /// Получить текущий стак правой руки
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override ItemStack GetCurrentItem() => (_pocketCount > 0 ? _items[_currentIndex] : null)!;
+        public override ItemStack GetCurrentItem() => (_pocketCount > 0 ? _items[GetCurrentIndex()] : null)!;
+
+        /// <summary>
+        /// Стак правой руки без учёта руки действия
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override ItemStack GetCurrentRightItem() => (_pocketCount > 0 ? _items[_currentIndex] : null)!;
 
         /// <summary>
         /// Задать в текущий стак правой руки
         /// </summary>
         public override void SetCurrentItem(ItemStack stack)
         {
+            if (HandLeft && _pocketCount > 0)
+            {
+                // Рука действия левая: слот левой руки с рассылкой
+                SetInventorySlotContents(_pocketCount, stack);
+                return;
+            }
             if (_pocketCount > 0)
             {
                 //CheckKnowledge(stack);
@@ -278,15 +290,15 @@ namespace Mvk.Engine.Entity.Inventory
         /// </summary>
         public override void DecrCurrentItem(byte amount)
         {
-            if (_items[_currentIndex] != null)
+            if (_items[GetCurrentIndex()] != null)
             {
-                if (_items[_currentIndex].Amount <= amount)
+                if (_items[GetCurrentIndex()].Amount <= amount)
                 {
                     SetCurrentItem(null!);
                 }
                 else
                 {
-                    SetCurrentItem(_items[_currentIndex].ReduceAmount(amount));
+                    SetCurrentItem(_items[GetCurrentIndex()].ReduceAmount(amount));
                 }
             }
         }

@@ -1,4 +1,4 @@
-using Mvk.Engine.World.Block;
+﻿using Mvk.Engine.World.Block;
 using Mvk.Game.Entity.List;
 using Mvk.Game.Entity.Inventory;
 using Mvk.Engine.Item.List;
@@ -143,6 +143,10 @@ namespace Mvk.Desktop
             WorldServer world = player.GetWorldServer();
             ItemStack held = player.Inventory.GetCurrentItem();
             if (held != null) System.Console.WriteLine($"held {held.Item.Alias} износ {held.ItemDamaged}/{held.Item.MaxDamage}");
+            ItemStack? left = player.Inventory.GetCurrentLeftItem();
+            int drops = 0;
+            for (int i = 0; i < world.LoadedEntityList.Count; i++) if (world.LoadedEntityList.GetAt(i) is EntityItem) drops++;
+            System.Console.WriteLine($"hands right {held?.Item.Alias ?? "-"} x{held?.Amount ?? 0} left {left?.Item.Alias ?? "-"} x{left?.Amount ?? 0} drops {drops}");
             for (int i = 0; i < world.LoadedEntityList.Count; i++)
             {
                 if (world.LoadedEntityList.GetAt(i) is EntityLiving living && living is not PlayerServer)

@@ -31,6 +31,20 @@ namespace Mvk.Engine.Network.Packets.Client
         /// </summary>
         public bool Put { get; private set; }
 
+        /// <summary>
+        /// Действие левой рукой (выживание, две руки)
+        /// </summary>
+        public bool Left { get; private set; }
+
+        /// <summary>
+        /// Задать руку действия
+        /// </summary>
+        public PacketC08PlayerBlockPlacement Hand(bool left)
+        {
+            Left = left;
+            return this;
+        }
+
         private BlockPos _blockPos;
         /// <summary>
         /// Позиция блока где устанавливаем блок
@@ -52,7 +66,9 @@ namespace Mvk.Engine.Network.Packets.Client
 
         public void ReadPacket(ReadPacket stream)
         {
-            Put = stream.Bool();
+            byte flags = stream.Byte();
+            Put = (flags & 1) != 0;
+            Left = (flags & 2) != 0;
             Replaceable = stream.Bool();
             _blockPos.ReadStream(stream);
             Side = (Pole)stream.Byte();
@@ -61,7 +77,7 @@ namespace Mvk.Engine.Network.Packets.Client
 
         public void WritePacket(WritePacket stream)
         {
-            stream.Bool(Put);
+            stream.Byte((byte)((Put ? 1 : 0) | (Left ? 2 : 0)));
             stream.Bool(Replaceable);
             _blockPos.WriteStream(stream);
             stream.Byte((byte)Side);

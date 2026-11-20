@@ -1,4 +1,5 @@
-﻿#nullable enable
+﻿using Mvk.Engine.Entity.Inventory;
+#nullable enable
 using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Physics;
@@ -142,6 +143,14 @@ namespace Mvk.Engine.Entity.Player
         /// Менеджер действий рук игрока 
         /// </summary>
         protected HandManager _handManager = null!;
+        /// <summary>
+        /// Менеджер левой руки (выживание, две руки)
+        /// </summary>
+        protected HandManager? _handLeft;
+        /// <summary>
+        /// Последний слот кармана, взятый в левую руку колесом
+        /// </summary>
+        private int _leftScroll = -1;
 
         public PlayerClientOwner(GameBase game) : base(game) // IndexEntity ещё не определён
         {
@@ -236,14 +245,63 @@ namespace Mvk.Engine.Entity.Player
             }
             else if (Options.ControlHandAction == index)
             {
-                _handManager.SetAction(down);
+                // [ПОВЕДЕНИЕ] В выживании левая кнопка — левая рука
+                if (IsTwoHands()) _handLeft!.SetHand(down);
+                else _handManager.SetAction(down);
             }
             else if (Options.ControlHandSecond == index)
             {
-                _handManager.SetSecond(down);
+                // [ПОВЕДЕНИЕ] В выживании правая кнопка — правая рука
+                if (IsTwoHands()) _handManager.SetHand(down);
+                else _handManager.SetSecond(down);
+            }
+            else if (Options.ControlSwapHands == index)
+            {
+                if (down && IsTwoHands())
+                {
+                    _handManager.SetStop();
+                    _handLeft!.SetStop();
+                    _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.Swap));
+                }
+            }
+            else if (Options.ControlDropItem == index)
+            {
+                if (down && !IsSpectator())
+                {
+                    bool left = IsKeyShift() && IsTwoHands();
+                    if (left) _handLeft!.SetStop();
+                    else _handManager.SetStop();
+                    _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.Drop, 0, left));
+                }
             }
         }
         
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Две руки: выживание (не творческий и не наблюдатель), есть менеджер левой руки
+        /// </summary>
+        public bool IsTwoHands() => _handLeft != null && !CreativeMode && !IsSpectator();
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Левый Shift + колесо: взять в левую руку предмет следующего (или предыдущего) слота кармана,
+        /// прежний предмет левой руки ложится на его место. Слот правой руки пропускается
+        /// </summary>
+        public void ScrollLeftHand(int delta)
+        {
+            if (Inventory is not InventoryPlayer inventory || inventory.LimitPocket < 2) return;
+            int limit = inventory.LimitPocket;
+            int right = inventory.GetCurrentIndex();
+            int slot = _leftScroll < 0 || _leftScroll >= limit ? right : _leftScroll;
+            for (int i = 0; i < limit; i++)
+            {
+                slot = delta > 0 ? (slot + limit - 1) % limit : (slot + 1) % limit;
+                if (slot != right) break;
+            }
+            if (slot == right) return;
+            _leftScroll = slot;
+            _handLeft?.SetStop();
+            _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.LeftFromSlot, (byte)slot));
+        }
+
         /// <summary>
         /// Двойной клик пробела
         /// </summary>
@@ -293,6 +351,7 @@ namespace Mvk.Engine.Entity.Player
         {
             Movement.SetStop();
             _handManager.SetStop();
+            _handLeft?.SetStop();
 
             Physics.AwakenPhysics();
             if (!_game.IsRunNet())
@@ -633,6 +692,7 @@ namespace Mvk.Engine.Entity.Player
 
             // Обновить активное действие рук
             _handManager.Update();
+            _handLeft?.Update();
 
             if (IsPositionChange())
             {
@@ -1038,6 +1098,12 @@ namespace Mvk.Engine.Entity.Player
                 Physics = new PhysicsPlayer(_game.World.Collision, this);
             }
 
+            if (CreativeMode != packet.CreativeMode)
+            {
+                // Смена схемы управления рук: остановить обе
+                _handManager.SetStop();
+                _handLeft?.SetStop();
+            }
             CreativeMode = packet.CreativeMode;
             NoClip = packet.NoClip;
             /*IsFlying =*/ AllowFlying = packet.AllowFlying;

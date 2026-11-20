@@ -1,4 +1,5 @@
-﻿#nullable enable
+﻿using Mvk.Engine.Entity.Inventory;
+#nullable enable
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Games;
 using Mvk.Engine.Network.Packets;
@@ -106,6 +107,7 @@ namespace Mvk.Engine.Network
                     case 0x09: _Handle09HeldItemChange(sp.Side, (PacketC09HeldItemChange)sp.Packet); break;
                     case 0x0A: _Handle0APlayerAnimation(sp.Side, (PacketC0APlayerAnimation)sp.Packet); break;
                     case 0x0B: _Handle0BBlocking(sp.Side, (PacketC0BBlocking)sp.Packet); break;
+                    case 0x0C: _Handle0CHandControl(sp.Side, (PacketC0CHandControl)sp.Packet); break;
                     case 0x0E: _Handle0EClickWindow(sp.Side, (PacketC0EClickWindow)sp.Packet); break;
                     case 0x14: _Handle14Message(sp.Side, (PacketC14Message)sp.Packet); break;
                     case 0x15: _Handle15PlayerSetting(sp.Side, (PacketC15PlayerSetting)sp.Packet); break;
@@ -176,7 +178,18 @@ namespace Mvk.Engine.Network
         /// Пакет взаимодействие с сущностью
         /// </summary>
         private void _Handle03UseEntity(SocketSide? socketSide, PacketC03UseEntity packet)
-            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketUseEntity(packet);
+        {
+            PlayerServer? player = _server.Players.FindPlayerBySocket(socketSide!);
+            if (player == null || !_HandBegin(player, packet.Left)) return;
+            try
+            {
+                player.PacketUseEntity(packet);
+            }
+            finally
+            {
+                player.Inventory.HandLeft = false;
+            }
+        }
         
         /// <summary>
         /// Пакет позиции игрока
@@ -188,7 +201,18 @@ namespace Mvk.Engine.Network
         /// Пакет взаимодействие с выбранным предметом в руке без RayCast блока
         /// </summary>
         private void _Handle05UseItem(SocketSide? socketSide, PacketC05UseItem packet)
-            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketUseItem(packet);
+        {
+            PlayerServer? player = _server.Players.FindPlayerBySocket(socketSide!);
+            if (player == null || !_HandBegin(player, packet.Left)) return;
+            try
+            {
+                player.PacketUseItem(packet);
+            }
+            finally
+            {
+                player.Inventory.HandLeft = false;
+            }
+        }
 
         /// <summary>
         /// Пакет урона предмета в руке
@@ -200,13 +224,35 @@ namespace Mvk.Engine.Network
         /// Пакет игрок копает / ломает
         /// </summary>
         private void _Handle07PlayerDigging(SocketSide? socketSide, PacketC07PlayerDigging packet)
-            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerDigging(packet);
+        {
+            PlayerServer? player = _server.Players.FindPlayerBySocket(socketSide!);
+            if (player == null || !_HandBegin(player, packet.Left)) return;
+            try
+            {
+                player.PacketPlayerDigging(packet);
+            }
+            finally
+            {
+                player.Inventory.HandLeft = false;
+            }
+        }
 
         /// <summary>
         /// Пакет игрок устанавливает или взаимодействует с блоком
         /// </summary>
         private void _Handle08PlayerBlockPlacement(SocketSide? socketSide, PacketC08PlayerBlockPlacement packet)
-            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerBlockPlacement(packet);
+        {
+            PlayerServer? player = _server.Players.FindPlayerBySocket(socketSide!);
+            if (player == null || !_HandBegin(player, packet.Left)) return;
+            try
+            {
+                player.PacketPlayerBlockPlacement(packet);
+            }
+            finally
+            {
+                player.Inventory.HandLeft = false;
+            }
+        }
 
         /// <summary>
         /// Пакет игрок отправляем на сервер выбранный слот
@@ -219,6 +265,27 @@ namespace Mvk.Engine.Network
         /// </summary>
         private void _Handle0APlayerAnimation(SocketSide? socketSide, PacketC0APlayerAnimation packet)
             => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerAnimation(packet);
+
+        /// <summary>
+        /// Включить руку действия игрока на время пакета. Левая рука не действует, если в правой двуручный предмет
+        /// </summary>
+        private static bool _HandBegin(PlayerServer player, bool left)
+        {
+            if (left && player.Inventory.GetCurrentRightItem()?.Item.Two == true) return false;
+            player.Inventory.HandLeft = left;
+            return true;
+        }
+
+        /// <summary>
+        /// Управление руками: поменять, взять в левую из кармана, выбросить
+        /// </summary>
+        private void _Handle0CHandControl(SocketSide? socketSide, PacketC0CHandControl packet)
+        {
+            if (_server.Players.FindPlayerBySocket(socketSide!)?.Inventory is InventoryPlayer inventory)
+            {
+                inventory.ServerHandControl(packet);
+            }
+        }
 
         /// <summary>
         /// Блок щитом начат или закончен

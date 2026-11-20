@@ -93,13 +93,15 @@ namespace Mvk.Desktop
         public void Render(int width, int height) => App.Draw(_commands, width, height);
 
         /// <summary>
-        /// Нажатие мыши. В мире (игра без открытого экрана) кнопка переводится через действия раскладки:
-        /// «ломать» идёт игре как левая кнопка оригинала, «ставить» как правая. GUI получает кнопки как есть.
+        /// Нажатие мыши. В мире (игра без открытого экрана) творческого режима кнопка переводится через действия
+        /// раскладки: «ломать» идёт игре как левая кнопка оригинала, «ставить» как правая. В выживании кнопки идут
+        /// как есть (две руки). GUI получает кнопки как есть.
         /// </summary>
         private void _MouseDown(SilkMouse button)
         {
             EngineMouse m = _MapMouse(button);
-            if (App.Screen == null && App.Game != null)
+            // [ПОВЕДЕНИЕ] В выживании кнопки идут как есть: левая — левая рука, правая — правая
+            if (App.Screen == null && App.Game != null && !App.Game.Player.IsTwoHands())
             {
                 int action = WorldMouse.ActionOf(button);
                 if (action == 0) m = EngineMouse.Left;

@@ -326,7 +326,9 @@ namespace Mvk.Engine.Games
         {
             if (_isMouseFirstPersonView)
             {
-                if (delta > 0) Player.Inventory.SlotLess();
+                // [ПОВЕДЕНИЕ] Shift + колесо в выживании листает предмет левой руки
+                if (Key.KeyShift && Player.IsTwoHands()) Player.ScrollLeftHand(delta);
+                else if (delta > 0) Player.Inventory.SlotLess();
                 else if (delta < 0) Player.Inventory.SlotMore();
             }
         }

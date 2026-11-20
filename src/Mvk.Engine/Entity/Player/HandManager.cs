@@ -1,4 +1,5 @@
-﻿#nullable enable
+﻿using Mvk.Engine.Item.List;
+#nullable enable
 using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Games;
@@ -98,9 +99,213 @@ namespace Mvk.Engine.Entity.Player
             _player = player;
         }
 
+        public HandManager(GameBase game, PlayerClientOwner player, bool left) : this(game, player) => _left = left;
+
+        #region Две руки (выживание)
+
+        /// <summary>
+        /// Порог удержания в тактах: нажатие короче — клик, дольше — удержание
+        /// </summary>
+        public const int HoldTicks = 5;
+
+        /// <summary>
+        /// Чем рука действует предметом
+        /// </summary>
+        protected enum HandUse
+        {
+            /// <summary>Клик — удар, добыча или действие предмета; удержание — повтор по паузе</summary>
+            Action,
+            /// <summary>Клик — поставить (блок, жидкость); удержание — ставить повторно</summary>
+            Place,
+            /// <summary>Клик — удар или действие; удержание — вспомогательное действие (натяжение, перезарядка, еда)</summary>
+            Charge,
+            /// <summary>Нажатие — защита (щит) до отпускания</summary>
+            Guard
+        }
+
+        /// <summary>
+        /// Левая ли это рука
+        /// </summary>
+        protected readonly bool _left;
+        /// <summary>
+        /// Кнопка руки зажата
+        /// </summary>
+        private bool _hand;
+        /// <summary>
+        /// Кнопка руки была зажата в прошлом такте
+        /// </summary>
+        private bool _handPrev;
+        /// <summary>
+        /// Клик ждёт конца отката руки
+        /// </summary>
+        private bool _clickPending;
+        /// <summary>
+        /// Идёт удержание
+        /// </summary>
+        private bool _holding;
+        /// <summary>
+        /// Тактов от нажатия
+        /// </summary>
+        private int _handTicks;
+        /// <summary>
+        /// Чем рука действует в текущем нажатии
+        /// </summary>
+        private HandUse _use;
+
+        /// <summary>
+        /// Кнопка руки нажата или отпущена (выживание)
+        /// </summary>
+        public void SetHand(bool down) => _hand = down;
+
+        /// <summary>
+        /// Две руки: в выживании; творческий режим по прежней схеме
+        /// </summary>
+        private bool _TwoHands() => !_player.CreativeMode;
+
+        /// <summary>
+        /// Чем рука действует предметом: блок ставится, остальное бьёт
+        /// </summary>
+        protected virtual HandUse _HandUse(ItemStack? stack)
+            => stack?.Item is ItemBlock ? HandUse.Place : HandUse.Action;
+
+        /// <summary>
+        /// Рука занята: левая при двуручном предмете в правой
+        /// </summary>
+        protected bool _HandBusy() => _left && _player.Inventory.GetCurrentRightItem()?.Item.Two == true;
+
+        /// <summary>
+        /// Такт руки: клик сразу при нажатии (если откат руки прошёл, иначе как только пройдёт),
+        /// с порога HoldTicks — удержание, отпускание завершает удержание
+        /// </summary>
+        private void _UpdateHand()
+        {
+            bool holdAction = _holding && _use == HandUse.Action;
+            bool holdSecond = _holding && _use != HandUse.Action;
+            if (!holdAction && _pauseAction > 0) _pauseAction--;
+            if (!holdSecond && _pauseSecond > 0) _pauseSecond--;
+
+            bool hand = _hand && !_HandBusy();
+            if (hand)
+            {
+                if (!_handPrev)
+                {
+                    _handTicks = 0;
+                    _holding = false;
+                    _use = _HandUse(_player.Inventory.GetCurrentItem());
+                    if (_use == HandUse.Guard)
+                    {
+                        _clickPending = false;
+                        _holding = true;
+                        _HoldBegin();
+                    }
+                    else
+                    {
+                        _clickPending = true;
+                    }
+                }
+                else if (_holding)
+                {
+                    _HoldTick();
+                }
+                else if (++_handTicks >= HoldTicks && !_clickPending)
+                {
+                    _holding = true;
+                    _HoldBegin();
+                }
+            }
+            else if (_handPrev)
+            {
+                if (_holding) _HoldEnd();
+                _holding = false;
+                _ActionEnd();
+            }
+
+            if (_clickPending && _pauseAction <= 0 && _pauseSecond <= 0)
+            {
+                _clickPending = false;
+                _HandClick();
+            }
+            _handPrev = hand;
+        }
+
+        /// <summary>
+        /// Клик рукой: поставить, активировать блок пустой рукой, иначе действие предмета (удар, добыча, выстрел)
+        /// </summary>
+        private void _HandClick()
+        {
+            if (_player.IsSpectator()) return;
+            if (_use == HandUse.Place)
+            {
+                _counterSecond = 0;
+                _flagAbort = false;
+                _Second(true);
+                return;
+            }
+            MovingObjectPosition moving = _player.MovingObject;
+            if (_player.Inventory.GetCurrentItem() == null && !_player.IsKeyShift() && moving.IsBlock()
+                && moving.Block.GetBlock().OnBlockActivated(_player, moving.BlockPosition, moving.Side, moving.Facing))
+            {
+                // Активация блока (дверь, кнопка) кликом пустой руки
+                _game.TrancivePacket(new PacketC08PlayerBlockPlacement(moving.BlockPosition,
+                    moving.Side, moving.Facing, false, false));
+                _pauseAction = 8;
+                return;
+            }
+            _Action(true);
+        }
+
+        /// <summary>
+        /// Начало удержания
+        /// </summary>
+        private void _HoldBegin()
+        {
+            if (_use == HandUse.Action)
+            {
+                _Action(false);
+            }
+            else if (_use == HandUse.Place)
+            {
+                _Second(false);
+            }
+            else
+            {
+                _counterSecond = 0;
+                _flagAbort = false;
+                _Second(true);
+                _counterSecond++;
+            }
+        }
+
+        /// <summary>
+        /// Такт удержания: повтор действия или вспомогательное действие
+        /// </summary>
+        private void _HoldTick()
+        {
+            if (_use == HandUse.Action)
+            {
+                _Action(false);
+            }
+            else
+            {
+                _Second(false);
+                _counterSecond++;
+            }
+        }
+
+        /// <summary>
+        /// Конец удержания: выстрел из лука, бросок, конец защиты
+        /// </summary>
+        private void _HoldEnd()
+        {
+            if (_use == HandUse.Charge || _use == HandUse.Guard) _SecondEnd();
+        }
+
+        #endregion
+
 
         public void SetStop()
         {
+            _hand = false;
             _action = false;
             _second = false;
             _flagAbort = true;
@@ -117,9 +322,26 @@ namespace Mvk.Engine.Entity.Player
         public void SetSecond(bool action) => _second = action;
         
         /// <summary>
-        /// В такте
+        /// В такте: рука действия инвентаря на время такта своя (левая или правая)
         /// </summary>
         public void Update()
+        {
+            _player.Inventory.HandLeft = _left;
+            try
+            {
+                if (_TwoHands()) _UpdateHand();
+                else _UpdateOriginal();
+            }
+            finally
+            {
+                _player.Inventory.HandLeft = false;
+            }
+        }
+
+        /// <summary>
+        /// Такт прежней схемы (творческий режим): кнопка «ломать» и «ставить» правой рукой
+        /// </summary>
+        private void _UpdateOriginal()
         {
             if (_action)
             {
@@ -220,14 +442,14 @@ namespace Mvk.Engine.Entity.Player
                         // Размещение блока (Взаимодействие предмета на выбранный блок)
                         //Console.WriteLine("BlockPlacement " + resultAction.Pause);
                         _game.TrancivePacket(new PacketC08PlayerBlockPlacement(moving.BlockPosition,
-                                moving.Side, moving.Facing, resultAction.Replaceable, true));
+                                moving.Side, moving.Facing, resultAction.Replaceable, true).Hand(_left));
                         isAnimation = true;
                     }
                     else if (resultAction.Action == ResultHandAction.ActionType.UseItem)
                     {
                         // Взаимодействия предмета, ЛКМ без блока
                         //Console.WriteLine("UseItem");
-                        _game.TrancivePacket(new PacketC05UseItem());
+                        _game.TrancivePacket(new PacketC05UseItem().Hand(_left));
                         isAnimation = true;
                     }
                     else
@@ -300,7 +522,7 @@ namespace Mvk.Engine.Entity.Player
             //Console.WriteLine("Attack");
             Vector3 vec = (moving.Entity!.GetPositionVec() - _player.GetPositionVec()).Normalize();
             _game.TrancivePacket(new PacketC03UseEntity(moving.Entity.Id, moving.RayHit.Y,
-                vec.X * _impulsAttackXZ, vec.Y * _impulsAttackY, vec.Z * _impulsAttackXZ));
+                vec.X * _impulsAttackXZ, vec.Y * _impulsAttackY, vec.Z * _impulsAttackXZ).Hand(_left));
         }
 
         /// <summary>
@@ -331,7 +553,7 @@ namespace Mvk.Engine.Entity.Player
                 {
                     // Активация блока
                     _game.TrancivePacket(new PacketC08PlayerBlockPlacement(moving.BlockPosition,
-                                    moving.Side, moving.Facing, false, false));
+                                    moving.Side, moving.Facing, false, false).Hand(_left));
                     _pauseSecond = -1;
                 }
                 else
@@ -349,7 +571,7 @@ namespace Mvk.Engine.Entity.Player
                             //Console.WriteLine("BlockPlacement " + resultSecond.Pause);
                             _game.TrancivePacket(new PacketC08PlayerBlockPlacement(
                                 resultSecond.IsLiquid ? moving.BlockLiquidPosition : moving.BlockPosition,
-                                    moving.Side, moving.Facing, resultSecond.Replaceable, true));
+                                    moving.Side, moving.Facing, resultSecond.Replaceable, true).Hand(_left));
                             if (_ActionAnimationRight(itemStack, moving))
                             {
                                 // Отправить анимацию
@@ -362,7 +584,7 @@ namespace Mvk.Engine.Entity.Player
                             // Взаимодействие на сущность, с предметом
                             //Console.WriteLine("InteractItem");
                             _game.TrancivePacket(new PacketC03UseEntity(moving.Entity!.Id,
-                                PacketC03UseEntity.EnumAction.Interact));
+                                PacketC03UseEntity.EnumAction.Interact).Hand(_left));
                             if (_ActionAnimationRight(itemStack, moving))
                             {
                                 // Отправить анимацию
@@ -375,7 +597,7 @@ namespace Mvk.Engine.Entity.Player
                             // Взаимодействия предмета, ПКМ без блока
                             _flagBeginUseSecond = true;
                              //Console.WriteLine("UseItem");
-                            _game.TrancivePacket(new PacketC05UseItem(resultSecond.Number));
+                            _game.TrancivePacket(new PacketC05UseItem(resultSecond.Number).Hand(_left));
                             if (_ActionAnimationRight(itemStack, moving))
                             {
                                 // Отправить анимацию
@@ -403,7 +625,7 @@ namespace Mvk.Engine.Entity.Player
                         // Взаимодействие на сущность, без предмета
                         //Console.WriteLine("Interact");
                         _game.TrancivePacket(new PacketC03UseEntity(moving.Entity!.Id,
-                            PacketC03UseEntity.EnumAction.Interact));
+                            PacketC03UseEntity.EnumAction.Interact).Hand(_left));
                         _pauseSecond = -1;
                     }
                     else
@@ -435,7 +657,7 @@ namespace Mvk.Engine.Entity.Player
                         _flagAbort, _counterSecond);
                     if (number >= 0)
                     {
-                        _game.TrancivePacket(new PacketC05UseItem(number));
+                        _game.TrancivePacket(new PacketC05UseItem(number).Hand(_left));
                     }
                 }
             }
@@ -501,7 +723,7 @@ namespace Mvk.Engine.Entity.Player
                     if (destroy != destroyFix)
                     {
                         _game.World.SetBlockDestroy(_blockPos, (byte)destroy);
-                        _game.TrancivePacket(new PacketC07PlayerDigging(_blockPos, (byte)destroy));
+                        _game.TrancivePacket(new PacketC07PlayerDigging(_blockPos, (byte)destroy).Hand(_left));
                     }
                     _game.World.PlaySound(block.Material.SampleBreak(_game.World.Rnd),
                         _blockPos.ToVector3Center(), .5f, .9f + _game.World.Rnd.NextFloat() * .2f);
@@ -521,7 +743,7 @@ namespace Mvk.Engine.Entity.Player
             }
 
             // Инструмент ламаем
-            DamageItemTool(1);
+            DamageItemTool(1, _left);
         }
 
         /// <summary>
@@ -529,7 +751,7 @@ namespace Mvk.Engine.Entity.Player
         /// </summary>
         private void _BlockDestroyed(BlockBase block)
         {
-            _game.TrancivePacket(new PacketC07PlayerDigging(_blockPos));
+            _game.TrancivePacket(new PacketC07PlayerDigging(_blockPos).Hand(_left));
             _game.World.SetBlockToAir(_blockPos);
             _isBlockDestroy = false;
         }

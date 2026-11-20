@@ -25,6 +25,30 @@ namespace Mvk.Game.Entity.Player
         }
 
         /// <summary>
+        /// Менеджер руки: left — левая рука (выживание, две руки)
+        /// </summary>
+        public HandManagerMvk(GameBase game, PlayerClientOwnerMvk player, bool left)
+            : base(game, player, left)
+        {
+            _playerMvk = player;
+        }
+
+        /// <summary>
+        /// Чем рука действует предметом Малювек
+        /// </summary>
+        protected override HandUse _HandUse(ItemStack stack)
+        {
+            ItemBase item = stack?.Item;
+            if (item is ItemShield) return HandUse.Guard;
+            if (item is ItemBow || item is ItemGun || item is ItemDynamite || item is ItemPiece || item is ItemFood)
+            {
+                return HandUse.Charge;
+            }
+            if (item is ItemBucket || item is ItemSpawn) return HandUse.Place;
+            return base._HandUse(stack);
+        }
+
+        /// <summary>
         /// Блок щитом отправлен серверу
         /// </summary>
         private bool _blocking;
@@ -35,7 +59,7 @@ namespace Mvk.Game.Entity.Player
         private bool _CanBlock()
         {
             if (_player.Inventory.GetCurrentLeftItem()?.Item is not ItemShield) return false;
-            ItemStack right = _player.Inventory.GetCurrentItem();
+            ItemStack right = _player.Inventory.GetCurrentRightItem();
             return right == null || (right.Item is ItemAbTool && !right.Item.Two);
         }
 

@@ -63,6 +63,17 @@ namespace Mvk.Engine.Entity.Inventory
         public virtual void SetCurrentItem(ItemStack stack) { }
 
         /// <summary>
+        /// Рука действия: пока true, «текущий» предмет, его слот, замена и расход относятся к левой руке.
+        /// Включается на время действия левой рукой (пакет на сервере, такт левой руки на клиенте)
+        /// </summary>
+        public bool HandLeft { get; set; }
+
+        /// <summary>
+        /// Стак правой руки без учёта руки действия
+        /// </summary>
+        public virtual ItemStack GetCurrentRightItem() => GetCurrentItem();
+
+        /// <summary>
         /// Получить текущий стак левой руки
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

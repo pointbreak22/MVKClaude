@@ -211,6 +211,14 @@ namespace Mvk.Engine.Util
         /// Контрол вспомогательного действия руки (ПКМ)
         /// </summary>
         public static int ControlHandSecond = (int)MouseButton.Right << 20;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Поменять предметы рук местами (выживание)
+        /// </summary>
+        public static int ControlSwapHands = (int)Keys.F;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Выбросить предмет из правой руки, с Shift — из левой
+        /// </summary>
+        public static int ControlDropItem = (int)Keys.Q;
 
         #endregion
 

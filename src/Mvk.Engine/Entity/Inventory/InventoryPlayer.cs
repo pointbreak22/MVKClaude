@@ -1,4 +1,5 @@
-﻿#nullable enable
+﻿using Mvk.Engine.Network.Packets.Client;
+#nullable enable
 using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Player;
@@ -106,6 +107,51 @@ namespace Mvk.Engine.Entity.Inventory
         }
 
         #region Server
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Управление руками (сервер): поменять руки, взять в левую руку предмет из кармана,
+        /// выбросить один предмет из руки
+        /// </summary>
+        public void ServerHandControl(PacketC0CHandControl packet)
+        {
+            int leftIndex = _pocketCount;
+            if (_pocketCount == 0 || leftIndex >= _allCount) return;
+            switch (packet.Action)
+            {
+                case PacketC0CHandControl.EnumAction.Swap:
+                    _SwapSlots(_currentIndex, leftIndex);
+                    break;
+                case PacketC0CHandControl.EnumAction.LeftFromSlot:
+                    if (packet.Slot < LimitPocket && packet.Slot != _currentIndex) _SwapSlots(packet.Slot, leftIndex);
+                    break;
+                case PacketC0CHandControl.EnumAction.Drop:
+                    int index = packet.Left ? leftIndex : _currentIndex;
+                    ItemStack stack = _items[index];
+                    if (stack == null) return;
+                    if (stack.Amount > 1)
+                    {
+                        SetInventorySlotContents(index, stack.Copy().ReduceAmount(1));
+                        stack = stack.Copy(1);
+                    }
+                    else
+                    {
+                        SetInventorySlotContents(index, null!);
+                    }
+                    _playerServer?.DropItem(stack, true, true);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Поменять стаки двух слотов местами с рассылкой
+        /// </summary>
+        private void _SwapSlots(int a, int b)
+        {
+            ItemStack stackA = _items[a];
+            ItemStack stackB = _items[b];
+            SetInventorySlotContents(a, stackB);
+            SetInventorySlotContents(b, stackA);
+        }
 
         /// <summary>
         /// Добавляет стек предметов в инвентарь, возвращает false, если это невозможно.
