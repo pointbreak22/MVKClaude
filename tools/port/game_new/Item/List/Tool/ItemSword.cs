@@ -1,6 +1,7 @@
 #nullable enable
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Item;
+using Mvk.Engine.World.Block;
 
 namespace Mvk.Game.Item.List.Tool
 {
@@ -10,6 +11,12 @@ namespace Mvk.Game.Item.List.Tool
     /// </summary>
     public class ItemSword : ItemAbTool
     {
+        /// <summary>
+        /// Ускорение добычи блока (сервер): только блоки, которые ломаются рукой
+        /// </summary>
+        public override float DigAcceleration(BlockBase block, PlayerBase player)
+            => player.CanDestroyedBlock(block) ? Acceleration : 0;
+
         public override ResultHandAction OnAction(bool begin, ItemStack stack, PlayerClientOwner player)
         {
             if (player.MovingObject.IsBlock() && player.CanDestroyedBlock(player.MovingObject.Block.GetBlock()))

@@ -22,6 +22,11 @@ namespace Mvk.Engine.World
     public class WorldServer : WorldBase
     {
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Счёт ударов по блокам (добыча «часть за удар»)
+        /// </summary>
+        public readonly BlockHits BlockHits = new BlockHits();
+
+        /// <summary>
         /// ID мира
         /// </summary>
         public readonly byte IdWorld;

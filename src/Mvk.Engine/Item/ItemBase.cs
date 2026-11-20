@@ -193,6 +193,14 @@ namespace Mvk.Engine.Item
         public virtual string GetToolTip(ItemStack stack) => _toolTip;
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Ускорение добычи блока предметом (для сервера): ударов на разрушение = твёрдость × ускорение;
+        /// 0 — предмет этот блок не добывает. Повторяет выбор OnAction клиента: без своего инструмента только блоки,
+        /// которые ломаются рукой
+        /// </summary>
+        public virtual float DigAcceleration(BlockBase block, PlayerBase player)
+            => player.CanDestroyedBlock(block) ? 1 : 0;
+
+        /// <summary>
         /// Получить урон для атаки предметом который в руке
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

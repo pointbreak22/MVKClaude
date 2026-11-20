@@ -42,6 +42,16 @@ namespace Mvk.Engine.Network.Packets.Client
             Process = process;
         }
 
+        /// <summary>
+        /// Удар по блоку (две руки, добычу считает сервер)
+        /// </summary>
+        public static PacketC07PlayerDigging Hit(BlockPos blockPos)
+        {
+            PacketC07PlayerDigging packet = new PacketC07PlayerDigging(blockPos);
+            packet.Digging = EnumDigging.Hit;
+            return packet;
+        }
+
         public PacketC07PlayerDigging(BlockPos blockPos)
         {
             _blockPos = blockPos;
@@ -87,7 +97,11 @@ namespace Mvk.Engine.Network.Packets.Client
             /// <summary>
             /// Процесс разрушения блока
             /// </summary>
-            ProcessDestroy = 2
+            ProcessDestroy = 2,
+            /// <summary>
+            /// Удар по блоку: прогресс, разрушение и износ считает сервер
+            /// </summary>
+            Hit = 3
         }
     }
 }

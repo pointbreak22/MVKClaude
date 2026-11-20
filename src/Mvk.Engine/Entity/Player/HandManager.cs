@@ -668,6 +668,11 @@ namespace Mvk.Engine.Entity.Player
         /// </summary>
         private void _BlockDigging(BlockPos blockPos, float power = 1)
         {
+            if (_TwoHands())
+            {
+                _BlockHit(blockPos);
+                return;
+            }
             bool begin;
 
             BlockState blockState = _game.World.GetBlockState(blockPos);
@@ -744,6 +749,18 @@ namespace Mvk.Engine.Entity.Player
 
             // Инструмент ламаем
             DamageItemTool(1, _left);
+        }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Удар по блоку (две руки): прогресс, разрушение и износ считает сервер, звук и частицы сразу
+        /// </summary>
+        private void _BlockHit(BlockPos blockPos)
+        {
+            BlockBase block = _game.World.GetBlockState(blockPos).GetBlock();
+            _game.TrancivePacket(PacketC07PlayerDigging.Hit(blockPos).Hand(_left));
+            _game.World.PlaySound(block.Material.SampleBreak(_game.World.Rnd),
+                blockPos.ToVector3Center(), .5f, .9f + _game.World.Rnd.NextFloat() * .2f);
+            _game.World.ParticleDiggingBlock(block, _player.MovingObject.RayHit, 5, true);
         }
 
         /// <summary>

@@ -539,6 +539,10 @@ namespace Mvk.Engine.Entity.Player
                 //worldServer.MarkBlockForUpdate(packet.GetBlockPos().X, packet.GetBlockPos().Y, packet.GetBlockPos().Z);
                 //pause = entityPlayer.PauseTimeBetweenBlockDestruction();
             }
+            else if (packet.Digging == PacketC07PlayerDigging.EnumDigging.Hit)
+            {
+                _HitBlock(packet.GetBlockPos());
+            }
             else if (packet.Digging == PacketC07PlayerDigging.EnumDigging.ProcessDestroy)
             {
                 worldServer.SetBlockDestroy(packet.GetBlockPos(), (byte)((packet.Process & 15) | 96));
@@ -653,6 +657,38 @@ namespace Mvk.Engine.Entity.Player
         /// [ПОВЕДЕНИЕ] Блок в досягаемости игрока (known-issues п. 1): в оригинале сервер не проверял
         /// расстояние до блока из пакета клиента
         /// </summary>
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Удар по блоку предметом руки действия: часть прочности, при полном счёте блок ломается
+        /// с выпадением; предмет изнашивается за каждый удар
+        /// </summary>
+        private void _HitBlock(BlockPos blockPos)
+        {
+            if (IsSpectator() || !_IsReachable(blockPos)) return;
+            WorldServer worldServer = GetWorldServer();
+            BlockState blockState = worldServer.GetBlockState(blockPos);
+            if (blockState.IsAir()) return;
+            BlockBase block = blockState.GetBlock();
+            BlockPos pos = block.ShiftPosition(blockPos, blockState);
+            if (!pos.Equals(blockPos))
+            {
+                blockState = worldServer.GetBlockState(pos);
+                block = blockState.GetBlock();
+            }
+            ItemStack stack = Inventory.GetCurrentItem();
+            float acceleration = stack != null ? stack.Item.DigAcceleration(block, this)
+                : (CanDestroyedBlock(block) ? 1 : 0);
+            if (acceleration <= 0) return;
+            float need = (int)(block.Hardness * acceleration);
+            if (block.Hardness <= 0 || CreativeMode || worldServer.BlockHits.Hit(worldServer, pos, need, 1))
+            {
+                if (worldServer.SetBreakBlock(pos, this) && IsDropBreakingBlock())
+                {
+                    block.DropBlockAsItem(worldServer, this, pos, blockState);
+                }
+            }
+            if (stack != null) ItemWear.DamageHeld(this, 1);
+        }
+
         private bool _IsReachable(BlockPos blockPos)
         {
             float x = blockPos.X + .5f - PosX;
