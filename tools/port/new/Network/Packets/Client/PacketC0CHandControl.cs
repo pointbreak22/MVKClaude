@@ -52,7 +52,9 @@ namespace Mvk.Engine.Network.Packets.Client
             /// <summary>Начало замаха броска (сервер запоминает такт)</summary>
             ThrowBegin = 3,
             /// <summary>Бросок: сила по времени замаха (сервер)</summary>
-            ThrowEnd = 4
+            ThrowEnd = 4,
+            /// <summary>Поджечь предмет руки Left предметом другой руки (динамит факелом)</summary>
+            Ignite = 5
         }
     }
 }

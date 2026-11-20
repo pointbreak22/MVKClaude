@@ -250,6 +250,9 @@ namespace Mvk.Engine.Entity.Player
                 SendPacket(new PacketS04TickUpdate(tick));
             }
 
+            // [ПОВЕДЕНИЕ] Фитиль в руке
+            _UpdateFuse();
+
             // Обновление урона
             Damage?.Update();
 
@@ -767,6 +770,14 @@ namespace Mvk.Engine.Entity.Player
         {
             int hand = packet.Left ? 1 : 0;
             uint tick = _server.TickCounterGlobal;
+            if (packet.Action == PacketC0CHandControl.EnumAction.Ignite)
+            {
+                if (IsSpectator() || Inventory.HandBusy(packet.Left)) return;
+                ItemStack target = packet.Left ? Inventory.GetCurrentLeftItem() : Inventory.GetCurrentRightItem();
+                ItemStack lighter = packet.Left ? Inventory.GetCurrentRightItem() : Inventory.GetCurrentLeftItem();
+                if (target != null && lighter != null) target.Item.OnIgnite(target, this, lighter, packet.Left);
+                return;
+            }
             if (packet.Action == PacketC0CHandControl.EnumAction.ThrowBegin)
             {
                 _throwStart[hand] = tick == 0 ? 1 : tick;
@@ -793,6 +804,31 @@ namespace Mvk.Engine.Entity.Player
                 return;
             }
             (Inventory as InventoryPlayer)?.ServerHandControl(packet);
+        }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Такт сервера конца фитиля подожжённого предмета в руке (0 — нет) и рука
+        /// </summary>
+        public uint FuseEnd;
+        public bool FuseLeft;
+
+        /// <summary>
+        /// Фитиль догорел: предмет в той руке получает OnFuseEnd
+        /// </summary>
+        private void _UpdateFuse()
+        {
+            if (FuseEnd == 0 || _server.TickCounterGlobal < FuseEnd) return;
+            FuseEnd = 0;
+            Inventory.HandLeft = FuseLeft;
+            try
+            {
+                ItemStack stack = Inventory.GetCurrentItem();
+                stack?.Item.OnFuseEnd(stack, this);
+            }
+            finally
+            {
+                Inventory.HandLeft = false;
+            }
         }
 
         private bool _IsReachable(BlockPos blockPos)

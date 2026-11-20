@@ -3,6 +3,7 @@ using Mvk.Core.Maths;
 using Mvk.Engine.Item;
 using Mvk.Engine.Network.Packets.Client;
 using Mvk.Engine.Util;
+using Mvk.Game.Item;
 using Mvk.Game.Item.List;
 using Mvk.Game.Item.List.Tool;
 
@@ -55,7 +56,18 @@ namespace Mvk.Game.Entity.Player
         private bool _GunGuarded()
             => Other != null && Other.Guarding && _ItemOf(this)?.Item is ItemGun gun && gun.Two;
 
-        protected override bool _ClickOverride() => _GunGuarded();
+        protected override bool _ClickOverride() => _GunGuarded() || _Ignite();
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Клик рукой с факелом, когда в другой руке динамит: поджечь его (вместо установки факела)
+        /// </summary>
+        private bool _Ignite()
+        {
+            if (Other == null || _ItemOf(this)?.Item != ItemsRegMvk.Torch || _ItemOf(Other)?.Item is not ItemDynamite) return false;
+            _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.Ignite, 0, Other._left));
+            _player.Render.SetAnimationCodeAdd(_AnimationCode("ActionAxe"));
+            return true;
+        }
 
         /// <summary>
         /// Перезарядка оружия щит не раскрывает (одной рукой, при закрытом щите)

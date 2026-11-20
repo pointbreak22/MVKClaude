@@ -115,6 +115,16 @@ namespace Mvk.Engine.Item
         public bool Throwable => ThrowMax > 0;
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Поджечь предмет (сервер) предметом другой руки lighter; true — подожжён
+        /// </summary>
+        public virtual bool OnIgnite(ItemStack stack, PlayerServer player, ItemStack lighter, bool left) => false;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Фитиль догорел, предмет ещё в руке (сервер; рука действия — та, что держала)
+        /// </summary>
+        public virtual void OnFuseEnd(ItemStack stack, PlayerServer player) { }
+
+        /// <summary>
         /// [ПОВЕДЕНИЕ] Бросок одного предмета силой power (сервер); true — брошен (расход делает вызывающий)
         /// </summary>
         public virtual bool OnThrow(ItemStack stack, PlayerServer player, float power)
