@@ -195,6 +195,25 @@ namespace Mvk.Engine.Entity.Player
         protected HandUse _Use => _use;
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Удар руки сразу, без отката (добивающий удар): действие предмета этой руки
+        /// </summary>
+        public void Strike()
+        {
+            if (_player.IsSpectator() || _HandBusy()) return;
+            _player.Inventory.HandLeft = _left;
+            try
+            {
+                _actTicks = ActOpenTicks;
+                _pauseAction = 0;
+                _Action(true);
+            }
+            finally
+            {
+                _player.Inventory.HandLeft = false;
+            }
+        }
+
+        /// <summary>
         /// Нажатие руки с защитой (щитом), до начала защиты
         /// </summary>
         protected virtual void _GuardPress() { }

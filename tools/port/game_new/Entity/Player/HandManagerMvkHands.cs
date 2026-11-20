@@ -10,7 +10,7 @@ namespace Mvk.Game.Entity.Player
 {
     /// <summary>
     /// [ПОВЕДЕНИЕ] Две руки Малювек (выживание): щит в любой руке, раскрытие щита на время действия другой руки,
-    /// удар щитом с разгона, «крест» двумя мечами. Состояние блока серверу (пакет C0B) шлёт менеджер левой руки:
+    /// удар щитом с разгона, «крест» двумя мечами и добивающий удар после него. Состояние блока серверу (пакет C0B) шлёт менеджер левой руки:
     /// его такт идёт последним, он видит обе руки. Работает ли блок и чем (щит или два меча), решает сервер
     /// (DamageLiving).
     /// </summary>
@@ -20,6 +20,12 @@ namespace Mvk.Game.Entity.Player
         /// Менеджер другой руки
         /// </summary>
         public HandManagerMvk? Other;
+
+        /// <summary>
+        /// «Крест» был в прошлом такте; тактов, пока после него ждём отпускания обеих кнопок
+        /// </summary>
+        private bool _crossPrev;
+        private int _crossEndTicks;
 
         /// <summary>
         /// Предмет руки менеджера без учёта руки действия
@@ -92,7 +98,18 @@ namespace Mvk.Game.Entity.Player
         protected override void _AfterHandTick()
         {
             if (!_left || Other == null) return;
-            bool want = (Guarding && !Other.Acting) || (Other.Guarding && !Acting) || _Cross();
+            bool cross = _Cross();
+            // [ПОВЕДЕНИЕ] Добивающий удар: «крест» разомкнут отпусканием обеих кнопок (в пределах 4 тактов) — удар обоими мечами
+            if (_crossPrev && !cross) _crossEndTicks = 4;
+            else if (_crossEndTicks > 0) _crossEndTicks--;
+            _crossPrev = cross;
+            if (_crossEndTicks > 0 && !HandDown && !Other.HandDown)
+            {
+                _crossEndTicks = 0;
+                Strike();
+                Other.Strike();
+            }
+            bool want = (Guarding && !Other.Acting) || (Other.Guarding && !Acting) || cross;
             if (want != _playerMvk.BlockingSent)
             {
                 _playerMvk.BlockingSent = want;
