@@ -16,6 +16,12 @@ namespace Mvk.Game.Item.List.Tool
         /// </summary>
         /// <param name="begin">Первый клик, без паузы</param>
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Сила удара по блоку (сервер): по своему материалу — DigBonus
+        /// </summary>
+        public override float DigStrength(BlockBase block, PlayerBase player)
+            => block.Material.IndexMaterial == (int)EnumMaterial.Solid ? DigBonus : 1;
+
+        /// <summary>
         /// Ускорение добычи блока (сервер): свои материалы и блоки, которые ломаются рукой
         /// </summary>
         public override float DigAcceleration(BlockBase block, PlayerBase player)

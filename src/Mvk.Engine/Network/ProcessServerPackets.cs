@@ -267,11 +267,11 @@ namespace Mvk.Engine.Network
             => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerAnimation(packet);
 
         /// <summary>
-        /// Включить руку действия игрока на время пакета. Левая рука не действует, если в правой двуручный предмет
+        /// Включить руку действия игрока на время пакета. Рука не действует, если придерживает двуручный предмет другой
         /// </summary>
         private static bool _HandBegin(PlayerServer player, bool left)
         {
-            if (left && player.Inventory.GetCurrentRightItem()?.Item.Two == true) return false;
+            if (player.Inventory.HandBusy(left)) return false;
             player.Inventory.HandLeft = left;
             return true;
         }

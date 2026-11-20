@@ -74,6 +74,17 @@ namespace Mvk.Engine.Entity.Inventory
         public virtual ItemStack GetCurrentRightItem() => GetCurrentItem();
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Рука занята: в другой руке двуручный предмет (эта рука его придерживает), если в этой руке
+        /// не предмет на предплечье (щит)
+        /// </summary>
+        public bool HandBusy(bool left)
+        {
+            ItemStack self = left ? GetCurrentLeftItem() : GetCurrentRightItem();
+            ItemStack other = left ? GetCurrentRightItem() : GetCurrentLeftItem();
+            return other?.Item.Two == true && self?.Item.Forearm != true;
+        }
+
+        /// <summary>
         /// Получить текущий стак левой руки
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

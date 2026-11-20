@@ -3,6 +3,8 @@
     MaxDamage: 3000,
     SlotClothIndex: 1,
     Damage: 4.0,
+    Crit: 2.0,
+    AttackPause: 16,
     Pause: 6,
     Acceleration: 0.6,
     Level: 2,

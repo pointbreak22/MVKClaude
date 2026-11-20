@@ -2,6 +2,7 @@
     MaxStackSize: 1,
     MaxDamage: 300,
     SlotClothIndex: 1,
+    Forearm: true,
     Protection: 0.75,
     Width: 0.75,
     Height: 0.125,

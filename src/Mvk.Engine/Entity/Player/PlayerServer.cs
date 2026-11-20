@@ -1,4 +1,5 @@
-﻿#nullable enable
+﻿using Mvk.Engine.Entity.Inventory;
+#nullable enable
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -444,6 +445,11 @@ namespace Mvk.Engine.Entity.Player
         /// </summary>
         public void PacketBlocking(PacketC0BBlocking packet) => IsBlocking = packet.Blocking;
 
+        /// <summary>
+        /// Такт сервера последнего удара по сущности правой и левой рукой
+        /// </summary>
+        private readonly uint[] _attackTick = new uint[] { uint.MaxValue - 100, uint.MaxValue - 100 };
+
         public virtual void PacketUseEntity(PacketC03UseEntity packet)
         {
             EntityBase entity = GetWorldServer().LoadedEntityList.Get(packet.Index);
@@ -463,12 +469,18 @@ namespace Mvk.Engine.Entity.Player
                 }
                 else if (packet.Action == PacketC03UseEntity.EnumAction.Attack)
                 {
+                    // [ПОВЕДЕНИЕ] Не чаще раза в 4 такта на руку
+                    uint tick = _server.TickCounterGlobal;
+                    int hand = packet.Left ? 1 : 0;
+                    if (tick - _attackTick[hand] < 4) return;
+                    _attackTick[hand] = tick;
                     if (entity.Damage != null)
                     {
                         ItemStack stack = Inventory.GetCurrentItem();
                         float damage = stack != null ? stack.Item.GetDamageToAttack() : 1;
                         if (PresenceBlocks.IsInLiquid) damage *= .75f;
-                        else if (!OnGround) damage *= 1.1f;
+                        // [ПОВЕДЕНИЕ] Крит в прыжке или на бегу (в оригинале в воздухе ×1.1)
+                        else if (!OnGround || IsSprinting()) damage *= stack != null ? stack.Item.CritMultiplier : 1.5f;
 
                         if (entity.Damage.OnAttack((byte)EnumDamageSource.Player, 
                             packet.HitY, damage, this))
@@ -679,7 +691,8 @@ namespace Mvk.Engine.Entity.Player
                 : (CanDestroyedBlock(block) ? 1 : 0);
             if (acceleration <= 0) return;
             float need = (int)(block.Hardness * acceleration);
-            if (block.Hardness <= 0 || CreativeMode || worldServer.BlockHits.Hit(worldServer, pos, need, 1))
+            float strength = stack != null ? stack.Item.DigStrength(block, this) : 1;
+            if (block.Hardness <= 0 || CreativeMode || worldServer.BlockHits.Hit(worldServer, pos, need, strength))
             {
                 if (worldServer.SetBreakBlock(pos, this) && IsDropBreakingBlock())
                 {
@@ -706,6 +719,7 @@ namespace Mvk.Engine.Entity.Player
             Inventory.ServerHeldItemChange();
             if (Inventory.SetCurrentIndex(packet.SlotId))
             {
+                (Inventory as InventoryPlayer)?.ServerCheckTwoHands();
                 MarkPlayerActive();
             }
             else

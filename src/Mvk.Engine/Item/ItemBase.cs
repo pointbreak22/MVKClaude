@@ -85,6 +85,10 @@ namespace Mvk.Engine.Item
         /// </summary>
         public bool Two { get; protected set; } = false;
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Носится на предплечье (щит): кисть руки свободна, двуручный предмет в другой руке её не занимает
+        /// </summary>
+        public bool Forearm { get; protected set; } = false;
+        /// <summary>
         /// Группа предметов, образно все виды топоров, если 0, нет группы
         /// </summary>
         //public int Group { get; protected set; } = 0;
@@ -199,6 +203,16 @@ namespace Mvk.Engine.Item
         /// </summary>
         public virtual float DigAcceleration(BlockBase block, PlayerBase player)
             => player.CanDestroyedBlock(block) ? 1 : 0;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Сила одного удара по блоку (сервер): рука и чужой материал — 1, инструмент по своему — больше
+        /// </summary>
+        public virtual float DigStrength(BlockBase block, PlayerBase player) => 1;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Множитель крита удара по сущности в прыжке или на бегу
+        /// </summary>
+        public virtual float CritMultiplier => 1.5f;
 
         /// <summary>
         /// Получить урон для атаки предметом который в руке
@@ -392,6 +406,7 @@ namespace Mvk.Engine.Item
                         else if (json.IsKey(Cti.Hold)) Hold = json.GetString();
                         else if (json.IsKey(Cti.Action)) Action = json.GetString();
                         else if (json.IsKey(Cti.Two)) Two = json.GetBool();
+                        else if (json.IsKey("Forearm")) Forearm = json.GetBool();
                     }
                 }
                 catch

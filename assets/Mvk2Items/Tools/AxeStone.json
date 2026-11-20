@@ -2,6 +2,8 @@
     Parent: "Tools/AxeIron",
     MaxDamage: 1200,
     Damage: 2.5,
+    Crit: 2.0,
+    AttackPause: 16,
     Pause: 6,
     Acceleration: 1.0,
     Level: 1,

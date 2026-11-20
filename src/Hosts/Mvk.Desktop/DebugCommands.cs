@@ -146,7 +146,7 @@ namespace Mvk.Desktop
             ItemStack? left = player.Inventory.GetCurrentLeftItem();
             int drops = 0;
             for (int i = 0; i < world.LoadedEntityList.Count; i++) if (world.LoadedEntityList.GetAt(i) is EntityItem) drops++;
-            System.Console.WriteLine($"hands right {held?.Item.Alias ?? "-"} x{held?.Amount ?? 0} left {left?.Item.Alias ?? "-"} x{left?.Amount ?? 0} износ {left?.ItemDamaged ?? 0} drops {drops}");
+            System.Console.WriteLine($"hands right {held?.Item.Alias ?? "-"} x{held?.Amount ?? 0} left {left?.Item.Alias ?? "-"} x{left?.Amount ?? 0} износ {left?.ItemDamaged ?? 0} drops {drops} s0 {player.Inventory.GetStackInSlot(0)?.Item.Alias} s1 {player.Inventory.GetStackInSlot(1)?.Item.Alias} s2 {player.Inventory.GetStackInSlot(2)?.Item.Alias}");
             for (int i = 0; i < world.LoadedEntityList.Count; i++)
             {
                 if (world.LoadedEntityList.GetAt(i) is EntityLiving living && living is not PlayerServer)

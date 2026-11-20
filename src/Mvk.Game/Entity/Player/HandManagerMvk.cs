@@ -54,14 +54,9 @@ namespace Mvk.Game.Entity.Player
         private bool _blocking;
 
         /// <summary>
-        /// Можно ли блокировать: щит в левой руке, правая свободна или держит оружие или инструмент
+        /// Можно ли блокировать: щит в левой руке; он на предплечье, кисть свободна, предмет другой руки любой
         /// </summary>
-        private bool _CanBlock()
-        {
-            if (_player.Inventory.GetCurrentLeftItem()?.Item is not ItemShield) return false;
-            ItemStack right = _player.Inventory.GetCurrentRightItem();
-            return right == null || (right.Item is ItemAbTool && !right.Item.Two);
-        }
+        private bool _CanBlock() => _player.Inventory.GetCurrentLeftItem()?.Item is ItemShield;
 
         protected override void _Second(bool begin)
         {

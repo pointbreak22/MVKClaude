@@ -122,7 +122,11 @@ namespace Mvk.Engine.Entity.Inventory
                     _SwapSlots(_currentIndex, leftIndex);
                     break;
                 case PacketC0CHandControl.EnumAction.LeftFromSlot:
-                    if (packet.Slot < LimitPocket && packet.Slot != _currentIndex) _SwapSlots(packet.Slot, leftIndex);
+                    if (packet.Slot < LimitPocket && packet.Slot != _currentIndex
+                        && !(_items[packet.Slot]?.Item.Two == true && _items[_currentIndex]?.Item.Two == true))
+                    {
+                        _SwapSlots(packet.Slot, leftIndex);
+                    }
                     break;
                 case PacketC0CHandControl.EnumAction.Drop:
                     int index = packet.Left ? leftIndex : _currentIndex;
@@ -140,6 +144,20 @@ namespace Mvk.Engine.Entity.Inventory
                     _playerServer?.DropItem(stack, true, true);
                     break;
             }
+        }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Два двуручных предмета в руках держать нельзя: предмет левой руки уходит в инвентарь
+        /// (что не влезло — выпадает)
+        /// </summary>
+        public void ServerCheckTwoHands()
+        {
+            int leftIndex = _pocketCount;
+            if (_pocketCount == 0 || leftIndex >= _allCount) return;
+            ItemStack left = _items[leftIndex];
+            if (left?.Item.Two != true || _items[_currentIndex]?.Item.Two != true) return;
+            SetInventorySlotContents(leftIndex, null!);
+            if (!AddItemStackToInventory(left) && left.Amount > 0) _playerServer?.DropItem(left, true, false);
         }
 
         /// <summary>

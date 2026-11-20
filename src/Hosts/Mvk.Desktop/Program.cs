@@ -376,6 +376,12 @@ namespace Mvk.Desktop
                             app.SendCommand(name);
                             return;
                         }
+                        if (name.StartsWith("Wheel"))
+                        {
+                            // Колесо мыши: WheelUp+ или WheelDown+ (отпускание без действия)
+                            if (down) app.App.OnMouseWheel(name == "WheelUp" ? 1 : -1, app.App.View.Width / 2, app.App.View.Height / 2);
+                            return;
+                        }
                         if (name.StartsWith("Mouse"))
                         {
                             // Кнопки игры оригинала, мимо раскладки мыши хоста

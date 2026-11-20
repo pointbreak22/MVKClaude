@@ -169,9 +169,9 @@ namespace Mvk.Engine.Entity.Player
             => stack?.Item is ItemBlock ? HandUse.Place : HandUse.Action;
 
         /// <summary>
-        /// Рука занята: левая при двуручном предмете в правой
+        /// Рука занята двуручным предметом другой руки (InventoryBase.HandBusy)
         /// </summary>
-        protected bool _HandBusy() => _left && _player.Inventory.GetCurrentRightItem()?.Item.Two == true;
+        protected bool _HandBusy() => _player.Inventory.HandBusy(_left);
 
         /// <summary>
         /// Такт руки: клик сразу при нажатии (если откат руки прошёл, иначе как только пройдёт),
