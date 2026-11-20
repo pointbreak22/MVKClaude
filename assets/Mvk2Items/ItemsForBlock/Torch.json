@@ -1,4 +1,8 @@
 {
+    ThrowMin: 0.4,
+    ThrowMax: 1.0,
+    ThrowCharge: 20,
+    ThrowEntity: "TorchThrown",
     Parent: "_Base",
     MaxStackSize: 50,
     Width: 0.5,

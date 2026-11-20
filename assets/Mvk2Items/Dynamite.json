@@ -1,4 +1,8 @@
 {
+    ThrowMin: 0.5,
+    ThrowMax: 1.125,
+    ThrowCharge: 20,
+    ThrowEntity: "Dynamite",
     Parent: "_Base",
     MaxStackSize: 16,
     Width: 0.5,

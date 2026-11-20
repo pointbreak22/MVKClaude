@@ -40,6 +40,7 @@ namespace Mvk.Game.Entity.Player
         {
             ItemBase item = stack?.Item;
             if (item is ItemShield) return HandUse.Guard;
+            if (item != null && item.Throwable) return HandUse.Throw;
             if (item is ItemBow || item is ItemGun || item is ItemDynamite || item is ItemPiece || item is ItemFood)
             {
                 return HandUse.Charge;

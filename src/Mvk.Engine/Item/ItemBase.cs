@@ -1,4 +1,5 @@
-﻿#nullable enable
+﻿using Mvk.Engine.Entity.List;
+#nullable enable
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -92,6 +93,33 @@ namespace Mvk.Engine.Item
         /// [ПОВЕДЕНИЕ] Множитель отталкивания при ударе предметом (щит бьёт слабо, но отталкивает сильно)
         /// </summary>
         public float Knockback { get; protected set; } = 1;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Сила броска без замаха (json ThrowMin)
+        /// </summary>
+        public float ThrowMin { get; protected set; } = 0;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Сила броска с полным замахом (json ThrowMax); 0 — предмет не бросается
+        /// </summary>
+        public float ThrowMax { get; protected set; } = 0;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Тактов до полного замаха (json ThrowCharge)
+        /// </summary>
+        public int ThrowCharge { get; protected set; } = 20;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Псевдоним снаряда (json ThrowEntity), пусто — простой снаряд-предмет
+        /// </summary>
+        public string ThrowEntity { get; protected set; } = "";
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Предмет можно бросить с замахом
+        /// </summary>
+        public bool Throwable => ThrowMax > 0;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Бросок одного предмета силой power (сервер); true — брошен (расход делает вызывающий)
+        /// </summary>
+        public virtual bool OnThrow(ItemStack stack, PlayerServer player, float power)
+            => EntityProjectile.Throw(player, stack.Copy(1), power,
+                ThrowEntity != "" ? ThrowEntity : EntityProjectile.Alias) != null;
         /// <summary>
         /// Группа предметов, образно все виды топоров, если 0, нет группы
         /// </summary>
@@ -412,6 +440,10 @@ namespace Mvk.Engine.Item
                         else if (json.IsKey(Cti.Two)) Two = json.GetBool();
                         else if (json.IsKey("Forearm")) Forearm = json.GetBool();
                         else if (json.IsKey("Knockback")) Knockback = json.GetFloat();
+                        else if (json.IsKey("ThrowMin")) ThrowMin = json.GetFloat();
+                        else if (json.IsKey("ThrowMax")) ThrowMax = json.GetFloat();
+                        else if (json.IsKey("ThrowCharge")) ThrowCharge = Math.Max(1, json.GetInt());
+                        else if (json.IsKey("ThrowEntity")) ThrowEntity = json.GetString();
                     }
                 }
                 catch

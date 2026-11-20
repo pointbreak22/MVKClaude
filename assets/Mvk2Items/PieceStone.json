@@ -1,4 +1,7 @@
 {
+    ThrowMin: 0.5,
+    ThrowMax: 1.125,
+    ThrowCharge: 20,
     Parent: "_Base",
     MaxStackSize: 50,
     Width: 0.5625,

@@ -3,8 +3,8 @@ namespace Mvk.Engine.Network.Packets.Client
 {
     /// <summary>
     /// Управление руками в выживании: поменять предметы рук местами (F), взять в левую руку предмет из кармана
-    /// (левый Shift + колесо), выбросить предмет из правой или левой руки (Q, Shift + Q). Перекладывание
-    /// и выброс делает сервер, клиент получает слоты обычными пакетами.
+    /// (левый Shift + колесо), выбросить предмет из правой или левой руки (Q, Shift + Q), замах и бросок предмета (удержание). Перекладывание,
+    /// выброс и бросок делает сервер, клиент получает слоты обычными пакетами.
     /// </summary>
     public struct PacketC0CHandControl : IPacket
     {
@@ -16,7 +16,7 @@ namespace Mvk.Engine.Network.Packets.Client
         /// </summary>
         public byte Slot { get; private set; }
         /// <summary>
-        /// Левая ли рука (для Drop)
+        /// Левая ли рука (для Drop, ThrowBegin, ThrowEnd)
         /// </summary>
         public bool Left { get; private set; }
 
@@ -48,7 +48,11 @@ namespace Mvk.Engine.Network.Packets.Client
             /// <summary>Поменять предмет левой руки с предметом слота кармана</summary>
             LeftFromSlot = 1,
             /// <summary>Выбросить один предмет из руки</summary>
-            Drop = 2
+            Drop = 2,
+            /// <summary>Начало замаха броска (сервер запоминает такт)</summary>
+            ThrowBegin = 3,
+            /// <summary>Бросок: сила по времени замаха (сервер)</summary>
+            ThrowEnd = 4
         }
     }
 }

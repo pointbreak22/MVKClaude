@@ -37,6 +37,7 @@ namespace Mvk.Game.Entity
             EntitiesReg.RegisterEntityClass(EntityDynamiteMvk.AliasDynamite, typeof(EntityDynamiteMvk), true);
             EntitiesReg.RegisterEntityClass(EntityArrowMvk.AliasArrow, typeof(EntityArrowMvk), true);
             EntitiesReg.RegisterEntityClass(EntityBulletMvk.AliasBullet, typeof(EntityBulletMvk), true);
+            EntitiesReg.RegisterEntityClass(EntityTorchMvk.AliasTorch, typeof(EntityTorchMvk), true);
             EntitiesReg.RegisterEntityClass("Chicken", typeof(EntityChicken));
 
             //ModelEntitiesReg.RegisterModelEntityClass("Chick");

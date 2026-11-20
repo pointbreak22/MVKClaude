@@ -281,10 +281,7 @@ namespace Mvk.Engine.Network
         /// </summary>
         private void _Handle0CHandControl(SocketSide? socketSide, PacketC0CHandControl packet)
         {
-            if (_server.Players.FindPlayerBySocket(socketSide!)?.Inventory is InventoryPlayer inventory)
-            {
-                inventory.ServerHandControl(packet);
-            }
+            _server.Players.FindPlayerBySocket(socketSide!)?.PacketHandControl(packet);
         }
 
         /// <summary>

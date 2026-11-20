@@ -706,6 +706,46 @@ namespace Mvk.Engine.Entity.Player
             if (stack != null) ItemWear.DamageHeld(this, 1);
         }
 
+        /// <summary>
+        /// Такт сервера начала замаха правой и левой рукой (0 — замаха нет)
+        /// </summary>
+        private readonly uint[] _throwStart = new uint[2];
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Управление руками: перекладывание и выброс — инвентарь, замах и бросок — здесь
+        /// </summary>
+        public void PacketHandControl(PacketC0CHandControl packet)
+        {
+            int hand = packet.Left ? 1 : 0;
+            uint tick = _server.TickCounterGlobal;
+            if (packet.Action == PacketC0CHandControl.EnumAction.ThrowBegin)
+            {
+                _throwStart[hand] = tick == 0 ? 1 : tick;
+                return;
+            }
+            if (packet.Action == PacketC0CHandControl.EnumAction.ThrowEnd)
+            {
+                uint start = _throwStart[hand];
+                _throwStart[hand] = 0;
+                if (start == 0 || IsSpectator() || Inventory.HandBusy(packet.Left)) return;
+                Inventory.HandLeft = packet.Left;
+                try
+                {
+                    ItemStack stack = Inventory.GetCurrentItem();
+                    if (stack == null || !stack.Item.Throwable) return;
+                    float charge = Math.Min(1f, (tick - start) / (float)stack.Item.ThrowCharge);
+                    float power = stack.Item.ThrowMin + (stack.Item.ThrowMax - stack.Item.ThrowMin) * charge;
+                    if (stack.Item.OnThrow(stack, this, power) && !CreativeMode) Inventory.DecrCurrentItem(1);
+                }
+                finally
+                {
+                    Inventory.HandLeft = false;
+                }
+                return;
+            }
+            (Inventory as InventoryPlayer)?.ServerHandControl(packet);
+        }
+
         private bool _IsReachable(BlockPos blockPos)
         {
             float x = blockPos.X + .5f - PosX;

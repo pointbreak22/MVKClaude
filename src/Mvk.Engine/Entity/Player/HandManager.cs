@@ -120,7 +120,9 @@ namespace Mvk.Engine.Entity.Player
             /// <summary>Клик — удар или действие; удержание — вспомогательное действие (натяжение, перезарядка, еда)</summary>
             Charge,
             /// <summary>Нажатие — защита (щит) до отпускания</summary>
-            Guard
+            Guard,
+            /// <summary>Клик — основное действие (блок ставится, остальное бьёт); удержание — замах, отпускание — бросок</summary>
+            Throw
         }
 
         /// <summary>
@@ -213,7 +215,7 @@ namespace Mvk.Engine.Entity.Player
         /// Чем рука действует предметом: блок ставится, остальное бьёт
         /// </summary>
         protected virtual HandUse _HandUse(ItemStack? stack)
-            => stack?.Item is ItemBlock ? HandUse.Place : HandUse.Action;
+            => stack?.Item.Throwable == true ? HandUse.Throw : stack?.Item is ItemBlock ? HandUse.Place : HandUse.Action;
 
         /// <summary>
         /// Рука занята двуручным предметом другой руки (InventoryBase.HandBusy)
@@ -285,7 +287,7 @@ namespace Mvk.Engine.Entity.Player
         {
             if (_player.IsSpectator()) return;
             _actTicks = ActOpenTicks;
-            if (_use == HandUse.Place)
+            if (_use == HandUse.Place || (_use == HandUse.Throw && _player.Inventory.GetCurrentItem()?.Item is ItemBlock))
             {
                 _counterSecond = 0;
                 _flagAbort = false;
@@ -320,6 +322,12 @@ namespace Mvk.Engine.Entity.Player
             {
                 _Second(false);
             }
+            else if (_use == HandUse.Throw)
+            {
+                _flagAbort = false;
+                _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.ThrowBegin, 0, _left));
+                _player.Render.SetAnimationCodeAdd("ActionAxe");
+            }
             else
             {
                 _counterSecond = 0;
@@ -340,7 +348,7 @@ namespace Mvk.Engine.Entity.Player
             {
                 _Action(false);
             }
-            else
+            else if (_use != HandUse.Throw)
             {
                 _Second(false);
                 _counterSecond++;
@@ -353,6 +361,11 @@ namespace Mvk.Engine.Entity.Player
         private void _HoldEnd()
         {
             if (_use == HandUse.Charge || _use == HandUse.Guard) _SecondEnd();
+            else if (_use == HandUse.Throw && !_flagAbort)
+            {
+                _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.ThrowEnd, 0, _left));
+                _player.Render.SetAnimationCodeAdd("ActionAxe");
+            }
         }
 
         #endregion
