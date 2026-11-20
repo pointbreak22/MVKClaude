@@ -65,7 +65,10 @@ namespace Mvk.Engine.Network
         {
             Traffic += count + Ce.SizeHeaderTCP;
             _readPacket.SetBuffer(buffer);
-            _ReceivePacket(_readPacket.Receive(PacketsInit.InitServer(buffer[0])!));
+            IPacket? packet = PacketsInit.InitServer(buffer[0]);
+            // Неизвестный номер пакета пропускаем (в оригинале исключение в потоке сети)
+            if (packet == null) return;
+            _ReceivePacket(_readPacket.Receive(packet));
         }
 
         private void _ReceivePacket(IPacket packet)

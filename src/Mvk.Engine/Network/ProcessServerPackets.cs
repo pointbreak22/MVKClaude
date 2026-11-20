@@ -52,9 +52,12 @@ namespace Mvk.Engine.Network
         /// </summary>
         public void ReceiveBuffer(SocketSide? socketSide, byte[] buffer)
         {
+            IPacket? packet = PacketsInit.InitClient(buffer[0]);
+            // Неизвестный номер пакета от клиента пропускаем (в оригинале исключение в потоке сети)
+            if (packet == null) return;
             ReadPacket readPacket = new ReadPacket();
             readPacket.SetBuffer(buffer);
-            _ReceivePacket(socketSide, readPacket.Receive(PacketsInit.InitClient(buffer[0])!));
+            _ReceivePacket(socketSide, readPacket.Receive(packet));
         }
 
         private void _ReceivePacket(SocketSide? socketSide, IPacket packet)

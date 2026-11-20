@@ -176,8 +176,9 @@ namespace Mvk.Engine.Network
                 Buffer.BlockCopy(BitConverter.GetBytes(bytes.Length), 0, ret, 1, 4);
                 Buffer.BlockCopy(bytes, 0, ret, 5, bytes.Length);
                 packets.Add(ret);
-                // Сигнализируем, что waitHandler в сигнальном состоянии
-                waitHandler!.Set();
+                // Сигнализируем, что waitHandler в сигнальном состоянии; до запуска потока отправки
+                // пакет ждёт в очереди
+                waitHandler?.Set();
             }
         }
 
