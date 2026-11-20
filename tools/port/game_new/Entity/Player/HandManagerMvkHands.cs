@@ -109,6 +109,13 @@ namespace Mvk.Game.Entity.Player
             };
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Клик рукой активирует дверь и кнопку любым предметом, кроме оружия и инструментов
+        /// </summary>
+        protected override bool _CanActivate(ItemStack? stack)
+            => stack == null || !(stack.Item is ItemAbTool || stack.Item is ItemGun || stack.Item is ItemBow
+                || stack.Item is ItemShield);
+
+        /// <summary>
         /// Конец такта левой руки: блок держится, если щит одной руки зажат и другая рука не действует, или «крест»
         /// </summary>
         protected override void _AfterHandTick()

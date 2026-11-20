@@ -129,6 +129,7 @@ namespace Mvk.Engine.Entity.Inventory
                     }
                     break;
                 case PacketC0CHandControl.EnumAction.Drop:
+                    if (_playerServer == null || _playerServer.CreativeMode) return;
                     int index = packet.Left ? leftIndex : _currentIndex;
                     ItemStack stack = _items[index];
                     if (stack == null) return;
@@ -604,6 +605,12 @@ namespace Mvk.Engine.Entity.Inventory
         {
             if (slotIn < 100)
             {
+                // [ПОВЕДЕНИЕ] Левая рука: любой предмет, кроме второго двуручного
+                if (slotIn == _pocketCount && _pocketCount > 0)
+                {
+                    return stack == null || stack.Item.Forearm || stack.Item.Two != true
+                        || _items[_currentIndex]?.Item.Two != true;
+                }
                 // Для одежды свои правила
                 byte key = GetSlotClothKey(slotIn);
                 return key == 0 || (stack != null && stack.Item.CheckSlotClothKey(key));

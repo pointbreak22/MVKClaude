@@ -266,7 +266,7 @@ namespace Mvk.Engine.Entity.Player
             }
             else if (Options.ControlDropItem == index)
             {
-                if (down && !IsSpectator())
+                if (down && !IsSpectator() && !CreativeMode)
                 {
                     bool left = IsKeyShift() && IsTwoHands();
                     if (left) _handLeft!.SetStop();

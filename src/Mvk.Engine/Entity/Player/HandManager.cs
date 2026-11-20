@@ -214,6 +214,11 @@ namespace Mvk.Engine.Entity.Player
         }
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Активирует ли клик рукой с этим предметом блок (дверь, кнопку); по умолчанию пустая рука
+        /// </summary>
+        protected virtual bool _CanActivate(ItemStack? stack) => stack == null;
+
+        /// <summary>
         /// Нажатие руки с защитой (щитом), до начала защиты
         /// </summary>
         protected virtual void _GuardPress() { }
@@ -323,7 +328,7 @@ namespace Mvk.Engine.Entity.Player
                 return;
             }
             MovingObjectPosition moving = _player.MovingObject;
-            if (_player.Inventory.GetCurrentItem() == null && !_player.IsKeyShift() && moving.IsBlock()
+            if (_CanActivate(_player.Inventory.GetCurrentItem()) && !_player.IsKeyShift() && moving.IsBlock()
                 && moving.Block.GetBlock().OnBlockActivated(_player, moving.BlockPosition, moving.Side, moving.Facing))
             {
                 // Активация блока (дверь, кнопка) кликом пустой руки
