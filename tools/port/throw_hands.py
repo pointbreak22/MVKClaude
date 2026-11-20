@@ -112,7 +112,12 @@ t = rep(t, """            /// <summary>Нажатие — защита (щит) 
             Guard,
             /// <summary>Клик — основное действие (блок ставится, остальное бьёт); удержание — замах, отпускание — бросок</summary>
             Throw
-        }""", rel, 1)
+        }
+
+        /// <summary>
+        /// Код анимации действия руки (наследник подставляет анимацию левой руки)
+        /// </summary>
+        protected virtual string _AnimationCode(string code) => code;""", rel, 1)
 t = rep(t, """        protected virtual HandUse _HandUse(ItemStack? stack)
             => stack?.Item is ItemBlock ? HandUse.Place : HandUse.Action;""", """        protected virtual HandUse _HandUse(ItemStack? stack)
             => stack?.Item.Throwable == true ? HandUse.Throw : stack?.Item is ItemBlock ? HandUse.Place : HandUse.Action;""", rel, 1)
@@ -143,7 +148,7 @@ t = rep(t, """            if (_use == HandUse.Action)
             {
                 _flagAbort = false;
                 _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.ThrowBegin, 0, _left));
-                _player.Render.SetAnimationCodeAdd("ActionAxe");
+                _player.Render.SetAnimationCodeAdd(_AnimationCode("ActionAxe"));
             }
             else
             {
@@ -169,7 +174,7 @@ t = rep(t, """            if (_use == HandUse.Charge || _use == HandUse.Guard) _
             else if (_use == HandUse.Throw && !_flagAbort)
             {
                 _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.ThrowEnd, 0, _left));
-                _player.Render.SetAnimationCodeAdd("ActionAxe");
+                _player.Render.SetAnimationCodeAdd(_AnimationCode("ActionAxe"));
             }""", rel, 1)
 save(rel, t)
 print("throw_hands ok")

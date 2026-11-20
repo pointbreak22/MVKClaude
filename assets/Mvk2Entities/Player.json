@@ -173,6 +173,26 @@
             }
         },
         {
+            Code: "AttackLeft",
+            Animation: "AttackLeft",
+            AnimationSpeed: 1.5,
+            ElementWeight: {
+                ArmLeft: 80,
+                ForearmLeft: 80,
+                HandLeft: 80
+            }
+        },
+        {
+            Code: "ActionAxeLeft",
+            Animation: "ActionAxeLeft",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmLeft: 80,
+                ForearmLeft: 80,
+                HandLeft: 80
+            }
+        },
+        {
             Code: "ActionAxes",
             Animation: "ActionAxes",
             AnimationSpeed: 1.0,

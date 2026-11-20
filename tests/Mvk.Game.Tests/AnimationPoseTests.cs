@@ -19,6 +19,9 @@ namespace Mvk.Game.Tests
         /// <summary>Хэш поз, снятый на коде перенесённом из оригинала без изменений</summary>
         private const ulong ExpectedHash = 7125550931140094123UL;
 
+        /// <summary>Клипы порта (своих анимаций в оригинале нет)</summary>
+        private static readonly string[] _PortClips = { "AttackLeft", "ActionAxeLeft" };
+
         [Fact]
         public void PosesSameAsOriginal()
         {
@@ -33,6 +36,8 @@ namespace Mvk.Game.Tests
                 if (!(Ce.Entities.GetResourcesEntity(id) is ResourcesEntity resources)) continue;
                 foreach (ModelAnimationClip model in resources.ModelAnimationClips)
                 {
+                    // Клипы, добавленные портом (анимации левой руки), в эталоне оригинала нет
+                    if (Array.IndexOf(_PortClips, model.Code) >= 0) continue;
                     AnimationClip clip = new AnimationClip(resources, model);
                     clip.Reset(1);
                     clips++;

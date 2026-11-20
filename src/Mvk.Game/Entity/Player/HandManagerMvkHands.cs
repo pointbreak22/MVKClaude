@@ -63,8 +63,19 @@ namespace Mvk.Game.Entity.Player
             Vector3 vec = (moving.Entity!.GetPositionVec() - _player.GetPositionVec()).Normalize();
             _game.TrancivePacket(new PacketC03UseEntity(moving.Entity.Id, moving.RayHit.Y,
                 vec.X * .9f, vec.Y * .18f, vec.Z * .9f).Hand(_left));
-            _player.Render.SetAnimationCodeAdd("ActionAxe");
+            _player.Render.SetAnimationCodeAdd(_AnimationCode("ActionAxe"));
         }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Анимация действия левой руки (две руки): зеркальные удар и взмах; двуручные анимации общие
+        /// </summary>
+        protected override string _AnimationCode(string code)
+            => !_left || !_player.IsTwoHands() ? code : code switch
+            {
+                "AttackRight" => "AttackLeft",
+                "ActionAxe" => "ActionAxeLeft",
+                _ => code
+            };
 
         /// <summary>
         /// Конец такта левой руки: блок держится, если щит одной руки зажат и другая рука не действует, или «крест»

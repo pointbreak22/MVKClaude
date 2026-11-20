@@ -126,6 +126,11 @@ namespace Mvk.Engine.Entity.Player
         }
 
         /// <summary>
+        /// Код анимации действия руки (наследник подставляет анимацию левой руки)
+        /// </summary>
+        protected virtual string _AnimationCode(string code) => code;
+
+        /// <summary>
         /// Левая ли это рука
         /// </summary>
         protected readonly bool _left;
@@ -330,7 +335,7 @@ namespace Mvk.Engine.Entity.Player
             {
                 _flagAbort = false;
                 _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.ThrowBegin, 0, _left));
-                _player.Render.SetAnimationCodeAdd("ActionAxe");
+                _player.Render.SetAnimationCodeAdd(_AnimationCode("ActionAxe"));
             }
             else
             {
@@ -368,7 +373,7 @@ namespace Mvk.Engine.Entity.Player
             else if (_use == HandUse.Throw && !_flagAbort)
             {
                 _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.ThrowEnd, 0, _left));
-                _player.Render.SetAnimationCodeAdd("ActionAxe");
+                _player.Render.SetAnimationCodeAdd(_AnimationCode("ActionAxe"));
             }
         }
 

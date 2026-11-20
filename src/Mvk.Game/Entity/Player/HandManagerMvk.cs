@@ -108,7 +108,7 @@ namespace Mvk.Game.Entity.Player
             if (itemStack == null)
             {
                // return false;
-                _player.Render.SetAnimationCodeAdd("AttackRight");
+                _player.Render.SetAnimationCodeAdd(_AnimationCode("AttackRight"));
             }
             else
             {
@@ -118,18 +118,18 @@ namespace Mvk.Game.Entity.Player
                     if (itemStackLeft != null
                         && itemStackLeft.Item is ItemAxe)
                     {
-                        _player.Render.SetAnimationCodeAdd("ActionAxes");
+                        _player.Render.SetAnimationCodeAdd(_AnimationCode("ActionAxes"));
                         return true;
                     }
                 }
 
                 if (itemStack.Item.Action != "")
                 {
-                    _player.Render.SetAnimationCodeAdd(itemStack.Item.Action);
+                    _player.Render.SetAnimationCodeAdd(_AnimationCode(itemStack.Item.Action));
                     return true;
                 }
 
-                _player.Render.SetAnimationCodeAdd("ActionAxe");
+                _player.Render.SetAnimationCodeAdd(_AnimationCode("ActionAxe"));
             }
             return true;
         }
