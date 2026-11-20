@@ -109,6 +109,34 @@ namespace Mvk.Game.Entity.Player
             };
 
         /// <summary>
+        /// Тактов автоперезарядки руки (0 — не идёт)
+        /// </summary>
+        private int _reloadTicks;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Автоперезарядка одноручного оружия (мушкет), пока другая рука держит закрытый щит и кнопка
+        /// оружия не зажата: начало и конец перезарядки шлются как при удержании, время и патроны проверяет сервер
+        /// </summary>
+        private void _AutoReload(HandManagerMvk hand, HandManagerMvk other)
+        {
+            ItemStack? stack = _ItemOf(hand);
+            if (!other.Guarding || hand.HandDown || stack?.Item is not ItemGun gun || gun.Two || stack.Met >= gun.Barrels)
+            {
+                hand._reloadTicks = 0;
+                return;
+            }
+            if (hand._reloadTicks == 0)
+            {
+                _game.TrancivePacket(new PacketC05UseItem(0).Hand(hand._left));
+            }
+            if (++hand._reloadTicks > gun.ReloadTicks * (gun.Barrels - stack.Met) + 1)
+            {
+                _game.TrancivePacket(new PacketC05UseItem(100).Hand(hand._left));
+                hand._reloadTicks = 0;
+            }
+        }
+
+        /// <summary>
         /// [ПОВЕДЕНИЕ] Клик рукой активирует дверь и кнопку любым предметом, кроме оружия и инструментов
         /// </summary>
         protected override bool _CanActivate(ItemStack? stack)
@@ -121,6 +149,8 @@ namespace Mvk.Game.Entity.Player
         protected override void _AfterHandTick()
         {
             if (!_left || Other == null) return;
+            _AutoReload(this, Other);
+            _AutoReload(Other, this);
             bool cross = _Cross();
             // [ПОВЕДЕНИЕ] Добивающий удар: «крест» разомкнут отпусканием обеих кнопок (в пределах 4 тактов) — удар обоими мечами
             if (_crossPrev && !cross) _crossEndTicks = 4;
