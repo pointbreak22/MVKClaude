@@ -29,6 +29,12 @@ namespace Mvk.Game.Item.List.Tool
         public override float DigAcceleration(BlockBase block, PlayerBase player)
             => player.CanDestroyedBlock(block) ? Acceleration : 0;
 
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Сила удара по блоку: паутину меч рубит с DigBonus
+        /// </summary>
+        public override float DigStrength(BlockBase block, PlayerBase player)
+            => block == Mvk.Game.World.Block.BlocksRegMvk.Cobweb ? DigBonus : 1;
+
         public override ResultHandAction OnAction(bool begin, ItemStack stack, PlayerClientOwner player)
         {
             if (player.MovingObject.IsBlock() && player.CanDestroyedBlock(player.MovingObject.Block.GetBlock()))

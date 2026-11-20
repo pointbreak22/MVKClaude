@@ -20,3 +20,5 @@ Mvk2Sounds/Shot.wav
 Mvk2Sounds/Explode.wav
 # Не PNG: в Mvk2Entities/Models/Humanoid.bbmodel добавлена своя текстура LayerArmor.png (перекраска LayerPlayerTop в металл),
 # в Mvk2Entities/Layers/Base.json слои ArmorHelmet, ArmorChest, ArmorLegs, ArmorBoots
+Mvk2Textures/Blocks/Cobweb.png
+Mvk2Textures/Items/ItemsForBlock/Cobweb.png

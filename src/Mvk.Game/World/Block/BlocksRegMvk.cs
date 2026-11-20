@@ -260,6 +260,10 @@ namespace Mvk.Game.World.Block
         /// Факел: светящийся тонкий столбик
         /// </summary>
         public static BlockBase Torch { get; private set; }
+        /// <summary>
+        /// Паутина
+        /// </summary>
+        public static BlockBase Cobweb { get; private set; }
 
         #endregion
 
@@ -365,6 +369,7 @@ namespace Mvk.Game.World.Block
             torchLight.InitAirAlias("TorchLight");
             BlocksReg.Table.Add("TorchLight", torchLight);
             Mvk.Engine.World.HandLight.Block = torchLight;
+            Cobweb = BlocksReg.RegisterBlockClass("Cobweb", materials.Rope);
             
 
             // Регистрация текстуры разрушения блока

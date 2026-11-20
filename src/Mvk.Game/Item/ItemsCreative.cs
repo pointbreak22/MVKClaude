@@ -51,6 +51,7 @@ namespace Mvk.Game.Item
             tabItemsForBlock.Add(new ItemStack(ItemsRegMvk.DoorOfPlanks));
             tabItemsForBlock.Add(new ItemStack(ItemsRegMvk.Rope));
             tabItemsForBlock.Add(new ItemStack(ItemsRegMvk.Torch));
+            tabItemsForBlock.Add(new ItemStack(ItemsRegMvk.Cobweb));
             tabItemsForBlock.Add(new ItemStack(ItemsRegMvk.Bucket));
             tabItemsForBlock.Add(new ItemStack(ItemsRegMvk.BucketWater, 1, 0, 7));
             tabItemsForBlock.Add(new ItemStack(ItemsRegMvk.BucketLava, 1, 0, 7));

@@ -1,0 +1,15 @@
+{
+    АmbientOcclusion: false,
+    UseNeighborBrightness: true,
+    NoCollision: true,
+    LightOpacity: 0,
+    Passable: true,
+    Translucent: true,
+    Hardness: 4,
+    FactorSlow: [ 0.25, 0.2 ],
+    ParticleColors: [ "e8e8ee", "c8c8d0" ],
+    ParticleCount: 6,
+    Variants: [
+        { Shape: "Cobweb" }
+    ]
+}
