@@ -46,9 +46,11 @@ namespace Mvk.Game.Item.List
             {
                 // Начало натяжения
                 _drawStart.AddOrUpdate(player, new StrongBox<uint>(tick));
+                player.SetDrawing(true);
                 return;
             }
             if (number < 100 || player is not PlayerServerMvk mvk) return;
+            player.SetDrawing(false);
             if (!_drawStart.TryGetValue(player, out StrongBox<uint>? start)) return;
             _drawStart.Remove(player);
             if (number == 255) return;

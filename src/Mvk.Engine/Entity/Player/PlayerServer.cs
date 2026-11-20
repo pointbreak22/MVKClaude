@@ -415,6 +415,9 @@ namespace Mvk.Engine.Entity.Player
             OnGround = packet.OnGround;
             if (packet.IsPosition)
             {
+                float dx = packet.X - PosX, dy = packet.Y - PosY, dz = packet.Z - PosZ;
+                _speed = Math.Max(MathF.Sqrt(dx * dx + dz * dz), -dy);
+                _speedTick = _server.TickCounterGlobal;
                 PosX = packet.X;
                 PosY = packet.Y;
                 PosZ = packet.Z;
@@ -443,7 +446,37 @@ namespace Mvk.Engine.Entity.Player
         /// <summary>
         /// Пакет: блок щитом начат или закончен
         /// </summary>
-        public void PacketBlocking(PacketC0BBlocking packet) => IsBlocking = packet.Blocking;
+        public void PacketBlocking(PacketC0BBlocking packet)
+        {
+            IsBlocking = packet.Blocking;
+            SetHandPose(IsBlocking || IsDrawing);
+        }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Игрок натягивает лук (задаёт лук на сервере)
+        /// </summary>
+        public bool IsDrawing { get; private set; }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Начало или конец натяжения лука: поза руки
+        /// </summary>
+        public void SetDrawing(bool drawing)
+        {
+            IsDrawing = drawing;
+            SetHandPose(IsBlocking || IsDrawing);
+        }
+
+        /// <summary>
+        /// Скорость последнего перемещения (по горизонтали или падения) и такт сервера, когда она была
+        /// </summary>
+        private float _speed;
+        private uint _speedTick;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Разгон: бег, в воздухе или скорость быстрее шага в последние 3 такта
+        /// </summary>
+        public bool IsMomentum() => IsSprinting() || !OnGround
+            || (_server.TickCounterGlobal - _speedTick <= 3 && _speed > .3f);
 
         /// <summary>
         /// Такт сервера последнего удара по сущности правой и левой рукой
@@ -470,7 +503,7 @@ namespace Mvk.Engine.Entity.Player
                 else if (packet.Action == PacketC03UseEntity.EnumAction.Attack)
                 {
                     // [ПОВЕДЕНИЕ] Удар предметом на предплечье (щитом) только с разгона
-                    if (Inventory.GetCurrentItem()?.Item.Forearm == true && !IsSprinting()) return;
+                    if (Inventory.GetCurrentItem()?.Item.Forearm == true && !IsMomentum()) return;
                     // [ПОВЕДЕНИЕ] Не чаще раза в 4 такта на руку
                     uint tick = _server.TickCounterGlobal;
                     int hand = packet.Left ? 1 : 0;
@@ -482,7 +515,7 @@ namespace Mvk.Engine.Entity.Player
                         float damage = stack != null ? stack.Item.GetDamageToAttack() : 1;
                         if (PresenceBlocks.IsInLiquid) damage *= .75f;
                         // [ПОВЕДЕНИЕ] Крит в прыжке или на бегу (в оригинале в воздухе ×1.1)
-                        else if (!OnGround || IsSprinting()) damage *= stack != null ? stack.Item.CritMultiplier : 1.5f;
+                        else if (IsMomentum()) damage *= stack != null ? stack.Item.CritMultiplier : 1.5f;
 
                         if (entity.Damage.OnAttack((byte)EnumDamageSource.Player, 
                             packet.HitY, damage, this))

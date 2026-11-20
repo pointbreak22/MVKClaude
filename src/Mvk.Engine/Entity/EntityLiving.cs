@@ -379,6 +379,16 @@ namespace Mvk.Engine.Entity
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsSprinting() => GetFlag(3);
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Поза руки: блок щитом или натяжение лука (флаг 7, задаёт сервер)
+        /// </summary>
+        public bool IsHandPose() => GetFlag(7);
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Задать позу руки (сервер)
+        /// </summary>
+        public void SetHandPose(bool pose) => SetFlag(7, pose);
         /// <summary>
         /// Задать значение ускоряется ли
         /// </summary>

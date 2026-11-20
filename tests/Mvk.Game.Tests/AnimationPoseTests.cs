@@ -20,7 +20,7 @@ namespace Mvk.Game.Tests
         private const ulong ExpectedHash = 7125550931140094123UL;
 
         /// <summary>Клипы порта (своих анимаций в оригинале нет)</summary>
-        private static readonly string[] _PortClips = { "AttackLeft", "ActionAxeLeft" };
+        private static readonly string[] _PortClips = { "AttackLeft", "ActionAxeLeft", "HoldGuardLeft", "HoldGuardRight", "HoldBowRight", "HoldBowLeft" };
 
         [Fact]
         public void PosesSameAsOriginal()

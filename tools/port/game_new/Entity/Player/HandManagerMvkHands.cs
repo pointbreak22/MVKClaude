@@ -54,12 +54,21 @@ namespace Mvk.Game.Entity.Player
             => !(_Use == HandUse.Charge && _player.Inventory.GetCurrentItem()?.Item is ItemGun);
 
         /// <summary>
+        /// Разгон (бег, в воздухе, скорость быстрее шага); окончательно решает сервер (PlayerServer.IsMomentum)
+        /// </summary>
+        private bool _Momentum()
+        {
+            float mx = _player.Physics.MotionX, mz = _player.Physics.MotionZ;
+            return _player.IsSprinting() || !_player.OnGround || mx * mx + mz * mz > .09f || _player.Physics.MotionY < -.3f;
+        }
+
+        /// <summary>
         /// Удар щитом с разгона: малый урон, сильное отталкивание (сервер проверяет бег, Knockback щита)
         /// </summary>
         protected override void _GuardPress()
         {
             MovingObjectPosition moving = _player.MovingObject;
-            if (!_player.IsSprinting() || !moving.IsEntity()) return;
+            if (!_Momentum() || !moving.IsEntity()) return;
             Vector3 vec = (moving.Entity!.GetPositionVec() - _player.GetPositionVec()).Normalize();
             _game.TrancivePacket(new PacketC03UseEntity(moving.Entity.Id, moving.RayHit.Y,
                 vec.X * .9f, vec.Y * .18f, vec.Z * .9f).Hand(_left));

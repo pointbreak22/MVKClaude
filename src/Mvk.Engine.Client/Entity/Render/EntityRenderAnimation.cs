@@ -75,6 +75,10 @@ namespace Mvk.Engine.Entity.Render
         /// Анимационный триггер для сущности
         /// </summary>
         private readonly TriggerAnimation _trigger = new TriggerAnimation();
+        /// <summary>
+        /// Поза руки при последней сборке поз держания
+        /// </summary>
+        private bool _handPosePrev;
 
         /// <summary>
         /// Имя текущего клипа, чтоб можно было закрыть
@@ -228,6 +232,12 @@ namespace Mvk.Engine.Entity.Render
         public override void UpdateClient(WorldClient world, float deltaTime)
         {
             base.UpdateClient(world, deltaTime);
+
+            // [ПОВЕДЕНИЕ] Смена позы руки (блок щитом, натяжение лука) пересобирает позы держания
+            if (Entity is EntityLiving living && living.IsHandPose() != _handPosePrev)
+            {
+                OutsideItemChanged();
+            }
 
             if (_trigger.Changed)
             {
@@ -692,20 +702,25 @@ namespace Mvk.Engine.Entity.Render
                 string holdLeft = "";
 
                 ItemStack itemStack = entityLiving.Inventory.GetOutside(0);
+                ItemStack itemLeft = entityLiving.Inventory.GetCurrentLeftItem();
                 if (itemStack != null)
                 {
-                    ifHiddenLeft = itemStack.Item.Two;
                     holdRight = itemStack.Item.Hold != "" ? itemStack.Item.Hold : HoldRight;
                 }
-                if (!ifHiddenLeft)
+                if (itemLeft != null &&
+                    Mth.Min(entityLiving.Inventory.OutsideCount, _resourcesEntity.CountPositionItem) > 0)
                 {
-                    itemStack = entityLiving.Inventory.GetCurrentLeftItem();
-                    if (itemStack != null &&
-                        Mth.Min(entityLiving.Inventory.OutsideCount, _resourcesEntity.CountPositionItem) > 0)
-                    {
-                        // Левая рука, только держим предмет
-                        holdLeft = HoldLeft;
-                    }
+                    // Левая рука, только держим предмет
+                    holdLeft = HoldLeft;
+                }
+                _handPosePrev = entityLiving.IsHandPose();
+                if (_handPosePrev)
+                {
+                    // [ПОВЕДЕНИЕ] Поза руки: щит в блоке, иначе натяжение лука рукой с двуручным предметом
+                    if (itemLeft?.Item.Forearm == true) holdLeft = "HoldGuardLeft";
+                    else if (itemStack?.Item.Forearm == true) holdRight = "HoldGuardRight";
+                    else if (itemStack?.Item.Two == true) holdRight = "HoldBowRight";
+                    else if (itemLeft?.Item.Two == true) holdLeft = "HoldBowLeft";
                 }
 
                 // Корректировка одевания слоёв
@@ -733,10 +748,7 @@ namespace Mvk.Engine.Entity.Render
                                 _entityLayerRender.AddRangeBuffer(itemStack.Item.Buffer.GetBufferHold()
                                     .CreateBufferMeshItem(_positionItems[i].Index, _positionItems[i].X, _positionItems[i].Y, _positionItems[i].Z));
 
-                                if (i == 0)
-                                {
-                                    ifHiddenLeft = itemStack.Item.Two;
-                                }
+                                // [ПОВЕДЕНИЕ] Предмет левой руки виден и при двуручном в правой (придерживается)
                             }
                         }
                         else
