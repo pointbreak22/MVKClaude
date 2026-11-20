@@ -4,3 +4,7 @@ StickTechnical:Technical stick
 StickTechnical.tip:Technical stick§u§cFor debugging§r
 Dynamite:Dynamite
 Dynamite.tip:Dynamite§u§cThrow with a swing: hold the place button and release§r
+HelmetIron:Iron helmet
+ChestplateIron:Iron chestplate
+LeggingsIron:Iron leggings
+BootsIron:Iron boots

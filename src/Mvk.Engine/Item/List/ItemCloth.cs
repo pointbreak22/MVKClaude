@@ -25,6 +25,10 @@ namespace Mvk.Engine.Item.List
         /// Имя на что надеть на тело, указываем на какую часть тело может одеваться предмет
         /// </summary>
         public string PutOnBody { get; protected set; } = null!;
+        /// <summary>
+        /// Защита: доля, на которую вещь снижает урон по своей части тела (0..0.9), json Protection
+        /// </summary>
+        public float Protection { get; protected set; }
 
         /// <summary>
         /// Массив имён слоёв, название слоя одежды из модели
@@ -62,6 +66,7 @@ namespace Mvk.Engine.Item.List
                 if (state.IsKey(Cti.PutOnBody) && state.IsKey(Cti.NameLayer))
                 {
                     PutOnBody = state.GetString(Cti.PutOnBody);
+                    if (state.IsKey("Protection")) Protection = Math.Clamp(state.GetFloat("Protection"), 0, .9f);
 
                     foreach (JsonKeyValue json in state.Items)
                     {

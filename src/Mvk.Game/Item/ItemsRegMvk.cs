@@ -193,6 +193,22 @@ namespace Mvk.Game.Item
 
         public static ItemCloth StrawHat { get; private set; }
         public static ItemCloth CamouflageJacket { get; private set; }
+        /// <summary>
+        /// Шлем железный: броня, снижает урон по своей части тела
+        /// </summary>
+        public static ItemCloth HelmetIron { get; private set; }
+        /// <summary>
+        /// Нагрудник железный: броня, снижает урон по своей части тела
+        /// </summary>
+        public static ItemCloth ChestplateIron { get; private set; }
+        /// <summary>
+        /// Поножи железный: броня, снижает урон по своей части тела
+        /// </summary>
+        public static ItemCloth LeggingsIron { get; private set; }
+        /// <summary>
+        /// Ботинки железный: броня, снижает урон по своей части тела
+        /// </summary>
+        public static ItemCloth BootsIron { get; private set; }
 
         #endregion
 
@@ -334,6 +350,10 @@ namespace Mvk.Game.Item
 
             StrawHat = ItemsReg.RegisterItemClothClass("StrawHat");
             CamouflageJacket = ItemsReg.RegisterItemClothClass("CamouflageJacket");
+            HelmetIron = ItemsReg.RegisterItemClothClass("HelmetIron");
+            ChestplateIron = ItemsReg.RegisterItemClothClass("ChestplateIron");
+            LeggingsIron = ItemsReg.RegisterItemClothClass("LeggingsIron");
+            BootsIron = ItemsReg.RegisterItemClothClass("BootsIron");
 
             // Food
             ItemsReg.RegisterItemClass("CannedFood", CannedFood = new ItemFood());

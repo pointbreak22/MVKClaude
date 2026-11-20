@@ -1,3 +1,6 @@
+using Mvk.Game.Entity.List;
+using Mvk.Game.Entity.Inventory;
+using Mvk.Engine.Item.List;
 using Mvk.Engine.Item;
 using Mvk.Engine.Entity.List;
 using System.Globalization;
@@ -25,6 +28,8 @@ namespace Mvk.Desktop
             managerCommand.Registration(new CommandSummon(Server));
             managerCommand.Registration(new CommandThrow(Server));
             managerCommand.Registration(new CommandHealth(Server));
+            managerCommand.Registration(new CommandWear(Server));
+            managerCommand.Registration(new CommandHurt(Server));
         }
     }
 
@@ -136,6 +141,56 @@ namespace Mvk.Desktop
                     System.Console.WriteLine($"hp {living.Id}: {living.GetHealth()} dead {living.IsDead} pos {living.PosX:0.0} {living.PosY:0.0} {living.PosZ:0.0} size {living.Size.GetHeight():0.00} coll {living.CanBeCollidedWith()}");
                 }
             }
+            return "";
+        }
+    }
+
+    /// <summary>
+    /// /wear псевдоним...: надеть одежду или броню в её слот (слот одежды = карманы + ключ части тела - 1)
+    /// </summary>
+    internal sealed class CommandWear : CommandBase
+    {
+        public CommandWear(GameServer server) : base(server) => Name = "wear";
+
+        public override string UseCommand(CommandSender sender)
+        {
+            if (sender.GetPlayer() is not PlayerServerMvk player) return ChatStyle.Red + "wear: нет игрока";
+            foreach (string alias in sender.GetCommandParams())
+            {
+                for (int i = 0; i < Ce.Items.ItemAlias.Length; i++)
+                {
+                    if (Ce.Items.ItemAlias[i] != alias || Ce.Items.ItemObjects[i] is not ItemCloth cloth) continue;
+                    for (byte key = 2; key <= InventoryPlayerMvk.ClothCount; key++)
+                    {
+                        if (cloth.CheckSlotClothKey(key))
+                        {
+                            player.InvPlayer.SetInventorySlotContents(InventoryPlayerMvk.PocketCount + key - 1, new ItemStack(cloth, 1));
+                            break;
+                        }
+                    }
+                }
+            }
+            return "";
+        }
+    }
+
+    /// <summary>
+    /// /hurt урон [высота]: нанести игроку урон атакой (высота -1 — всё тело) и напечатать здоровье до и после
+    /// </summary>
+    internal sealed class CommandHurt : CommandBase
+    {
+        public CommandHurt(GameServer server) : base(server) => Name = "hurt";
+
+        public override string UseCommand(CommandSender sender)
+        {
+            PlayerServer player = sender.GetPlayer();
+            if (player?.Damage == null) return "";
+            string[] p = sender.GetCommandParams();
+            float damage = p.Length > 0 ? float.Parse(p[0], CultureInfo.InvariantCulture) : 1f;
+            float hitY = p.Length > 1 ? float.Parse(p[1], CultureInfo.InvariantCulture) : -1f;
+            float before = player.GetHealth();
+            player.Damage.OnAttack((byte)EnumDamageSource.Player, hitY, damage, null!);
+            System.Console.WriteLine($"hurt {damage} at {hitY}: {before} -> {player.GetHealth()}");
             return "";
         }
     }

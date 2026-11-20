@@ -1,0 +1,9 @@
+{
+    MaxStackSize: 1,
+    SlotClothIndex: [4],
+    Sprite: "Items/Cloth/ChestplateIron",
+    SpriteGui: "Items/Cloth/ChestplateIron",
+    PutOnBody: "Jacket",
+    NameLayer: "CamouflageJacket",
+    Protection: 0.3
+}

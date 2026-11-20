@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Mvk.Game.Item;
+using Mvk.Game.Entity.List;
+using Mvk.Game.Entity.Inventory;
+using Mvk.Engine.Item.List;
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.Particle;
@@ -124,6 +128,33 @@ namespace Mvk.Game.Entity.Damage
         /// 3. Защита от магии
         /// </summary>
         /// <param name="hitY">если -1 = удар по всему телу, если -2 = удар повсему телу без урона по одежде</param>
+        /// <summary>
+        /// Защита одежды игрока по части тела: голова — шапка, тело — куртка, ноги — штаны, стопы — обувь,
+        /// всё тело — средняя защита четырёх частей
+        /// </summary>
+        private float _Protection(EnumBodyDamage body)
+        {
+            if (_entity is not PlayerServerMvk player) return 0;
+            InventoryPlayerMvk inventory = player.InvPlayer;
+            return body switch
+            {
+                EnumBodyDamage.Head => _Cloth(inventory, EnumCloth.Hat),
+                EnumBodyDamage.Body => _Cloth(inventory, EnumCloth.Jacket),
+                EnumBodyDamage.Legs => _Cloth(inventory, EnumCloth.Pants),
+                EnumBodyDamage.Feet => _Cloth(inventory, EnumCloth.Shoes),
+                EnumBodyDamage.All => (_Cloth(inventory, EnumCloth.Hat) + _Cloth(inventory, EnumCloth.Jacket)
+                    + _Cloth(inventory, EnumCloth.Pants) + _Cloth(inventory, EnumCloth.Shoes)) / 4f,
+                _ => 0
+            };
+        }
+
+        /// <summary>
+        /// Защита вещи в слоте одежды (слот одежды = карманы + ключ части тела - 1)
+        /// </summary>
+        private static float _Cloth(InventoryPlayerMvk inventory, EnumCloth part)
+            => inventory.GetStackInSlot(InventoryPlayerMvk.PocketCount + (int)part - 1)?.Item is ItemCloth cloth
+                ? cloth.Protection : 0;
+
         protected override float _GetDamageFromBody(byte source, float hitY, float damage)
         {
             // Определяем куда попали
@@ -149,6 +180,8 @@ namespace Mvk.Game.Entity.Damage
                 else enumBody = EnumBodyDamage.Body; // Тело
             }
 
+            // Защита надетой брони по части тела (сервер)
+            damage *= 1f - _Protection(enumBody);
             Console.Write(" " + enumBody);
 
             return damage;

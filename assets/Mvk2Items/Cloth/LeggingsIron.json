@@ -1,0 +1,9 @@
+{
+    MaxStackSize: 1,
+    SlotClothIndex: [6],
+    Sprite: "Items/Cloth/LeggingsIron",
+    SpriteGui: "Items/Cloth/LeggingsIron",
+    PutOnBody: "Pants",
+    NameLayer: "PantsJeans",
+    Protection: 0.2
+}

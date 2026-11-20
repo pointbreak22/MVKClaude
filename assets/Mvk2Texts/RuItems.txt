@@ -5,3 +5,7 @@ StickTechnical.tip:Техническая палка§u§cДля отладки�
 
 Dynamite:Динамит
 Dynamite.tip:Динамит§u§cБросок с замахом: держать кнопку «ставить» и отпустить§r
+HelmetIron:Железный шлем
+ChestplateIron:Железный нагрудник
+LeggingsIron:Железные поножи
+BootsIron:Железные ботинки

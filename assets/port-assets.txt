@@ -1,2 +1,6 @@
 # Свои ассеты порта (не из оригинала Vge/Mvk2): заглушки новых предметов. ImageParityTests их не сверяет.
 Mvk2Textures/Items/Dynamite.png
+Mvk2Textures/Items/Cloth/HelmetIron.png
+Mvk2Textures/Items/Cloth/ChestplateIron.png
+Mvk2Textures/Items/Cloth/LeggingsIron.png
+Mvk2Textures/Items/Cloth/BootsIron.png
