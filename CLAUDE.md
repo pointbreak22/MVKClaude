@@ -101,6 +101,7 @@ assets/                   ресурсы из res/Assets (копируются �
 - `tools/OrigShot` — кадры оригинала без изменений и сравнение с портом (`py tools/OrigShot/compare.py`),
   прогон механики (`py tools/OrigShot/mechanics.py`).
 - `docs/parity-checklist.md` — чек-лист паритета с оригиналом (этап 6).
+- `docs/items-analysis.md` — инструменты и оружие: что есть, как устроены предметы, план расширения.
 - `docs/known-issues.md` — найденные баги оригинала (исправлять отдельно, с пометкой `[ПОВЕДЕНИЕ]`).
 - `docs/adr/` — архитектурные решения (почему Silk.NET, как устроен RHI и т.д.).
 - `tests/Mvk.Engine.Tests/ArchitectureTests.cs` — автоматически проверяет правила зависимостей.
