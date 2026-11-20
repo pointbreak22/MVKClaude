@@ -9,7 +9,8 @@ namespace Mvk.Platform
     /// <summary>
     /// Поиск нативных библиотек Silk.NET (GLFW, OpenAL, Shaderc) в папке runtimes/&lt;ОС&gt;-&lt;архитектура&gt;/native рядом
     /// с программой. Свой поиск Silk.NET определяет папку по графу RID, и на новых дистрибутивах (Ubuntu 26.04)
-    /// не находит её: игра требовала системные библиотеки. Вызывать в начале Main, до первого обращения к Silk.NET.
+    /// не находит её: игра требовала системные библиотеки. На Linux и macOS библиотеки папки загружаются заранее
+    /// (GLFW грузится по имени). Вызывать в начале Main, до первого обращения к Silk.NET.
     /// </summary>
     public static class NativeLibraryPaths
     {
@@ -17,12 +18,21 @@ namespace Mvk.Platform
 
         public static void Register()
         {
-            if (_registered || PathResolver.Default is not DefaultPathResolver resolver) return;
+            if (_registered) return;
             _registered = true;
-            resolver.Resolvers.Insert(0, _Runtimes);
+            if (PathResolver.Default is DefaultPathResolver resolver) resolver.Resolvers.Insert(0, _Runtimes);
+            if (OperatingSystem.IsWindows()) return;
+            // GLFW Silk.NET грузит по имени (dlopen("libglfw.so.3")) мимо поиска путей. Библиотека, уже загруженная
+            // по полному пути, находится по своему SONAME, поэтому заранее грузим всё из runtimes/<rid>/native
+            string? dir = _Directory();
+            if (dir == null || !Directory.Exists(dir)) return;
+            foreach (string file in Directory.GetFiles(dir))
+            {
+                NativeLibrary.TryLoad(file, out _);
+            }
         }
 
-        private static IEnumerable<string> _Runtimes(string name)
+        private static string? _Directory()
         {
             string? arch = RuntimeInformation.ProcessArchitecture switch
             {
@@ -32,9 +42,16 @@ namespace Mvk.Platform
                 Architecture.Arm => "arm",
                 _ => null
             };
-            if (arch == null) yield break;
+            if (arch == null) return null;
             string os = OperatingSystem.IsWindows() ? "win" : OperatingSystem.IsMacOS() ? "osx" : "linux";
-            string path = Path.Combine(AppContext.BaseDirectory, "runtimes", os + "-" + arch, "native", Path.GetFileName(name));
+            return Path.Combine(AppContext.BaseDirectory, "runtimes", os + "-" + arch, "native");
+        }
+
+        private static IEnumerable<string> _Runtimes(string name)
+        {
+            string? dir = _Directory();
+            if (dir == null) yield break;
+            string path = Path.Combine(dir, Path.GetFileName(name));
             if (File.Exists(path)) yield return path;
         }
     }
