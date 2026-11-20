@@ -1,3 +1,4 @@
+﻿#nullable enable
 namespace Mvk.Engine.Entity.Render
 {
     /// <summary>

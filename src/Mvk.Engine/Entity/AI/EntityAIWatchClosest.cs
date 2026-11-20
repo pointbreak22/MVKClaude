@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity.Player;
+﻿#nullable enable
+using Mvk.Engine.Entity.Player;
 using Mvk.Core.Maths;
 
 namespace Mvk.Engine.Entity.AI
@@ -11,7 +12,7 @@ namespace Mvk.Engine.Entity.AI
         /// <summary>
         /// Сущность на которую смотрит
         /// </summary>
-        private PlayerServer _closestEntity;
+        private PlayerServer _closestEntity = null!;
         /// <summary>
         /// Это максимальное расстояние, на котором ИИ будет искать сущность
         /// </summary>
@@ -45,14 +46,14 @@ namespace Mvk.Engine.Entity.AI
                 return true;
             }
             
-            _closestEntity = null;
+            _closestEntity = null!;
             return false;
         }
 
         /// <summary>
         /// Сбрасывает задачу
         /// </summary>
-        public override void ResetTask() => _closestEntity = null;
+        public override void ResetTask() => _closestEntity = null!;
 
         /// <summary>
         /// Обновляет задачу

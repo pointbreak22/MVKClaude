@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.World.Block.List
+﻿#nullable enable
+namespace Mvk.Engine.World.Block.List
 {
     /// <summary>
     /// Отсутствующий блок, может появится если в новой версии не будет прошлого блока
@@ -8,7 +9,7 @@
         /// <summary>
         /// Отсутствующий блок, может появится если в новой версии не будет прошлого блока
         /// </summary>
-        public BlockNull() : base(null)
+        public BlockNull() : base(null!)
         {
             _SetAir();
 

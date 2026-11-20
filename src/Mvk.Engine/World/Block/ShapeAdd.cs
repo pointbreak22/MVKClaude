@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Json;
+﻿#nullable enable
+using Mvk.Core.Json;
 using Mvk.Engine.Json;
 
 namespace Mvk.Engine.World.Block
@@ -33,7 +34,7 @@ namespace Mvk.Engine.World.Block
         /// <summary>
         /// фращение фигуры
         /// </summary>
-        public float[] Rotate;
+        public float[] Rotate = null!;
 
         /// <summary>
         /// Имеется ди вращение по X на 90 гр

@@ -1,3 +1,4 @@
+﻿#nullable enable
 namespace Mvk.Engine.World.Block
 {
     /// <summary>

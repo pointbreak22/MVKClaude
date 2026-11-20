@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Inventory;
 using Mvk.Engine.Entity.MetaData;
@@ -75,7 +76,7 @@ namespace Mvk.Engine.Entity
         /// <summary>
         /// Объект инвенторя
         /// </summary>
-        public InventoryBase Inventory { get; protected set; }
+        public InventoryBase Inventory { get; protected set; } = null!;
 
         /// <summary>
         /// Семплы хотьбы

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity;
@@ -47,7 +48,7 @@ namespace Mvk.Engine.World
         /// <summary>
         /// Ждать обработчик
         /// </summary>
-        public readonly WaitHandler Wait;
+        public readonly WaitHandler Wait = null!;
         /// <summary>
         /// Запущен ли мир
         /// </summary>
@@ -279,20 +280,20 @@ namespace Mvk.Engine.World
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ChunkServer GetChunkServer(int chunkPosX, int chunkPosY) 
-            => ChunkPr.GetChunk(chunkPosX, chunkPosY) as ChunkServer;
+            => (ChunkPr.GetChunk(chunkPosX, chunkPosY) as ChunkServer)!;
         /// <summary>
         /// Получить чанк по координатам чанка
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ChunkServer GetChunkServer(Vector2i chunkPos)
-            => ChunkPr.GetChunk(chunkPos) as ChunkServer;
+            => (ChunkPr.GetChunk(chunkPos) as ChunkServer)!;
         
         /// <summary>
         /// Получить чанк по координатам блока
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ChunkServer GetChunkServer(BlockPos blockPos)
-            => ChunkPr.GetChunk(blockPos.GetPositionChunkX(), blockPos.GetPositionChunkZ()) as ChunkServer;
+            => (ChunkPr.GetChunk(blockPos.GetPositionChunkX(), blockPos.GetPositionChunkZ()) as ChunkServer)!;
 
         #endregion
 
@@ -482,7 +483,7 @@ namespace Mvk.Engine.World
         {
             Collision.EntityBoundingBoxesFromSectorType(aabb, entityMob.Id, Ce.Entities.IndexPlayer);
             int count = Collision.ListEntity.Count;
-            PlayerServer player = null;
+            PlayerServer player = null!;
             float distanceMin = float.MaxValue;
             for (int i = 0; i < count; i++)
             {
@@ -497,7 +498,7 @@ namespace Mvk.Engine.World
                 }
                 
             }
-            return player;
+            return player!;
         }
 
         #endregion
@@ -567,7 +568,7 @@ namespace Mvk.Engine.World
                 // Действие блока после его удаления
                 if ((flag & BlockFlag.Break) == 0) // проверку сломаного
                 {
-                    blockOld.OnBreakBlock(this, chunk, blockPos, blockStateOld, null);
+                    blockOld.OnBreakBlock(this, chunk, blockPos, blockStateOld, null!);
                 }
 
                 blockState.GetBlock().OnBlockAdded(this, chunk, blockPos, blockState);

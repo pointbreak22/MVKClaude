@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Network;
@@ -38,7 +39,7 @@ namespace Mvk.Engine.Entity
         /// <summary>
         /// Ближайший игрок
         /// </summary>
-        public PlayerServer ClosestPlayer { get; private set; } = null;
+        public PlayerServer ClosestPlayer { get; private set; } = null!;
 
         public int Id => TrackedEntity.Id;
 
@@ -63,7 +64,7 @@ namespace Mvk.Engine.Entity
         public void UpdatePlayerEntities(MapEntity<PlayerServer> entityPlayers)
         {
             DistantionPlayer = float.MaxValue;
-            ClosestPlayer = null;
+            ClosestPlayer = null!;
             for (int i = 0; i < entityPlayers.Count; i++)
             {
                 UpdatePlayerEntity(entityPlayers.GetAt(i));
@@ -105,7 +106,7 @@ namespace Mvk.Engine.Entity
                 || TrackedEntity.IsOverviewChunkChanged())
             {
                 DistantionPlayer = float.MaxValue;
-                ClosestPlayer = null;
+                ClosestPlayer = null!;
                 _lastTrackedEntityPosX = TrackedEntity.PosX;
                 _lastTrackedEntityPosY = TrackedEntity.PosY;
                 _lastTrackedEntityPosZ = TrackedEntity.PosZ;
@@ -232,7 +233,7 @@ namespace Mvk.Engine.Entity
             return distantion < c;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is EntityTracker entityTracker ? entityTracker.TrackedEntity.Id == TrackedEntity.Id : false;
 
         public override int GetHashCode() => TrackedEntity.Id;

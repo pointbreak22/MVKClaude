@@ -1,4 +1,5 @@
-﻿//#define TPS20
+﻿#nullable enable
+//#define TPS20
 #define TPS20sm50
 //#define TPS30sm50
 

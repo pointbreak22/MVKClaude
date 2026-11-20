@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using Mvk.Engine.Event;
 using Mvk.Engine.Realms;
 using Mvk.Core.Util;
@@ -234,7 +235,7 @@ namespace Mvk.Engine
                     return vs.ToArray();
                 }
             }
-            return null;
+            return null!;
         }
 
         private static bool _RenderChuks(List<float> vs)

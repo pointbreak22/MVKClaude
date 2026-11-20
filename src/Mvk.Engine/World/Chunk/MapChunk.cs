@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 
 namespace Mvk.Engine.World.Chunk
@@ -109,7 +110,7 @@ namespace Mvk.Engine.World.Chunk
             {
                 return _map[xy].Get(x, y);
             }
-            return null;
+            return null!;
         }
 
         /// <summary>
@@ -211,7 +212,7 @@ namespace Mvk.Engine.World.Chunk
                 if (_buffer[index] != null)
                 {
                     // Удаляем
-                    _buffer[index] = null;
+                    _buffer[index] = null!;
                     Count--;
                     return true;
                 }

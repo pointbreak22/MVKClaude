@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Games;
 using Mvk.Engine.Item;
@@ -270,7 +271,7 @@ namespace Mvk.Engine.Entity.Player
 
                 if (!isAnimationPrev && isAnimation)
                 {
-                    if (_ActionAnimationRight(itemStack, moving))
+                    if (_ActionAnimationRight(itemStack!, moving))
                     {
                         // Отправить анимацию
                         _SendPlayerAnimation();
@@ -297,7 +298,7 @@ namespace Mvk.Engine.Entity.Player
         private void _Attack(MovingObjectPosition moving)
         {
             //Console.WriteLine("Attack");
-            Vector3 vec = (moving.Entity.GetPositionVec() - _player.GetPositionVec()).Normalize();
+            Vector3 vec = (moving.Entity!.GetPositionVec() - _player.GetPositionVec()).Normalize();
             _game.TrancivePacket(new PacketC03UseEntity(moving.Entity.Id, moving.RayHit.Y,
                 vec.X * _impulsAttackXZ, vec.Y * _impulsAttackY, vec.Z * _impulsAttackXZ));
         }
@@ -360,7 +361,7 @@ namespace Mvk.Engine.Entity.Player
                         {
                             // Взаимодействие на сущность, с предметом
                             //Console.WriteLine("InteractItem");
-                            _game.TrancivePacket(new PacketC03UseEntity(moving.Entity.Id,
+                            _game.TrancivePacket(new PacketC03UseEntity(moving.Entity!.Id,
                                 PacketC03UseEntity.EnumAction.Interact));
                             if (_ActionAnimationRight(itemStack, moving))
                             {
@@ -401,7 +402,7 @@ namespace Mvk.Engine.Entity.Player
                     {
                         // Взаимодействие на сущность, без предмета
                         //Console.WriteLine("Interact");
-                        _game.TrancivePacket(new PacketC03UseEntity(moving.Entity.Id,
+                        _game.TrancivePacket(new PacketC03UseEntity(moving.Entity!.Id,
                             PacketC03UseEntity.EnumAction.Interact));
                         _pauseSecond = -1;
                     }

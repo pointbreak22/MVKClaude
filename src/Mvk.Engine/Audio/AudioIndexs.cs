@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -12,12 +13,12 @@ namespace Mvk.Engine.Audio
         /// <summary>
         /// Массив ключей
         /// </summary>
-        private static string[] _keys;
+        private static string[] _keys = null!;
 
         /// <summary>
         /// Массив путей
         /// </summary>
-        private static string[] _paths;
+        private static string[] _paths = null!;
 
         /// <summary>
         /// Инициализация интексов семплов. Нужен так же для 
@@ -52,7 +53,7 @@ namespace Mvk.Engine.Audio
         /// Очиситить массив путей
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ClearPath() => _paths = null;
+        public static void ClearPath() => _paths = null!;
 
         /// <summary>
         /// Получить ключ звукового эффекта по псевдониму.

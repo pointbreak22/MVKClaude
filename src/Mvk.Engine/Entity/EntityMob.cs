@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.AI;
 using Mvk.Engine.Entity.AI.PathFinding;
@@ -31,28 +32,28 @@ namespace Mvk.Engine.Entity
         /// <summary>
         /// Объект для вращения сущности AI
         /// </summary>
-        public EntityLookHelper LookHelper { get; protected set; }
+        public EntityLookHelper LookHelper { get; protected set; } = null!;
         /// <summary>
         /// Объект для перемещения сущности до координаты AI
         /// </summary>
-        public EntityMoveHelper MoveHelper { get; protected set; }
+        public EntityMoveHelper MoveHelper { get; protected set; } = null!;
         /// <summary>
         /// Объект навигации сущности
         /// </summary>
-        public PathNavigate Navigator { get; protected set; }
+        public PathNavigate Navigator { get; protected set; } = null!;
         /// <summary>
         /// Пасивные задачи (бродить, смотреть, бездельничать, ...)
         /// </summary>
-        protected EntityAITasks _tasks;
+        protected EntityAITasks _tasks = null!;
 
         /// <summary>
         /// Получает активную цель, которую система задач использует для отслеживания
         /// </summary>
-        public EntityLiving AttackTarget;
+        public EntityLiving AttackTarget = null!;
         /// <summary>
         /// Последний атакующий
         /// </summary>
-        private EntityLiving _lastAttacker;
+        private EntityLiving _lastAttacker = null!;
         /// <summary>
         /// Содержит значение TicksExisted при последнем вызове SetLastAttacker
         /// </summary>
@@ -61,7 +62,7 @@ namespace Mvk.Engine.Entity
         /// <summary>
         /// Инициализация навигации
         /// </summary>
-        protected virtual PathNavigate _InitNavigate(WorldServer world) => null;
+        protected virtual PathNavigate _InitNavigate(WorldServer world) => null!;
 
         /// <summary>
         /// Флаг данных общего перемещения прошлого такта
@@ -227,7 +228,7 @@ namespace Mvk.Engine.Entity
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EntityLiving GetAITarget() => _lastAttacker != null
-            && TicksExisted - _lastAttackerTime < 400 ? _lastAttacker : null;
+            && TicksExisted - _lastAttackerTime < 400 ? _lastAttacker : null!;
 
         /// <summary>
         /// Задать сущность которая последняя атаковала
@@ -263,11 +264,11 @@ namespace Mvk.Engine.Entity
         {
             if (AttackTarget != null && AttackTarget.Id == entityMob.Id)
             {
-                AttackTarget = null;
+                AttackTarget = null!;
             }
             if (_lastAttacker != null && _lastAttacker.Id == entityMob.Id)
             {
-                _lastAttacker = null;
+                _lastAttacker = null!;
             }
         }
 

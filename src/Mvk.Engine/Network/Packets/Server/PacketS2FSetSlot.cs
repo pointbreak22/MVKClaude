@@ -33,7 +33,7 @@ namespace Mvk.Engine.Network.Packets.Server
             stream.Bool(body);
             if (body)
             {
-                ItemStack.WriteStream(Stack, stream);
+                ItemStack.WriteStream(Stack!, stream);
             }
         }
     }

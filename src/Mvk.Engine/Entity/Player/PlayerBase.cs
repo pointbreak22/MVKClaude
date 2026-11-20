@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Sizes;
 using Mvk.Engine.World;
 using Mvk.Engine.World.Block;
@@ -13,15 +14,15 @@ namespace Mvk.Engine.Entity.Player
         /// <summary>
         /// Псевдоним игрока
         /// </summary>
-        public string Login { get; protected set; }
+        public string Login { get; protected set; } = null!;
         /// <summary>
         /// Хэш пароль игрока
         /// </summary>
-        public string Token { get; protected set; }
+        public string Token { get; protected set; } = null!;
         /// <summary>
         /// Хэш игрока по псевдониму
         /// </summary>
-        public string UUID { get; protected set; }
+        public string UUID { get; protected set; } = null!;
         /// <summary>
         /// Пинг клиента в мс
         /// </summary>
@@ -190,6 +191,6 @@ namespace Mvk.Engine.Entity.Player
         /// Получить объект мира
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual WorldBase GetWorld() => null;
+        public virtual WorldBase GetWorld() => null!;
     }
 }

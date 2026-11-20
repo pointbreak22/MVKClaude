@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Core.Json;
 using Mvk.Engine.Json;
@@ -23,12 +24,12 @@ namespace Mvk.Engine.Item.List
         /// <summary>
         /// Имя на что надеть на тело, указываем на какую часть тело может одеваться предмет
         /// </summary>
-        public string PutOnBody { get; protected set; }
+        public string PutOnBody { get; protected set; } = null!;
 
         /// <summary>
         /// Массив имён слоёв, название слоя одежды из модели
         /// </summary>
-        private string[] _nameLayer;
+        private string[] _nameLayer = null!;
 
         /// <summary>
         /// Получить имя слоя в конкретном слоте

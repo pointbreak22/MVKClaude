@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -16,7 +17,7 @@ namespace Mvk.Engine.Games
     /// </summary>
     public class GameNet : GameBase
     {
-        private SocketSide _socket;
+        private SocketSide _socket = null!;
         
         /// <summary>
         /// IP адрес сервера
@@ -34,7 +35,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Оповещение если был стоп из потока
         /// </summary>
-        private string _stopText;
+        private string _stopText = null!;
 
         public GameNet(IGameClientHost host, string ipAddress, int port, 
             GameModClient gameMod) : base(host, gameMod)
@@ -142,7 +143,7 @@ namespace Mvk.Engine.Games
             }
         }
 
-        private void _Socket_Connected(object sender, EventArgs e)
+        private void _Socket_Connected(object? sender, EventArgs e)
             => _isConnected = true;
 
         private void _Socket_Disconnected(object sender, StringEventArgs e)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Mvk.Core.Nbt;
@@ -42,7 +43,7 @@ namespace Mvk.Engine.World.Chunk
         /// M - met данные блока
         /// B - id блока
         /// </summary>
-        public int[] Data;
+        public int[] Data = null!;
         /// <summary>
         /// Освещение блочное и небесное, по 4 bit
         /// Block << 4 | Sky & 0xF
@@ -72,7 +73,7 @@ namespace Mvk.Engine.World.Chunk
             KeyCash = keyCash;
             Index = index;
             YBase = index << 4;
-            Data = null;
+            Data = null!;
             CountBlock = 0;
             _countTickBlock = 0;
             Light = new byte[4096];
@@ -105,7 +106,7 @@ namespace Mvk.Engine.World.Chunk
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ClearNotLight()
         {
-            Data = null;
+            Data = null!;
             CountBlock = 0;
             _countTickBlock = 0;
             Destroy.Clear();
@@ -170,7 +171,7 @@ namespace Mvk.Engine.World.Chunk
                     if (Ce.Blocks.BlocksRandomTick[Data[index] & 0xFFF]) _countTickBlock--;
                     if (CountBlock == 0)
                     {
-                        Data = null;
+                        Data = null!;
                         _countTickBlock = 0;
                     }
                     else Data[index] = 0;

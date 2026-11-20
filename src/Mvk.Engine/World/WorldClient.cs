@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity;
 using Mvk.Engine.Event;
@@ -70,7 +71,7 @@ namespace Mvk.Engine.World
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint GetTickCounter() => Settings == null ? 0 : Settings.Environment.TickCounter;
 
-        private void _ChunkPrClient_ChunkMappingChanged(object sender, System.EventArgs e)
+        private void _ChunkPrClient_ChunkMappingChanged(object? sender, System.EventArgs e)
             => _flagDebugChunkMappingChanged = true;
 
         /// <summary>
@@ -330,7 +331,7 @@ namespace Mvk.Engine.World
 
         public override string ToString()
         {
-            string calendar = Settings == null ? "Null" : Settings.Environment.ToString();
+            string calendar = (Settings == null ? "Null" : Settings.Environment.ToString())!;
             return "\r\nChPr " + ChunkPrClient.ToString()
                 + "\r\nCalendar " + calendar;
         } 
@@ -338,7 +339,7 @@ namespace Mvk.Engine.World
         /// <summary>
         /// Событие любого объекта с сервера для отладки
         /// </summary>
-        public event StringEventHandler TagDebug;
+        public event StringEventHandler? TagDebug;
         public void OnTagDebug(string title, object tag)
             => TagDebug?.Invoke(this, new StringEventArgs(title, tag));
     }

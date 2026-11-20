@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using Mvk.Core.Json;
 using Mvk.Engine.Json;

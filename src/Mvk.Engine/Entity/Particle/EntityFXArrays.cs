@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity.Render;
+﻿#nullable enable
+using Mvk.Engine.Entity.Render;
 using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.World;
@@ -60,8 +61,8 @@ namespace Mvk.Engine.Entity.Particle
         {
             if (index < Count)
             {
-                EntityFX entity = Activator.CreateInstance(_entitiesObjects[index].EntityType) as EntityFX;
-                entity.Init(index, world, renderFactory, parameter);
+                EntityFX entity = (Activator.CreateInstance(_entitiesObjects[index].EntityType) as EntityFX)!;
+                entity!.Init(index, world, renderFactory, parameter);
                 return entity;
             }
             throw new Exception(Sr.GetString(Sr.IndexOutsideEntityType, index, Count));

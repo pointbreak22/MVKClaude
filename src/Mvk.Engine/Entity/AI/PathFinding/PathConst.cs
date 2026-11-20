@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Entity.AI.PathFinding
+﻿#nullable enable
+namespace Mvk.Engine.Entity.AI.PathFinding
 {
     /// <summary>
     /// Константы для нахождении пути ИИ

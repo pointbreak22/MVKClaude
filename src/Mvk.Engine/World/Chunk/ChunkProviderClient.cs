@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using Mvk.Engine.Network.Packets.Server;
 
@@ -45,12 +46,12 @@ namespace Mvk.Engine.World.Chunk
             if (packet.IsRemoved())
             {
                 // Выгружаем чанк
-                UnloadChunk(_chunkMapping.Get(chx, chy) as ChunkClient);
+                UnloadChunk((_chunkMapping.Get(chx, chy) as ChunkClient)!);
             }
             else
             {
                 // Вносим данные в чанк
-                ChunkClient chunkRender = _chunkMapping.Get(chx, chy) as ChunkClient;
+                ChunkClient chunkRender = (_chunkMapping.Get(chx, chy) as ChunkClient)!;
                 bool isNew = chunkRender == null;
                 if (isNew)
                 {
@@ -58,7 +59,7 @@ namespace Mvk.Engine.World.Chunk
                     _chunkMapping.Add(chunkRender);
                 }
 
-                chunkRender.SetBinaryZip(packet.BufferRead, packet.IsBiom, packet.FlagsYAreas);
+                chunkRender!.SetBinaryZip(packet.BufferRead!, packet.IsBiom, packet.FlagsYAreas);
 
                 if (isNew || packet.IsBiom)
                 {
@@ -85,7 +86,7 @@ namespace Mvk.Engine.World.Chunk
         /// Получить клиентский чанк по координатам чанка
         /// </summary>
         public ChunkClient GetChunkClient(int x, int y)
-             => _chunkMapping.Get(x, y) as ChunkClient;
+             => (_chunkMapping.Get(x, y) as ChunkClient)!;
 
         #endregion
 
@@ -140,7 +141,7 @@ namespace Mvk.Engine.World.Chunk
         /// <summary>
         /// Событие изменены чанки
         /// </summary>
-        public event EventHandler ChunkMappingChanged;
+        public event EventHandler? ChunkMappingChanged;
         private void _OnChunkMappingChanged()
             => ChunkMappingChanged?.Invoke(this, new EventArgs());
 

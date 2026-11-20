@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Audio;
 using Mvk.Core.Json;
@@ -59,15 +60,15 @@ namespace Mvk.Engine.World.Block
         /// <summary>
         /// Индексы семплов сломоного блока
         /// </summary>
-        private int[] _samplesBreak;
+        private int[] _samplesBreak = null!;
         /// <summary>
         /// Индексы семплов установленного блока
         /// </summary>
-        private int[] _samplesPlace;
+        private int[] _samplesPlace = null!;
         /// <summary>
         /// Индексы семплов хотьбы по блоку
         /// </summary>
-        private int[] _samplesStep;
+        private int[] _samplesStep = null!;
 
         public MaterialBase(int index, string alias)
         {

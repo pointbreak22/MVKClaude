@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.World.Chunk
+﻿#nullable enable
+namespace Mvk.Engine.World.Chunk
 {
     public interface IChunkPosition
     {

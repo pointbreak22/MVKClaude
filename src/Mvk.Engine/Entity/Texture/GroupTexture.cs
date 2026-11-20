@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 
 namespace Mvk.Engine.Entity.Texture
@@ -49,7 +50,7 @@ namespace Mvk.Engine.Entity.Texture
         /// <summary>
         /// Метод для сортировки
         /// </summary>
-        public int CompareTo(object obj)
+        public int CompareTo(object? obj)
         {
             if (obj is GroupTexture v)
             {

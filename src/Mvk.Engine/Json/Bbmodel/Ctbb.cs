@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Json;
+﻿#nullable enable
+using Mvk.Core.Json;
 namespace Mvk.Engine.Json.Bbmodel
 {
     /// <summary>

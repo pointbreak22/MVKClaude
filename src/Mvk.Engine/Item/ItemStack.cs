@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.List;
@@ -260,11 +261,11 @@ namespace Mvk.Engine.Item
                 Zero();
                 if (isLeft)
                 {
-                    entityPlayer.Inventory.SetCurrentLeftItem(null);
+                    entityPlayer.Inventory.SetCurrentLeftItem(null!);
                 }
                 else
                 {
-                    entityPlayer.Inventory.SetCurrentItem(null);
+                    entityPlayer.Inventory.SetCurrentItem(null!);
                 }
 
                 if (!entityPlayer.GetWorld().IsRemote 
@@ -324,7 +325,7 @@ namespace Mvk.Engine.Item
                 return new ItemStack(Ce.Items.ItemObjects[id],
                     stream.Byte(), stream.Short(), stream.Byte());
             }
-            return null;
+            return null!;
         }
 
         /// <summary>
@@ -350,7 +351,7 @@ namespace Mvk.Engine.Item
                 return new ItemStack(Ce.Items.ItemObjects[nbt.GetShort("Id")], 
                     nbt.GetByte("Amount"), nbt.GetShort("Damaged"), nbt.GetByte("Met"));
             }
-            return null;
+            return null!;
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Engine.Network;
 namespace Mvk.Engine.World.Block
 {
@@ -109,9 +110,9 @@ namespace Mvk.Engine.World.Block
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            if (obj.GetType() == typeof(BlockState))
+            if (obj!.GetType() == typeof(BlockState))
             {
                 var vec = (BlockState)obj;
                 if (Id == vec.Id && Met == vec.Met 

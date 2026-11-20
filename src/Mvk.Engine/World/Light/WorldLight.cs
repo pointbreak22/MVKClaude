@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using Mvk.Engine.World.Block;
 using Mvk.Engine.World.Chunk;
 using Mvk.Core.Maths;
@@ -69,7 +70,7 @@ namespace Mvk.Engine.World.Light
         /// <summary>
         /// Чанк в котором был запуск обработки освещения
         /// </summary>
-        private ChunkBase _chunk;
+        private ChunkBase _chunk = null!;
         /// <summary>
         /// Координаты чанка, в котором был запуск освещения
         /// </summary>

@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Core.Maths;
 
 namespace Mvk.Engine.World.Chunk
@@ -46,14 +47,14 @@ namespace Mvk.Engine.World.Chunk
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ChunkBase GetChunk(int x, int y) 
-            => _chunkMapping.Get(x, y) as ChunkBase;
+            => (_chunkMapping.Get(x, y) as ChunkBase)!;
 
         /// <summary>
         /// Получить чанк по координатам чанка
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ChunkBase GetChunk(Vector2i chunkPos)
-            => _chunkMapping.Get(chunkPos.X, chunkPos.Y) as ChunkBase;
+            => (_chunkMapping.Get(chunkPos.X, chunkPos.Y) as ChunkBase)!;
 
         /// <summary>
         /// Количество чанков в кэше

@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Entity.Render
+﻿#nullable enable
+namespace Mvk.Engine.Entity.Render
 {
     /// <summary>
     /// Интерфейс отвечающий за сетку сущности

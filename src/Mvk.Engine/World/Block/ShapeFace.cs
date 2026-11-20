@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Json;
+﻿#nullable enable
+using Mvk.Core.Json;
 using Mvk.Engine.Json;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
@@ -26,7 +27,7 @@ namespace Mvk.Engine.World.Block
         /// <summary>
         /// Объект формировании стороны
         /// </summary>
-        private QuadSide _quad;
+        private QuadSide _quad = null!;
         /// <summary>
         /// Размер формы
         /// </summary>

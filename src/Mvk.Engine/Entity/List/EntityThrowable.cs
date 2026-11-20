@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity.Physics;
+﻿#nullable enable
+using Mvk.Engine.Entity.Physics;
 using Mvk.Engine.Entity.Sizes;
 using Mvk.Engine.World;
 using Mvk.Core.Maths;
@@ -13,7 +14,7 @@ namespace Mvk.Engine.Entity.List
         /// <summary>
         /// Кто метнул предмет
         /// </summary>
-        public EntityLiving EntityThrower { get; private set; }
+        public EntityLiving EntityThrower { get; private set; } = null!;
         /// <summary>
         /// Сколько тиков жизни
         /// </summary>

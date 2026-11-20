@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Threading;
 using Mvk.Engine.Event;
 using Mvk.Engine.Network;
@@ -120,7 +121,7 @@ namespace Mvk.Engine.Games
         private void _Server_TagDebug(object sender, StringEventArgs e)
             => _OnTagDebug(e);
 
-        private void _Server_Closeded(object sender, EventArgs e)
+        private void _Server_Closeded(object? sender, EventArgs e)
         {
             _packets.Clear();
             // Сюда прилетаем из друго-го потока, ставим пометку на остановку
@@ -192,7 +193,7 @@ namespace Mvk.Engine.Games
             if (IsServerRunning())
             {
                 WritePacket writePacket = new WritePacket(packet);
-                _server.LocalReceivePacket(null, writePacket.ToArray());
+                _server.LocalReceivePacket(null!, writePacket.ToArray());
             }
         }
 

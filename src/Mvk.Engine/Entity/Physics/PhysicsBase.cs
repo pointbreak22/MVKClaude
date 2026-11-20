@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Sizes;
 using Mvk.Core.Util;
@@ -21,7 +22,7 @@ namespace Mvk.Engine.Entity.Physics
         /// <summary>
         /// Обект перемещений
         /// </summary>
-        public readonly MovementInput Movement;
+        public readonly MovementInput Movement = null!;
         /// <summary>
         /// Сущность к которой прекреплена физика
         /// </summary>

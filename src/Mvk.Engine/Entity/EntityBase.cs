@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.MetaData;
 using Mvk.Engine.Entity.Physics;
@@ -129,29 +130,29 @@ namespace Mvk.Engine.Entity
         /// <summary>
         /// Объект физики
         /// </summary>
-        public PhysicsBase Physics { get; protected set; }
+        public PhysicsBase Physics { get; protected set; } = null!;
         /// <summary>
         /// Объект рендера
         /// </summary>
-        public EntityRenderBase Render { get; protected set; }
+        public EntityRenderBase Render { get; protected set; } = null!;
         /// <summary>
         /// Объект Размер, вес и прочее сущностей которая работает с физикой
         /// </summary>
-        public ISizeEntity Size { get; protected set; }
+        public ISizeEntity Size { get; protected set; } = null!;
         /// <summary>
         /// Объект наличия блоков в которой находится сущность,
         /// Нужен для физики!
         /// </summary>
-        public IPresenceBlocks PresenceBlocks { get; protected set; }
+        public IPresenceBlocks PresenceBlocks { get; protected set; } = null!;
         /// <summary>
         /// Объект урона
         /// </summary>
-        public DamageBase Damage { get; protected set; }
+        public DamageBase Damage { get; protected set; } = null!;
 
         /// <summary>
         /// Трекер сущности, на сервере
         /// </summary>
-        public EntityTracker Tracker;
+        public EntityTracker Tracker = null!;
 
         /// <summary>
         /// Уровень перемещение. Только для сервера 2 - 0 чтоб передвавать клиентам перемещение.
@@ -172,7 +173,7 @@ namespace Mvk.Engine.Entity
         /// <summary>
         /// Объект дополнительных данных
         /// </summary>
-        public DataWatcher MetaData { get; protected set; }
+        public DataWatcher MetaData { get; protected set; } = null!;
 
         /// <summary>
         /// Спит ли физика, для отладки если Physics == null
@@ -188,7 +189,7 @@ namespace Mvk.Engine.Entity
         /// <summary>
         /// Объект сетевого мира, существует только у сущностей на сервере
         /// </summary>
-        protected WorldServer _worldServer;
+        protected WorldServer _worldServer = null!;
 
         #region Init
 

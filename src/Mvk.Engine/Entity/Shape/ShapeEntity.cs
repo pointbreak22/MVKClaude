@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Animation;
 using Mvk.Engine.Entity.Model;
 using Mvk.Engine.Entity.Render;

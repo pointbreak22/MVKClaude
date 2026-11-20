@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Mvk.Core.Util;
@@ -22,11 +23,11 @@ namespace Mvk.Engine.World
         /// <summary>
         /// Графический буфер
         /// </summary>
-        private byte[] _buffer;
+        private byte[] _buffer = null!;
         /// <summary>
         /// Маска для понимания где уже имеется спрайт
         /// </summary>
-        private bool[,] _mask; 
+        private bool[,] _mask = null!; 
 
         /// <summary>
         /// Справочник текстур, название текстуры, индекс расположения текстуры 

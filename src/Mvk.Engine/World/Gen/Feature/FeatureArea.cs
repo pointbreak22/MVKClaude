@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
 using Mvk.Engine.World.Block;
@@ -11,7 +12,7 @@ namespace Mvk.Engine.World.Gen.Feature
     /// </summary>
     public abstract class FeatureArea : IFeatureGeneratorArea
     {
-        protected readonly IChunkPrimer _chunkPrimer;
+        protected readonly IChunkPrimer _chunkPrimer = null!;
         /// <summary>
         /// Какой блок ставим
         /// </summary>

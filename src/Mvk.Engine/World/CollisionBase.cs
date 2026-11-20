@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity;
 using Mvk.Core.Util;
@@ -375,7 +376,7 @@ namespace Mvk.Engine.World
             if (count > 0)
             {
                 EntityBase entity;
-                EntityBase entityHit = null;
+                EntityBase entityHit = null!;
                 PointIntersection intersectionHit = new PointIntersection();
                 PointIntersection intersection;
                 float distance = MovingObject.IsBlock() ? Glm.Distance(pos, MovingObject.RayHit) : float.MaxValue;

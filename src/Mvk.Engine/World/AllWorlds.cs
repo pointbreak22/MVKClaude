@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Engine.Games;
 
 namespace Mvk.Engine.World
@@ -17,7 +18,7 @@ namespace Mvk.Engine.World
         /// <summary>
         /// Сервер
         /// </summary>
-        public GameServer Server { get; protected set; }
+        public GameServer Server { get; protected set; } = null!;
 
         /// <summary>
         /// Миры игры

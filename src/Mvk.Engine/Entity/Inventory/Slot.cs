@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Item;
+﻿#nullable enable
+using Mvk.Engine.Item;
 
 namespace Mvk.Engine.Entity.Inventory
 {
@@ -14,12 +15,12 @@ namespace Mvk.Engine.Entity.Inventory
         /// <summary>
         /// Объект одной ячейки
         /// </summary>
-        public ItemStack Stack;
+        public ItemStack Stack = null!;
 
-        public Slot(byte slotId, ItemStack stack = null)
+        public Slot(byte slotId, ItemStack? stack = null)
         {
             SlotId = slotId;
-            Stack = stack;
+            Stack = stack!;
         }
 
         public override string ToString() 

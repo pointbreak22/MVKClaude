@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Animation;
 using Mvk.Engine.Entity.Model;
@@ -30,15 +31,15 @@ namespace Mvk.Engine.Entity
         /// <summary>
         /// Массив костей скелета
         /// </summary>
-        public Bone[] Bones { get; private set; }
+        public Bone[] Bones { get; private set; } = null!;
         /// <summary>
         /// Массив объектов моделей анимационныйх клиппов
         /// </summary>
-        public ModelAnimationClip[] ModelAnimationClips { get; private set; }
+        public ModelAnimationClip[] ModelAnimationClips { get; private set; } = null!;
         /// <summary>
         /// Буфер сетки моба по умолчанию, для рендера
         /// </summary>
-        public VertexEntityBuffer BufferMesh { get; private set; }
+        public VertexEntityBuffer BufferMesh { get; private set; } = null!;
         /// <summary>
         /// Масштаб формы
         /// </summary>

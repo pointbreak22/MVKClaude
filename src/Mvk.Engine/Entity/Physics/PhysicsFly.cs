@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity.Sizes;
+﻿#nullable enable
+using Mvk.Engine.Entity.Sizes;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
 using Mvk.Engine.World;

@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity.Physics;
+﻿#nullable enable
+using Mvk.Engine.Entity.Physics;
 using Mvk.Engine.Entity.Sizes;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
@@ -39,7 +40,7 @@ namespace Mvk.Engine.Entity.List
             SetDead();
             if (moving.IsEntity())
             {
-                if (moving.Entity.IndexEntity != Ce.Entities.IndexPlayer)
+                if (moving.Entity!.IndexEntity != Ce.Entities.IndexPlayer)
                 {
                     moving.Entity.SetDead();
                 }

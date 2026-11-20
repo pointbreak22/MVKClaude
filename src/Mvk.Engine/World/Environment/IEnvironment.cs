@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity.Player;
+﻿#nullable enable
+using Mvk.Engine.Entity.Player;
 using Mvk.Core.Nbt;
 using Mvk.Engine.Nbt;
 using Mvk.Engine.Network.Packets.Server;

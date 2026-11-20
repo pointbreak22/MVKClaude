@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 
 namespace Mvk.Engine.World.Gen.Layer
 {
@@ -15,7 +16,7 @@ namespace Mvk.Engine.World.Gen.Layer
         /// <summary>
         /// Родительский GenLayer, который был предоставлен через конструктор
         /// </summary>
-        protected GenLayer _parent;
+        protected GenLayer _parent = null!;
 
         /// <summary>
         /// Seed из мира, который используется в LCG

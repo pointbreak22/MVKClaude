@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Network;
 using Mvk.Core.Util;
@@ -299,9 +300,9 @@ namespace Mvk.Engine.World.Block
 
         public override string ToString() => X + "; " + Y + "; " + Z;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            if (obj.GetType() == typeof(BlockPos))
+            if (obj!.GetType() == typeof(BlockPos))
             {
                 var vec = (BlockPos)obj;
                 if (X == vec.X && Y == vec.Y && Z == vec.Z) return true;

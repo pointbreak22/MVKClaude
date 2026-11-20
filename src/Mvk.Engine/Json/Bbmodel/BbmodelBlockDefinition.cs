@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Json;
+﻿#nullable enable
+using Mvk.Core.Json;
 using System.Collections.Generic;
 using System.Globalization;
 using Mvk.Core.Maths;
@@ -24,11 +25,11 @@ namespace Mvk.Engine.Json.Bbmodel
         /// <summary>
         /// Текст результата
         /// </summary>
-        private string _textOut;
+        private string _textOut = null!;
         /// <summary>
         /// Для краша, название раздела
         /// </summary>
-        private string _log;
+        private string _log = null!;
         /// <summary>
         /// Список текстур файлов
         /// </summary>

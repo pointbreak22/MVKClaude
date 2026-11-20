@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Core.Maths;
 
 namespace Mvk.Engine.World
@@ -11,12 +12,12 @@ namespace Mvk.Engine.World
         /// <summary>
         /// Массив цвета травы для каждого биомов по ID
         /// </summary>
-        private Vector3[] _grassColors;
+        private Vector3[] _grassColors = null!;
 
         /// <summary>
         /// Массив цвета воды для каждого биомов по ID
         /// </summary>
-        private Vector3[] _waterColors;
+        private Vector3[] _waterColors = null!;
 
         public ColorsBiom() { }
 

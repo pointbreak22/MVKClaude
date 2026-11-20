@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Realms
+﻿#nullable enable
+namespace Mvk.Engine.Realms
 {
     /// <summary>
     /// Структура для строки чата, для понимания когда была создана

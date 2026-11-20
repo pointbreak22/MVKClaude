@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.World.Block
+﻿#nullable enable
+namespace Mvk.Engine.World.Block
 {
     /// <summary>
     /// Сторона жидкого блока

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -65,7 +66,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Реестры мира под таблицы id этого сервера (задаёт GameModServer.CorrectObjects)
         /// </summary>
-        public Registries Registries;
+        public Registries Registries = null!;
 
         /// <summary>
         /// Часы для Tps
@@ -120,7 +121,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Сокет для сети
         /// </summary>
-        private SocketServer _socketServer;
+        private SocketServer _socketServer = null!;
         /// <summary>
         /// Объект работы с пакетами
         /// </summary>
@@ -223,7 +224,7 @@ namespace Mvk.Engine.Games
                 _socketServer.WarningString += _SocketServer_WarningString;
                 if (!_socketServer.Run())
                 {
-                    _socketServer = null;
+                    _socketServer = null!;
                 }
             }
         }
@@ -268,15 +269,15 @@ namespace Mvk.Engine.Games
             _OnError(e.GetException());
         }
 
-        private void _SocketServer_Runned(object sender, EventArgs e)
+        private void _SocketServer_Runned(object? sender, EventArgs e)
         {
             _isGamePaused = false;
             Log.Server(Srl.NetworkModeIsEnabled);
         }
 
-        private void _SocketServer_Stopped(object sender, EventArgs e)
+        private void _SocketServer_Stopped(object? sender, EventArgs e)
         {
-            _socketServer = null;
+            _socketServer = null!;
             if (IsServerRunning)
             {
                 // Если сеть остановилась, а луп нет, 
@@ -292,7 +293,7 @@ namespace Mvk.Engine.Games
 
         private void _SocketServer_ReceivePacket(object sender, PacketBufferEventArgs e)
         {
-            LocalReceivePacket(e.Side, e.Bytes);
+            LocalReceivePacket(e.Side!, e.Bytes);
         }
 
         /// <summary>
@@ -646,41 +647,41 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Событие ошибки на сервере
         /// </summary>
-        public event ThreadExceptionEventHandler Error;
+        public event ThreadExceptionEventHandler? Error;
         private void _OnError(Exception ex)
             => Error?.Invoke(this, new ThreadExceptionEventArgs(ex));
 
         /// <summary>
         /// Событие закрыть
         /// </summary>
-        public event EventHandler Closeded;
+        public event EventHandler? Closeded;
         private void _OnCloseded() => Closeded?.Invoke(this, new EventArgs());
 
         /// <summary>
         /// Событие текст для отладки
         /// </summary>
-        public event StringEventHandler TextDebug;
+        public event StringEventHandler? TextDebug;
         private void _OnTextDebug() 
             => TextDebug?.Invoke(this, new StringEventArgs(_ToStringDebugTps()));
 
         /// <summary>
         /// Событие любого объекта с сервера для отладки
         /// </summary>
-        public event StringEventHandler TagDebug;
+        public event StringEventHandler? TagDebug;
         public void OnTagDebug(string title, object tag)
             => TagDebug?.Invoke(this, new StringEventArgs(title, tag));
 
         /// <summary>
         /// Событие получить от сервера пакет
         /// </summary>
-        public event PacketBufferEventHandler RecievePacket;
+        public event PacketBufferEventHandler? RecievePacket;
         private void _OnRecievePacket(PacketBufferEventArgs e) 
             => RecievePacket?.Invoke(this, e);
 
         /// <summary>
         /// Событие получить от сервера сообщение
         /// </summary>
-        public event StringEventHandler RecieveMessage;
+        public event StringEventHandler? RecieveMessage;
         private void _OnRecieveMessage(string message)
             => RecieveMessage?.Invoke(this, new StringEventArgs(message));
 

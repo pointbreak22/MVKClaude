@@ -1,3 +1,4 @@
+﻿#nullable enable
 using System.Collections.Generic;
 using Mvk.Core.Maths;
 using Mvk.Engine.Entity;
@@ -17,7 +18,7 @@ namespace Mvk.Engine.Games
         private readonly GameModServer _modServer;
 
         /// <summary>Игра, привязанная к хосту</summary>
-        public GameBase Game { get; private set; }
+        public GameBase Game { get; private set; } = null!;
         /// <summary>Игрок на сервере, игра запущена</summary>
         public bool Started { get; private set; }
         /// <summary>Сообщения чата, пришедшие клиенту</summary>

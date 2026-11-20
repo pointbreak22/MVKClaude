@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Particle;
 using Mvk.Engine.World;
 using Mvk.Core.Maths;
@@ -53,7 +54,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
         /// Возвращает последний объект массива
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public PathPoint GetFinalPathPoint() => _pathLength > 0 ? _points[_pathLength - 1] : null;
+        public PathPoint GetFinalPathPoint() => (_pathLength > 0 ? _points[_pathLength - 1] : null)!;
 
         /// <summary>
         /// Вернуть объект по интексу расположения

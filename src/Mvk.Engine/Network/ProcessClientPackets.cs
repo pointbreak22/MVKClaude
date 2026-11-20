@@ -304,7 +304,7 @@ namespace Mvk.Engine.Network
             if (entity is EntityLiving entityLiving)
             {
                 entityLiving.SpawnRotation(packet.Yaw, packet.Pitch);
-                entityLiving.Inventory?.SetOutside(packet.Stacks);
+                entityLiving.Inventory?.SetOutside(packet.Stacks!);
             }
             entity.UpdateWatchedObjectsFromList(packet.Data);
             Game.World.SpawnEntityInWorld(entity);

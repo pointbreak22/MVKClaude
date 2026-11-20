@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Audio;
@@ -25,7 +26,7 @@ namespace Mvk.Engine.Item
         /// <summary>
         /// Псевдоним предмета из таблицы
         /// </summary>
-        public string Alias { get; private set; }
+        public string Alias { get; private set; } = null!;
 
         /// <summary>
         /// Название предмета на текущем языке
@@ -69,7 +70,7 @@ namespace Mvk.Engine.Item
         /// <summary>
         /// Объект буферов для рендера
         /// </summary>
-        public ItemRenderBuffer Buffer { get; protected set; }
+        public ItemRenderBuffer Buffer { get; protected set; } = null!;
 
         /// <summary>
         /// Название анимации держать, если не указана, то будет по умолчанию 
@@ -97,7 +98,7 @@ namespace Mvk.Engine.Item
         /// Массив ключей ячеек одежды инвентаря, куда можно устанавливать этот предмет.
         /// Если null, то можно установить только в ячейку с ключём 0
         /// </summary>
-        protected byte[] _slotClothIndex;
+        protected byte[] _slotClothIndex = null!;
 
         #region Init
 

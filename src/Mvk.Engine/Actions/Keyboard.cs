@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using Mvk.Engine.Games;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
@@ -130,7 +131,7 @@ namespace Mvk.Engine.Actions
         /// <summary>
         /// Событие выход в главное меню
         /// </summary>
-        public event EventHandler InGameMenu;
+        public event EventHandler? InGameMenu;
         protected virtual void _OnInGameMenu()
             => InGameMenu?.Invoke(this, new EventArgs());
 

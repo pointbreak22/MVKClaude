@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 
 namespace Mvk.Engine.Entity.Layer
 {
@@ -27,7 +28,7 @@ namespace Mvk.Engine.Entity.Layer
                     return layer;
                 }
             }
-            return null;
+            return null!;
         }
 
         public void Add(LayerBuffer layer)

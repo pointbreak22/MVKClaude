@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.World;
+﻿#nullable enable
+using Mvk.Engine.World;
 using Mvk.Engine.World.Block;
 
 namespace Mvk.Engine.Entity.AI.PathFinding
@@ -102,7 +103,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
                 _nodeProcessor.PostProcess();
                 return points;
             }
-            return null;
+            return null!;
         }
 
         /// <summary>
@@ -169,7 +170,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
                 if (++count >= PathConst.PathMaximumLength) break;
             }
             //world.Log.Log("Pathfind.Count {0}", count);
-            return point == pointBegin ? null : CreateEntityPath(pointBegin, point, point.Equals(pointEnd));
+            return (point == pointBegin ? null : CreateEntityPath(pointBegin, point, point.Equals(pointEnd)))!;
         }
 
         /// <summary>
@@ -191,7 +192,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
                 ++step;
             }
 
-            if (step < 2) return null;
+            if (step < 2) return null!;
 
             PathPoint[] points = new PathPoint[step - 1];
             point = pointEnd;

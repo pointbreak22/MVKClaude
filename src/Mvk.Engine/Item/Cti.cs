@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Item
+﻿#nullable enable
+namespace Mvk.Engine.Item
 {
     /// <summary>
     /// Константы названий тег для параметров предметов в json

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using Mvk.Engine.Command;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Games;
@@ -20,7 +21,7 @@ namespace Mvk.Engine.Management
         /// <summary>
         /// Объект игрока владельца
         /// </summary>
-        public PlayerServer PlayerOwner { get; private set; }
+        public PlayerServer PlayerOwner { get; private set; } = null!;
         /// <summary>
         /// Основной сервер
         /// </summary>
@@ -70,7 +71,7 @@ namespace Mvk.Engine.Management
         /// </summary>
         public void PlayerOwnerAdd(string login, string token)
         {
-            PlayerOwner = Server.ModServer.CreatePlayerServer(login, token, null);
+            PlayerOwner = Server.ModServer.CreatePlayerServer(login, token, null!);
 
             Server.Log.Server(Srl.ServerLoginStartOwner, login);
             // Проверка токена не важна для владельца
@@ -122,7 +123,7 @@ namespace Mvk.Engine.Management
                     return player;
                 }
             }
-            return null;
+            return null!;
         }
 
         /// <summary>
@@ -143,7 +144,7 @@ namespace Mvk.Engine.Management
                     return player;
                 }
             }
-            return null;
+            return null!;
         }
 
         /// <summary>
@@ -164,7 +165,7 @@ namespace Mvk.Engine.Management
                     return player;
                 }
             }
-            return null;
+            return null!;
         }
 
         #endregion
@@ -355,7 +356,7 @@ namespace Mvk.Engine.Management
                 _PlayerServerUpdateTimeOut(_players[i]);
                 _players[i].ChangeWorldEnd();
             }
-            PlayerOwner.ChangeWorldEnd();
+            PlayerOwner!.ChangeWorldEnd();
 
             // Отладка
             if (Ce.IsDebugDrawChunks)

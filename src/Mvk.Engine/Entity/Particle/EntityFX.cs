@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Physics;
 using Mvk.Engine.Entity.Render;
 using Mvk.Engine.Entity.Sizes;
@@ -61,7 +62,7 @@ namespace Mvk.Engine.Entity.Particle
         /// <summary>
         /// Объект генератора случайх чисел
         /// </summary>
-        protected Rand _rand;
+        protected Rand _rand = null!;
 
         public EntityFX(EnumParticleDraw typeDraw)
         {
@@ -82,7 +83,7 @@ namespace Mvk.Engine.Entity.Particle
             Physics = new PhysicsBallistics(world.Collision, this, true);
             NoClip = true;
             Physics.SetGravity(_gravity);
-            Render = renderFactory.Create(EntityRenderKind.Particle, this, null);
+            Render = renderFactory.Create(EntityRenderKind.Particle, this, null!);
 
             _Init(parameter);
         }

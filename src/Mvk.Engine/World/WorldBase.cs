@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.Particle;
@@ -25,19 +26,19 @@ namespace Mvk.Engine.World
         /// <summary>
         /// Объект генератора случайных чисел
         /// </summary>
-        public Rand Rnd { get; protected set; }
+        public Rand Rnd { get; protected set; } = null!;
         /// <summary>
         /// Объект сыщик
         /// </summary>
-        public Profiler Filer { get; protected set; }
+        public Profiler Filer { get; protected set; } = null!;
         /// <summary>
         /// Посредник чанков
         /// </summary>
-        public ChunkProvider ChunkPr { get; protected set; }
+        public ChunkProvider ChunkPr { get; protected set; } = null!;
         /// <summary>
         /// Настройки мира
         /// </summary>
-        public WorldSettings Settings { get; protected set; }
+        public WorldSettings Settings { get; protected set; } = null!;
 
         /// <summary>
         /// Список всех сущностей во всех загруженных в данный момент чанках 
@@ -400,7 +401,7 @@ namespace Mvk.Engine.World
             bool check = !entity.AddedToChunk || cx != entity.ChunkPositionPrevX || cz != entity.ChunkPositionPrevZ;
             if (check || cy != entity.ChunkPositionPrevY)
             {
-                ChunkBase chunk = null;
+                ChunkBase chunk = null!;
                 if (entity.AddedToChunk)
                 {
                     chunk = GetChunk(entity.ChunkPositionPrevX, entity.ChunkPositionPrevZ);

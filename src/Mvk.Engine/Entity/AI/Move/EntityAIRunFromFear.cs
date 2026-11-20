@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Maths;
+﻿#nullable enable
+using Mvk.Core.Maths;
 
 namespace Mvk.Engine.Entity.AI
 {

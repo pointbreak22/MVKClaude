@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Model;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
@@ -14,11 +15,11 @@ namespace Mvk.Engine.Entity.Shape
         /// <summary>
         /// Текстуры для моба
         /// </summary>
-        public BufferedImage[] Textures { get; protected set; }
+        public BufferedImage[] Textures { get; protected set; } = null!;
         /// <summary>
         /// Индекс глубины текстуры для моба
         /// </summary>
-        public int[] DepthTextures { get; protected set; }
+        public int[] DepthTextures { get; protected set; } = null!;
         /// <summary>
         /// Минимальная текстура
         /// </summary>
@@ -27,14 +28,14 @@ namespace Mvk.Engine.Entity.Shape
         /// <summary>
         /// Объект отвечает за определяение модели сущности
         /// </summary>
-        protected ModelEntityDefinition _definition;
+        protected ModelEntityDefinition _definition = null!;
 
         public ShapeBase(ushort index) => Index = index;
 
         /// <summary>
         /// Очистить объект отвечает за определяение модели сущности
         /// </summary>
-        public void ClearDefinition() => _definition = null;
+        public void ClearDefinition() => _definition = null!;
 
         /// <summary>
         /// Пометить модель в максимальную группу текстур

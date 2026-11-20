@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity.Particle;
+﻿#nullable enable
+using Mvk.Engine.Entity.Particle;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -58,7 +59,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Клиентский объект мира
         /// </summary>
-        public WorldClient World { get; private set; }
+        public WorldClient World { get; private set; } = null!;
         /// <summary>
         /// Частицы клиента: создание, физика и жизнь (рендер частиц только рисует их)
         /// </summary>
@@ -156,7 +157,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Активация окна меню
         /// </summary>
-        private void _Key_InGameMenu(object sender, EventArgs e)
+        private void _Key_InGameMenu(object? sender, EventArgs e)
         {
             SetGamePauseSingle(true);
             Host.OpenInGameMenu();
@@ -579,7 +580,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Событие остановлена игра
         /// </summary>
-        public event GameStopEventHandler Stoped;
+        public event GameStopEventHandler? Stoped;
         protected void _OnStoped(string notification, bool isWarning)
         {
             if (!_flagStoped)
@@ -596,7 +597,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Событие ошибки на сервере
         /// </summary>
-        public event ThreadExceptionEventHandler Error;
+        public event ThreadExceptionEventHandler? Error;
         protected void _OnError(Exception ex)
         {
             Host.OnWorldStoping();
@@ -606,14 +607,14 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Событие текст отладки сервера
         /// </summary>
-        public event StringEventHandler ServerTextDebug;
+        public event StringEventHandler? ServerTextDebug;
         protected virtual void _OnServerTextDebug(string text) 
             => ServerTextDebug?.Invoke(this, new StringEventArgs(text));
 
         /// <summary>
         /// Событие tag отладки сервера
         /// </summary>
-        public event StringEventHandler TagDebug;
+        public event StringEventHandler? TagDebug;
         protected virtual void _OnTagDebug(StringEventArgs e)
             => TagDebug?.Invoke(this, e);
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Item;
 using Mvk.Engine.Network.Packets.Server;
@@ -124,7 +125,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// Получить текущий стак правой руки
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override ItemStack GetCurrentItem() => _pocketCount > 0 ? _items[_currentIndex] : null;
+        public override ItemStack GetCurrentItem() => (_pocketCount > 0 ? _items[_currentIndex] : null)!;
 
         /// <summary>
         /// Задать в текущий стак правой руки
@@ -145,7 +146,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override ItemStack GetStackInSlot(int slotIn)
-            => slotIn < _allCount ? _items[slotIn] : null;
+            => (slotIn < _allCount ? _items[slotIn] : null)!;
 
         /// <summary>
         /// Устанавливает стaк в слоте slotIn, без событий!!!, для загрузки
@@ -281,7 +282,7 @@ namespace Mvk.Engine.Entity.Inventory
             {
                 if (_items[_currentIndex].Amount <= amount)
                 {
-                    SetCurrentItem(null);
+                    SetCurrentItem(null!);
                 }
                 else
                 {
@@ -295,7 +296,7 @@ namespace Mvk.Engine.Entity.Inventory
         {
             for (int i = 0; i < _allCount; i++)
             {
-                _items[i] = null;
+                _items[i] = null!;
             }
         }
 

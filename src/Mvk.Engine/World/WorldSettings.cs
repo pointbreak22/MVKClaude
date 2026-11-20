@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Nbt;
+﻿#nullable enable
+using Mvk.Core.Nbt;
 using Mvk.Engine.Nbt;
 using Mvk.Engine.Network.Packets.Server;
 using Mvk.Core.Util;
@@ -44,11 +45,11 @@ namespace Mvk.Engine.World
         /// <summary>
         /// Календарь, погода, освещение
         /// </summary>
-        public IEnvironment Environment { get; protected set; }
+        public IEnvironment Environment { get; protected set; } = null!;
         /// <summary>
         /// Объект для генерации чанков, только для серверной части
         /// </summary>
-        public IChunkProviderGenerate ChunkGenerate { get; protected set; }
+        public IChunkProviderGenerate ChunkGenerate { get; protected set; } = null!;
         /// <summary>
         /// Массив кеш блоков для обновления блоков текущего мира в потоке тиков.
         /// НЕ ГЕНЕРАЦИЯ ЧАНКА, чанк генерируется в другом потоке!
@@ -57,11 +58,11 @@ namespace Mvk.Engine.World
         /// <summary>
         /// Имя пути к папке мира
         /// </summary>
-        public readonly string PathWorld;
+        public readonly string PathWorld = null!;
         /// <summary>
         /// Имя файла с путем к настройкам мира
         /// </summary>
-        protected readonly string _pathFileSetting;
+        protected readonly string _pathFileSetting = null!;
 
         /// <summary>
         /// Для сервера

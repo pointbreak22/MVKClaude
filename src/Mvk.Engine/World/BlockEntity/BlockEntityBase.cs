@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Core.Nbt;
 using Mvk.Engine.Nbt;
 using Mvk.Core.Util;
@@ -48,7 +49,7 @@ namespace Mvk.Engine.World.BlockEntity
         /// Чанк сервера
         /// TODO::2026-02-07 покуда эти объекты только на стороне сервера
         /// </summary>
-        public ChunkServer Chunk { get; private set; }
+        public ChunkServer Chunk { get; private set; } = null!;
 
         /// <summary>
         /// Инициализация для сервера

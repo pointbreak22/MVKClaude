@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Item;
 using Mvk.Engine.Network;
@@ -84,7 +85,7 @@ namespace Mvk.Engine.Entity.MetaData
         /// <param name="type">индекс типа данных 0 - 7</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetByDataType(byte id, EnumTypeWatcher type)
-            => _watched[id] = new WatchableObject(type, id, null);
+            => _watched[id] = new WatchableObject(type, id, null!);
 
         /// <summary>
         /// Обновляет уже существующий объект
@@ -208,7 +209,7 @@ namespace Mvk.Engine.Entity.MetaData
         /// Получить объект ItemStack по индексу
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ItemStack GetItemStack(int id) => _watched[id].WatchedObject as ItemStack;
+        public ItemStack GetItemStack(int id) => (_watched[id].WatchedObject as ItemStack)!;
         /// <summary>
         /// Получить объект BlockPos по индексу
         /// </summary>
@@ -284,7 +285,7 @@ namespace Mvk.Engine.Entity.MetaData
                         case EnumTypeWatcher.Int: stream.Int((int)watchableObject.WatchedObject); break;
                         case EnumTypeWatcher.Float: stream.Float((float)watchableObject.WatchedObject); break;
                         case EnumTypeWatcher.String: stream.String((string)watchableObject.WatchedObject); break;
-                        case EnumTypeWatcher.ItemStack: ItemStack.WriteStream(watchableObject.WatchedObject as ItemStack, stream); break;
+                        case EnumTypeWatcher.ItemStack: ItemStack.WriteStream((watchableObject.WatchedObject as ItemStack)!, stream); break;
                         case EnumTypeWatcher.Vector3i:
                             Vector3i veci = (Vector3i)watchableObject.WatchedObject;
                             stream.Int(veci.X);

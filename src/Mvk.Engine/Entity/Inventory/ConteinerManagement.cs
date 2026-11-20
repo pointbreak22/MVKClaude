@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Item;
+﻿#nullable enable
+using Mvk.Engine.Item;
 
 namespace Mvk.Engine.Entity.Inventory
 {
@@ -212,7 +213,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// <summary>
         /// Отправить запрос изменённого слота 
         /// </summary>
-        public event SlotEventHandler SendSetSlot;
+        public event SlotEventHandler? SendSetSlot;
         /// <summary>
         /// Отправить запрос изменённого слота 
         /// </summary>
@@ -222,7 +223,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// <summary>
         /// Отправить запрос количество изменённых слотов рюкзака
         /// </summary>
-        public event SlotEventHandler SendCountSlotsBackpack;
+        public event SlotEventHandler? SendCountSlotsBackpack;
         /// <summary>
         /// Отправить запрос изменённого слота 
         /// </summary>

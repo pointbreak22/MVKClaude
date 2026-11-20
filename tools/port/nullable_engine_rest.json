@@ -1,0 +1,1878 @@
+{
+"Ce.cs": [
+[
+54,
+"    public static BlockArrays Blocks;",
+"    public static BlockArrays Blocks = null!;"
+],
+[
+58,
+"    public static EntityArrays Entities;",
+"    public static EntityArrays Entities = null!;"
+],
+[
+62,
+"    public static BlockEntityArrays BlocksEntity;",
+"    public static BlockEntityArrays BlocksEntity = null!;"
+],
+[
+66,
+"    public static ItemArrays Items;",
+"    public static ItemArrays Items = null!;"
+],
+[
+70,
+"    public static EntityFXArrays EntitiesFX;",
+"    public static EntityFXArrays EntitiesFX = null!;"
+]
+],
+"Debug.cs": [
+[
+238,
+"            return null;",
+"            return null!;"
+]
+],
+"Gi.cs": [
+[
+51,
+"    public static BlockBase Block;",
+"    public static BlockBase Block = null!;"
+]
+],
+"Actions\\Keyboard.cs": [
+[
+134,
+"        public event EventHandler InGameMenu;",
+"        public event EventHandler? InGameMenu;"
+]
+],
+"Audio\\AudioIndexs.cs": [
+[
+16,
+"        private static string[] _keys;",
+"        private static string[] _keys = null!;"
+],
+[
+21,
+"        private static string[] _paths;",
+"        private static string[] _paths = null!;"
+],
+[
+56,
+"        public static void ClearPath() => _paths = null;",
+"        public static void ClearPath() => _paths = null!;"
+]
+],
+"Command\\CommandSender.cs": [
+[
+20,
+"        private PlayerServer _player;",
+"        private PlayerServer _player = null!;"
+],
+[
+28,
+"            _player = null;",
+"            _player = null!;"
+],
+[
+37,
+"            _player = null;",
+"            _player = null!;"
+],
+[
+45,
+"            _player = null;",
+"            _player = null!;"
+],
+[
+70,
+"            _player = null;",
+"            _player = null!;"
+]
+],
+"Entity\\DamageBase.cs": [
+[
+46,
+"            EntityLiving entityAttack = null)",
+"            EntityLiving entityAttack = null!)"
+]
+],
+"Entity\\EntitiesReg.cs": [
+[
+61,
+"        public static void Initialization(IProgress<string> progress = null)",
+"        public static void Initialization(IProgress<string>? progress = null)"
+],
+[
+232,
+"                    ShapeEntity shape = null;",
+"                    ShapeEntity shape = null!;"
+],
+[
+253,
+"                    ResourcesEntity modelEntity = new ResourcesEntity(alias, entityType, shape.Index);",
+"                    ResourcesEntity modelEntity = new ResourcesEntity(alias, entityType, shape!.Index);"
+]
+],
+"Entity\\EntityArrays.cs": [
+[
+89,
+"                EntityBase entity = Activator.CreateInstance(_entitiesObjects[index].EntityType) as EntityBase;",
+"                EntityBase entity = (Activator.CreateInstance(_entitiesObjects[index].EntityType) as EntityBase)!;"
+],
+[
+90,
+"                entity.InitRender(index, renderFactory);",
+"                entity!.InitRender(index, renderFactory);"
+],
+[
+104,
+"                EntityBase entity = Activator.CreateInstance(_entitiesObjects[index].EntityType) as EntityBase;",
+"                EntityBase entity = (Activator.CreateInstance(_entitiesObjects[index].EntityType) as EntityBase)!;"
+],
+[
+105,
+"                entity.InitServer(index, worldServer);",
+"                entity!.InitServer(index, worldServer);"
+]
+],
+"Entity\\EntityBase.cs": [
+[
+133,
+"        public PhysicsBase Physics { get; protected set; }",
+"        public PhysicsBase Physics { get; protected set; } = null!;"
+],
+[
+137,
+"        public EntityRenderBase Render { get; protected set; }",
+"        public EntityRenderBase Render { get; protected set; } = null!;"
+],
+[
+141,
+"        public ISizeEntity Size { get; protected set; }",
+"        public ISizeEntity Size { get; protected set; } = null!;"
+],
+[
+146,
+"        public IPresenceBlocks PresenceBlocks { get; protected set; }",
+"        public IPresenceBlocks PresenceBlocks { get; protected set; } = null!;"
+],
+[
+150,
+"        public DamageBase Damage { get; protected set; }",
+"        public DamageBase Damage { get; protected set; } = null!;"
+],
+[
+155,
+"        public EntityTracker Tracker;",
+"        public EntityTracker Tracker = null!;"
+],
+[
+176,
+"        public DataWatcher MetaData { get; protected set; }",
+"        public DataWatcher MetaData { get; protected set; } = null!;"
+],
+[
+192,
+"        protected WorldServer _worldServer;",
+"        protected WorldServer _worldServer = null!;"
+]
+],
+"Entity\\EntityLiving.cs": [
+[
+79,
+"        public InventoryBase Inventory { get; protected set; }",
+"        public InventoryBase Inventory { get; protected set; } = null!;"
+]
+],
+"Entity\\EntityMob.cs": [
+[
+35,
+"        public EntityLookHelper LookHelper { get; protected set; }",
+"        public EntityLookHelper LookHelper { get; protected set; } = null!;"
+],
+[
+39,
+"        public EntityMoveHelper MoveHelper { get; protected set; }",
+"        public EntityMoveHelper MoveHelper { get; protected set; } = null!;"
+],
+[
+43,
+"        public PathNavigate Navigator { get; protected set; }",
+"        public PathNavigate Navigator { get; protected set; } = null!;"
+],
+[
+47,
+"        protected EntityAITasks _tasks;",
+"        protected EntityAITasks _tasks = null!;"
+],
+[
+52,
+"        public EntityLiving AttackTarget;",
+"        public EntityLiving AttackTarget = null!;"
+],
+[
+56,
+"        private EntityLiving _lastAttacker;",
+"        private EntityLiving _lastAttacker = null!;"
+],
+[
+65,
+"        protected virtual PathNavigate _InitNavigate(WorldServer world) => null;",
+"        protected virtual PathNavigate _InitNavigate(WorldServer world) => null!;"
+],
+[
+231,
+"            && TicksExisted - _lastAttackerTime < 400 ? _lastAttacker : null;",
+"            && TicksExisted - _lastAttackerTime < 400 ? _lastAttacker : null!;"
+],
+[
+267,
+"                AttackTarget = null;",
+"                AttackTarget = null!;"
+],
+[
+271,
+"                _lastAttacker = null;",
+"                _lastAttacker = null!;"
+]
+],
+"Entity\\EntityTracker.cs": [
+[
+42,
+"        public PlayerServer ClosestPlayer { get; private set; } = null;",
+"        public PlayerServer ClosestPlayer { get; private set; } = null!;"
+],
+[
+67,
+"            ClosestPlayer = null;",
+"            ClosestPlayer = null!;"
+],
+[
+109,
+"                ClosestPlayer = null;",
+"                ClosestPlayer = null!;"
+],
+[
+236,
+"        public override bool Equals(object obj)",
+"        public override bool Equals(object? obj)"
+]
+],
+"Entity\\EntityTrackerManager.cs": [
+[
+102,
+"                _trackedPlayers.Remove(trackerEntry.Id, trackerEntry.TrackedEntity as PlayerServer);",
+"                _trackedPlayers.Remove(trackerEntry.Id, (trackerEntry.TrackedEntity as PlayerServer)!);"
+],
+[
+104,
+"                entity.Tracker = null;",
+"                entity.Tracker = null!;"
+]
+],
+"Entity\\MapEntity.cs": [
+[
+61,
+"            return default(T);",
+"            return default(T)!;"
+],
+[
+69,
+"            => _map.ContainsKey(id) ? _map[id] : default(T);",
+"            => (_map.ContainsKey(id) ? _map[id] : default(T))!;"
+]
+],
+"Entity\\ResourcesEntity.cs": [
+[
+34,
+"        public Bone[] Bones { get; private set; }",
+"        public Bone[] Bones { get; private set; } = null!;"
+],
+[
+38,
+"        public ModelAnimationClip[] ModelAnimationClips { get; private set; }",
+"        public ModelAnimationClip[] ModelAnimationClips { get; private set; } = null!;"
+],
+[
+42,
+"        public VertexEntityBuffer BufferMesh { get; private set; }",
+"        public VertexEntityBuffer BufferMesh { get; private set; } = null!;"
+]
+],
+"Entity\\AI\\EntityAIWatchClosest.cs": [
+[
+15,
+"        private PlayerServer _closestEntity;",
+"        private PlayerServer _closestEntity = null!;"
+],
+[
+49,
+"            _closestEntity = null;",
+"            _closestEntity = null!;"
+],
+[
+56,
+"        public override void ResetTask() => _closestEntity = null;",
+"        public override void ResetTask() => _closestEntity = null!;"
+]
+],
+"Entity\\AI\\PathFinding\\NodeProcessor.cs": [
+[
+14,
+"        protected WorldServer _world;",
+"        protected WorldServer _world = null!;"
+],
+[
+18,
+"        protected PathPoint _pathPointEnd;",
+"        protected PathPoint _pathPointEnd = null!;"
+],
+[
+55,
+"            return null;",
+"            return null!;"
+]
+],
+"Entity\\AI\\PathFinding\\Path.cs": [
+[
+58,
+"            _pathPoints[_count] = null;",
+"            _pathPoints[_count] = null!;"
+],
+[
+128,
+"                    point3 = null;",
+"                    point3 = null!;"
+],
+[
+147,
+"                    _pathPoints[index] = point3;",
+"                    _pathPoints[index] = point3!;"
+],
+[
+148,
+"                    point3.Index = index;",
+"                    point3!.Index = index;"
+]
+],
+"Entity\\AI\\PathFinding\\PathEntity.cs": [
+[
+57,
+"        public PathPoint GetFinalPathPoint() => _pathLength > 0 ? _points[_pathLength - 1] : null;",
+"        public PathPoint GetFinalPathPoint() => (_pathLength > 0 ? _points[_pathLength - 1] : null)!;"
+]
+],
+"Entity\\AI\\PathFinding\\PathFinder.cs": [
+[
+106,
+"            return null;",
+"            return null!;"
+],
+[
+173,
+"            return point == pointBegin ? null : CreateEntityPath(pointBegin, point, point.Equals(pointEnd));",
+"            return (point == pointBegin ? null : CreateEntityPath(pointBegin, point, point.Equals(pointEnd)))!;"
+],
+[
+195,
+"            if (step < 2) return null;",
+"            if (step < 2) return null!;"
+]
+],
+"Entity\\AI\\PathFinding\\PathNavigate.cs": [
+[
+20,
+"        public PathEntity CurrentPath { get; protected set; }",
+"        public PathEntity CurrentPath { get; protected set; } = null!;"
+],
+[
+82,
+"            if (!_CanNavigate()) return null;",
+"            if (!_CanNavigate()) return null!;"
+],
+[
+91,
+"            if (!_CanNavigate()) return null;",
+"            if (!_CanNavigate()) return null!;"
+],
+[
+109,
+"            return SetPath(path, speed);",
+"            return SetPath(path!, speed);"
+],
+[
+124,
+"            return SetPath(path, speed);",
+"            return SetPath(path!, speed);"
+],
+[
+135,
+"                CurrentPath = null;",
+"                CurrentPath = null!;"
+],
+[
+170,
+"        public void ClearPathEntity() => CurrentPath = null;",
+"        public void ClearPathEntity() => CurrentPath = null!;"
+],
+[
+197,
+"                    _entity.MoveHelper.SetMoveTo(CurrentPath.GetPosition(_entity), _speed);",
+"                    _entity.MoveHelper.SetMoveTo(CurrentPath!.GetPosition(_entity), _speed);"
+]
+],
+"Entity\\AI\\PathFinding\\PathPoint.cs": [
+[
+35,
+"        public PathPoint Previous;",
+"        public PathPoint Previous = null!;"
+],
+[
+84,
+"        public override bool Equals(object obj)",
+"        public override bool Equals(object? obj)"
+],
+[
+86,
+"            if (obj.GetType() == typeof(PathPoint))",
+"            if (obj!.GetType() == typeof(PathPoint))"
+]
+],
+"Entity\\Animation\\BoneAnimationFrame.cs": [
+[
+65,
+"        public int CompareTo(object obj)",
+"        public int CompareTo(object? obj)"
+]
+],
+"Entity\\Inventory\\ConteinerManagement.cs": [
+[
+216,
+"        public event SlotEventHandler SendSetSlot;",
+"        public event SlotEventHandler? SendSetSlot;"
+],
+[
+226,
+"        public event SlotEventHandler SendCountSlotsBackpack;",
+"        public event SlotEventHandler? SendCountSlotsBackpack;"
+]
+],
+"Entity\\Inventory\\InventoryBase.cs": [
+[
+57,
+"        public virtual ItemStack GetCurrentItem() => null;",
+"        public virtual ItemStack GetCurrentItem() => null!;"
+],
+[
+69,
+"        public virtual ItemStack GetCurrentLeftItem() => null;",
+"        public virtual ItemStack GetCurrentLeftItem() => null!;"
+],
+[
+81,
+"        public virtual ItemStack GetStackInSlot(int slotIn) => null;",
+"        public virtual ItemStack GetStackInSlot(int slotIn) => null!;"
+],
+[
+100,
+"        public virtual ItemStack GetOutside(int slotIn) => null;",
+"        public virtual ItemStack GetOutside(int slotIn) => null!;"
+],
+[
+159,
+"        public virtual IBlockStorage GetBlockStorage() => null;",
+"        public virtual IBlockStorage GetBlockStorage() => null!;"
+],
+[
+198,
+"        public event EventHandler OutsideChanged;",
+"        public event EventHandler? OutsideChanged;"
+]
+],
+"Entity\\Inventory\\InventoryList.cs": [
+[
+128,
+"        public override ItemStack GetCurrentItem() => _pocketCount > 0 ? _items[_currentIndex] : null;",
+"        public override ItemStack GetCurrentItem() => (_pocketCount > 0 ? _items[_currentIndex] : null)!;"
+],
+[
+149,
+"            => slotIn < _allCount ? _items[slotIn] : null;",
+"            => (slotIn < _allCount ? _items[slotIn] : null)!;"
+],
+[
+285,
+"                    SetCurrentItem(null);",
+"                    SetCurrentItem(null!);"
+],
+[
+299,
+"                _items[i] = null;",
+"                _items[i] = null!;"
+]
+],
+"Entity\\Inventory\\InventoryPlayer.cs": [
+[
+20,
+"        public ItemStack StackAir { get; private set; }",
+"        public ItemStack StackAir { get; private set; } = null!;"
+],
+[
+47,
+"        private readonly ConteinerManagement _conteiner;",
+"        private readonly ConteinerManagement _conteiner = null!;"
+],
+[
+65,
+"        protected IBlockStorage _blockStorage;",
+"        protected IBlockStorage _blockStorage = null!;"
+],
+[
+115,
+"            ItemStack stackSlot = itemStack?.Copy();",
+"            ItemStack stackSlot = itemStack?.Copy()!;"
+],
+[
+120,
+"            if (!_conteiner.AddItemStackToInventory(_items, 0, stackSlot, LimitPocket)) // * в карман",
+"            if (!_conteiner.AddItemStackToInventory(_items, 0, stackSlot!, LimitPocket)) // * в карман"
+],
+[
+129,
+"                    itemStack.SetAmount(stackSlot.Amount);",
+"                    itemStack!.SetAmount(stackSlot.Amount);"
+],
+[
+157,
+"            _blockStorage = null;",
+"            _blockStorage = null!;"
+],
+[
+194,
+"            ItemStack stackAir = StackAir?.Copy();",
+"            ItemStack stackAir = StackAir?.Copy()!;"
+],
+[
+195,
+"            ItemStack stackSlot = _GetStackInSlotAndStorage(slotIn)?.Copy();",
+"            ItemStack stackSlot = _GetStackInSlotAndStorage(slotIn)?.Copy()!;"
+],
+[
+460,
+"        private void _SetSendSlotContents(int slotIn, ItemStack stack = null)",
+"        private void _SetSendSlotContents(int slotIn, ItemStack? stack = null)"
+],
+[
+462,
+"            SetInventorySlotContents(slotIn, stack);",
+"            SetInventorySlotContents(slotIn, stack!);"
+],
+[
+466,
+"                _OnSlotStorageChanged(slotIn, stack);",
+"                _OnSlotStorageChanged(slotIn, stack!);"
+],
+[
+475,
+"        private void _SetSendAirContents(ItemStack stack = null)",
+"        private void _SetSendAirContents(ItemStack? stack = null)"
+],
+[
+476,
+"            => SetInventorySlotContents(255, stack);",
+"            => SetInventorySlotContents(255, stack!);"
+],
+[
+515,
+"                return null;",
+"                return null!;"
+],
+[
+680,
+"        public event EventHandler LimitPocketChanged;",
+"        public event EventHandler? LimitPocketChanged;"
+],
+[
+690,
+"        public event EventHandler LimitBackpackChanged;",
+"        public event EventHandler? LimitBackpackChanged;"
+],
+[
+700,
+"        public event SlotEventHandler SlotSetted;",
+"        public event SlotEventHandler? SlotSetted;"
+],
+[
+715,
+"        public event SlotEventHandler SlotStorageChanged;",
+"        public event SlotEventHandler? SlotStorageChanged;"
+],
+[
+725,
+"        public event EventHandler CurrentIndexChanged;",
+"        public event EventHandler? CurrentIndexChanged;"
+]
+],
+"Entity\\Inventory\\Slot.cs": [
+[
+18,
+"        public ItemStack Stack;",
+"        public ItemStack Stack = null!;"
+],
+[
+20,
+"        public Slot(byte slotId, ItemStack stack = null)",
+"        public Slot(byte slotId, ItemStack? stack = null)"
+],
+[
+23,
+"            Stack = stack;",
+"            Stack = stack!;"
+]
+],
+"Entity\\Inventory\\SlotEvent.cs": [
+[
+16,
+"        public readonly ItemStack Stack;",
+"        public readonly ItemStack Stack = null!;"
+]
+],
+"Entity\\Layer\\GroupLayers.cs": [
+[
+31,
+"            return null;",
+"            return null!;"
+]
+],
+"Entity\\Layer\\LayerBuffer.cs": [
+[
+36,
+"        public VertexEntityBuffer BufferMesh;",
+"        public VertexEntityBuffer BufferMesh = null!;"
+]
+],
+"Entity\\List\\EntityItem.cs": [
+[
+88,
+"            Render = renderFactory.Create(EntityRenderKind.Item, this, null);",
+"            Render = renderFactory.Create(EntityRenderKind.Item, this, null!);"
+],
+[
+269,
+"                return null;",
+"                return null!;"
+],
+[
+285,
+"            if (!MetaData.UpdateObject(0, itemStack?.Copy()))",
+"            if (!MetaData.UpdateObject(0, itemStack?.Copy()!))"
+]
+],
+"Entity\\List\\EntityThrowable.cs": [
+[
+17,
+"        public EntityLiving EntityThrower { get; private set; }",
+"        public EntityLiving EntityThrower { get; private set; } = null!;"
+]
+],
+"Entity\\List\\EntityThrowableSmall.cs": [
+[
+43,
+"                if (moving.Entity.IndexEntity != Ce.Entities.IndexPlayer)",
+"                if (moving.Entity!.IndexEntity != Ce.Entities.IndexPlayer)"
+]
+],
+"Entity\\MetaData\\DataWatcher.cs": [
+[
+88,
+"            => _watched[id] = new WatchableObject(type, id, null);",
+"            => _watched[id] = new WatchableObject(type, id, null!);"
+],
+[
+212,
+"        public ItemStack GetItemStack(int id) => _watched[id].WatchedObject as ItemStack;",
+"        public ItemStack GetItemStack(int id) => (_watched[id].WatchedObject as ItemStack)!;"
+],
+[
+288,
+"                        case EnumTypeWatcher.ItemStack: ItemStack.WriteStream(watchableObject.WatchedObject as ItemStack, stream); break;",
+"                        case EnumTypeWatcher.ItemStack: ItemStack.WriteStream((watchableObject.WatchedObject as ItemStack)!, stream); break;"
+]
+],
+"Entity\\Model\\ModelEntityDefinition.cs": [
+[
+98,
+"        private string _log;",
+"        private string _log = null!;"
+],
+[
+155,
+"                _LayerDefinitions(null, _treeBones);",
+"                _LayerDefinitions(null!, _treeBones);"
+],
+[
+158,
+"                _ClearVisibleCube(null, _treeBones);",
+"                _ClearVisibleCube(null!, _treeBones);"
+],
+[
+452,
+"            return null;",
+"            return null!;"
+],
+[
+530,
+"            while (_MoveCubesFromFolderToParent(null, _treeBones) > 0)",
+"            while (_MoveCubesFromFolderToParent(null!, _treeBones) > 0)"
+]
+],
+"Entity\\Particle\\EntitiesFXReg.cs": [
+[
+34,
+"        public static void Initialization(IProgress<string> progress = null)",
+"        public static void Initialization(IProgress<string>? progress = null)"
+]
+],
+"Entity\\Particle\\EntityFX.cs": [
+[
+65,
+"        protected Rand _rand;",
+"        protected Rand _rand = null!;"
+],
+[
+86,
+"            Render = renderFactory.Create(EntityRenderKind.Particle, this, null);",
+"            Render = renderFactory.Create(EntityRenderKind.Particle, this, null!);"
+]
+],
+"Entity\\Particle\\EntityFXArrays.cs": [
+[
+64,
+"                EntityFX entity = Activator.CreateInstance(_entitiesObjects[index].EntityType) as EntityFX;",
+"                EntityFX entity = (Activator.CreateInstance(_entitiesObjects[index].EntityType) as EntityFX)!;"
+],
+[
+65,
+"                entity.Init(index, world, renderFactory, parameter);",
+"                entity!.Init(index, world, renderFactory, parameter);"
+]
+],
+"Entity\\Physics\\PhysicsBase.cs": [
+[
+25,
+"        public readonly MovementInput Movement;",
+"        public readonly MovementInput Movement = null!;"
+]
+],
+"Entity\\Player\\HandManager.cs": [
+[
+274,
+"                    if (_ActionAnimationRight(itemStack, moving))",
+"                    if (_ActionAnimationRight(itemStack!, moving))"
+],
+[
+301,
+"            Vector3 vec = (moving.Entity.GetPositionVec() - _player.GetPositionVec()).Normalize();",
+"            Vector3 vec = (moving.Entity!.GetPositionVec() - _player.GetPositionVec()).Normalize();"
+],
+[
+364,
+"                            _game.TrancivePacket(new PacketC03UseEntity(moving.Entity.Id,",
+"                            _game.TrancivePacket(new PacketC03UseEntity(moving.Entity!.Id,"
+],
+[
+405,
+"                        _game.TrancivePacket(new PacketC03UseEntity(moving.Entity.Id,",
+"                        _game.TrancivePacket(new PacketC03UseEntity(moving.Entity!.Id,"
+]
+],
+"Entity\\Player\\PlayerBase.cs": [
+[
+17,
+"        public string Login { get; protected set; }",
+"        public string Login { get; protected set; } = null!;"
+],
+[
+21,
+"        public string Token { get; protected set; }",
+"        public string Token { get; protected set; } = null!;"
+],
+[
+25,
+"        public string UUID { get; protected set; }",
+"        public string UUID { get; protected set; } = null!;"
+],
+[
+194,
+"        public virtual WorldBase GetWorld() => null;",
+"        public virtual WorldBase GetWorld() => null!;"
+]
+],
+"Entity\\Player\\PlayerClientOwner.cs": [
+[
+144,
+"        protected HandManager _handManager;",
+"        protected HandManager _handManager = null!;"
+],
+[
+463,
+"            ListFast<Vector2i> debug = Ce.IsDebugDrawChunks ? new ListFast<Vector2i>() : null;",
+"            ListFast<Vector2i> debug = (Ce.IsDebugDrawChunks ? new ListFast<Vector2i>() : null)!;"
+],
+[
+500,
+"                        debug.Add(new Vector2i(xc + chunkPosX, zc + chunkPosZ));",
+"                        debug!.Add(new Vector2i(xc + chunkPosX, zc + chunkPosZ));"
+],
+[
+515,
+"                OnTagDebug(Debug.Key.FrustumCulling.ToString(), debug.ToArray());",
+"                OnTagDebug(Debug.Key.FrustumCulling.ToString(), debug!.ToArray());"
+],
+[
+788,
+"                ChunkClient chunk = null;",
+"                ChunkClient chunk = null!;"
+],
+[
+802,
+"                        chunk.ModifiedToRenderAlpha(pos.Y + chY);",
+"                        chunk!.ModifiedToRenderAlpha(pos.Y + chY);"
+],
+[
+893,
+"                        MovingObject.Entity.GetType()",
+"                        MovingObject.Entity!.GetType()"
+],
+[
+1124,
+"            string render = Render.ToString();",
+"            string render = Render.ToString()!;"
+],
+[
+1147,
+"        public event StringEventHandler TagDebug;",
+"        public event StringEventHandler? TagDebug;"
+]
+],
+"Entity\\Shape\\ShapeBase.cs": [
+[
+18,
+"        public BufferedImage[] Textures { get; protected set; }",
+"        public BufferedImage[] Textures { get; protected set; } = null!;"
+],
+[
+22,
+"        public int[] DepthTextures { get; protected set; }",
+"        public int[] DepthTextures { get; protected set; } = null!;"
+],
+[
+31,
+"        protected ModelEntityDefinition _definition;",
+"        protected ModelEntityDefinition _definition = null!;"
+],
+[
+38,
+"        public void ClearDefinition() => _definition = null;",
+"        public void ClearDefinition() => _definition = null!;"
+]
+],
+"Entity\\Texture\\EntityTextureManager.cs": [
+[
+44,
+"        private GroupTexture[] _groups;",
+"        private GroupTexture[] _groups = null!;"
+],
+[
+97,
+"            _groups = null;",
+"            _groups = null!;"
+]
+],
+"Entity\\Texture\\GroupTexture.cs": [
+[
+53,
+"        public int CompareTo(object obj)",
+"        public int CompareTo(object? obj)"
+]
+],
+"Event\\StringEvent.cs": [
+[
+14,
+"        public object Tag { get; private set; }",
+"        public object Tag { get; private set; } = null!;"
+]
+],
+"Games\\GameBase.cs": [
+[
+62,
+"        public WorldClient World { get; private set; }",
+"        public WorldClient World { get; private set; } = null!;"
+],
+[
+160,
+"        private void _Key_InGameMenu(object sender, EventArgs e)",
+"        private void _Key_InGameMenu(object? sender, EventArgs e)"
+],
+[
+583,
+"        public event GameStopEventHandler Stoped;",
+"        public event GameStopEventHandler? Stoped;"
+],
+[
+600,
+"        public event ThreadExceptionEventHandler Error;",
+"        public event ThreadExceptionEventHandler? Error;"
+],
+[
+610,
+"        public event StringEventHandler ServerTextDebug;",
+"        public event StringEventHandler? ServerTextDebug;"
+],
+[
+617,
+"        public event StringEventHandler TagDebug;",
+"        public event StringEventHandler? TagDebug;"
+]
+],
+"Games\\GameFile.cs": [
+[
+115,
+"            return null;",
+"            return null!;"
+]
+],
+"Games\\GameLocal.cs": [
+[
+124,
+"        private void _Server_Closeded(object sender, EventArgs e)",
+"        private void _Server_Closeded(object? sender, EventArgs e)"
+],
+[
+196,
+"                _server.LocalReceivePacket(null, writePacket.ToArray());",
+"                _server.LocalReceivePacket(null!, writePacket.ToArray());"
+]
+],
+"Games\\GameModClient.cs": [
+[
+24,
+"        public GameBase Game { get; private set; }",
+"        public GameBase Game { get; private set; } = null!;"
+],
+[
+57,
+"        public virtual WorldSettings CreateWorldSettings(byte id) => null;",
+"        public virtual WorldSettings CreateWorldSettings(byte id) => null!;"
+]
+],
+"Games\\GameModServer.cs": [
+[
+21,
+"        public GameServer Server { get; private set; }",
+"        public GameServer Server { get; private set; } = null!;"
+]
+],
+"Games\\GameNet.cs": [
+[
+20,
+"        private SocketSide _socket;",
+"        private SocketSide _socket = null!;"
+],
+[
+38,
+"        private string _stopText;",
+"        private string _stopText = null!;"
+],
+[
+146,
+"        private void _Socket_Connected(object sender, EventArgs e)",
+"        private void _Socket_Connected(object? sender, EventArgs e)"
+]
+],
+"Games\\GameServer.cs": [
+[
+69,
+"        public Registries Registries;",
+"        public Registries Registries = null!;"
+],
+[
+124,
+"        private SocketServer _socketServer;",
+"        private SocketServer _socketServer = null!;"
+],
+[
+227,
+"                    _socketServer = null;",
+"                    _socketServer = null!;"
+],
+[
+272,
+"        private void _SocketServer_Runned(object sender, EventArgs e)",
+"        private void _SocketServer_Runned(object? sender, EventArgs e)"
+],
+[
+278,
+"        private void _SocketServer_Stopped(object sender, EventArgs e)",
+"        private void _SocketServer_Stopped(object? sender, EventArgs e)"
+],
+[
+280,
+"            _socketServer = null;",
+"            _socketServer = null!;"
+],
+[
+296,
+"            LocalReceivePacket(e.Side, e.Bytes);",
+"            LocalReceivePacket(e.Side!, e.Bytes);"
+],
+[
+650,
+"        public event ThreadExceptionEventHandler Error;",
+"        public event ThreadExceptionEventHandler? Error;"
+],
+[
+657,
+"        public event EventHandler Closeded;",
+"        public event EventHandler? Closeded;"
+],
+[
+663,
+"        public event StringEventHandler TextDebug;",
+"        public event StringEventHandler? TextDebug;"
+],
+[
+670,
+"        public event StringEventHandler TagDebug;",
+"        public event StringEventHandler? TagDebug;"
+],
+[
+677,
+"        public event PacketBufferEventHandler RecievePacket;",
+"        public event PacketBufferEventHandler? RecievePacket;"
+],
+[
+684,
+"        public event StringEventHandler RecieveMessage;",
+"        public event StringEventHandler? RecieveMessage;"
+]
+],
+"Games\\HeadlessGameClientHost.cs": [
+[
+21,
+"        public GameBase Game { get; private set; }",
+"        public GameBase Game { get; private set; } = null!;"
+]
+],
+"Item\\ItemBase.cs": [
+[
+29,
+"        public string Alias { get; private set; }",
+"        public string Alias { get; private set; } = null!;"
+],
+[
+73,
+"        public ItemRenderBuffer Buffer { get; protected set; }",
+"        public ItemRenderBuffer Buffer { get; protected set; } = null!;"
+],
+[
+101,
+"        protected byte[] _slotClothIndex;",
+"        protected byte[] _slotClothIndex = null!;"
+]
+],
+"Item\\ItemRenderBuffer.cs": [
+[
+24,
+"        private VertexEntityBuffer _buffer;",
+"        private VertexEntityBuffer _buffer = null!;"
+],
+[
+28,
+"        private VertexEntityBuffer _bufferGui;",
+"        private VertexEntityBuffer _bufferGui = null!;"
+],
+[
+32,
+"        private VertexEntityBuffer _bufferHold;",
+"        private VertexEntityBuffer _bufferHold = null!;"
+],
+[
+94,
+"            _buffer = null;",
+"            _buffer = null!;"
+],
+[
+95,
+"            _bufferGui = null;",
+"            _bufferGui = null!;"
+]
+],
+"Item\\ItemShapeDefinition.cs": [
+[
+31,
+"        protected string _log;",
+"        protected string _log = null!;"
+],
+[
+40,
+"        private QuadSide[] _quads;",
+"        private QuadSide[] _quads = null!;"
+]
+],
+"Item\\ItemsReg.cs": [
+[
+47,
+"        public static void Initialization(IProgress<string> progress = null)",
+"        public static void Initialization(IProgress<string>? progress = null)"
+]
+],
+"Item\\ItemStack.cs": [
+[
+264,
+"                    entityPlayer.Inventory.SetCurrentLeftItem(null);",
+"                    entityPlayer.Inventory.SetCurrentLeftItem(null!);"
+],
+[
+268,
+"                    entityPlayer.Inventory.SetCurrentItem(null);",
+"                    entityPlayer.Inventory.SetCurrentItem(null!);"
+],
+[
+328,
+"            return null;",
+"            return null!;"
+],
+[
+354,
+"            return null;",
+"            return null!;"
+]
+],
+"Item\\List\\ItemBlock.cs": [
+[
+97,
+"                if (Block.CanBlockStay(world, null, blockPos, blockState.Met))",
+"                if (Block.CanBlockStay(world, null!, blockPos, blockState.Met))"
+],
+[
+109,
+"                                    null, blockPos, blockStateOld);",
+"                                    null!, blockPos, blockStateOld);"
+]
+],
+"Item\\List\\ItemCloth.cs": [
+[
+27,
+"        public string PutOnBody { get; protected set; }",
+"        public string PutOnBody { get; protected set; } = null!;"
+],
+[
+32,
+"        private string[] _nameLayer;",
+"        private string[] _nameLayer = null!;"
+]
+],
+"Json\\Bbmodel\\BbmodelBlockDefinition.cs": [
+[
+28,
+"        private string _textOut;",
+"        private string _textOut = null!;"
+],
+[
+32,
+"        private string _log;",
+"        private string _log = null!;"
+]
+],
+"Management\\ChunkForAnchor.cs": [
+[
+32,
+"        public object Tag { get; }",
+"        public object Tag { get; } = null!;"
+]
+],
+"Management\\FragmentManager.cs": [
+[
+263,
+"                ChunkForAnchor chunkForAnchor = _chunkForAnchors.Get(x, y) as ChunkForAnchor;",
+"                ChunkForAnchor chunkForAnchor = (_chunkForAnchors.Get(x, y) as ChunkForAnchor)!;"
+],
+[
+280,
+"            ChunkForAnchor chunkForAnchor = _chunkForAnchors.Get(x, y) as ChunkForAnchor;",
+"            ChunkForAnchor chunkForAnchor = (_chunkForAnchors.Get(x, y) as ChunkForAnchor)!;"
+]
+],
+"Management\\PlayerManager.cs": [
+[
+24,
+"        public PlayerServer PlayerOwner { get; private set; }",
+"        public PlayerServer PlayerOwner { get; private set; } = null!;"
+],
+[
+74,
+"            PlayerOwner = Server.ModServer.CreatePlayerServer(login, token, null);",
+"            PlayerOwner = Server.ModServer.CreatePlayerServer(login, token, null!);"
+],
+[
+126,
+"            return null;",
+"            return null!;"
+],
+[
+147,
+"            return null;",
+"            return null!;"
+],
+[
+168,
+"            return null;",
+"            return null!;"
+],
+[
+359,
+"            PlayerOwner.ChangeWorldEnd();",
+"            PlayerOwner!.ChangeWorldEnd();"
+]
+],
+"Nbt\\NBTTools.cs": [
+[
+156,
+"                return null;",
+"                return null!;"
+]
+],
+"Network\\ProcessClientPackets.cs": [
+[
+307,
+"                entityLiving.Inventory?.SetOutside(packet.Stacks);",
+"                entityLiving.Inventory?.SetOutside(packet.Stacks!);"
+]
+],
+"Network\\ProcessServerPackets.cs": [
+[
+154,
+"            => _server.ResponsePacket(socketSide, packet);",
+"            => _server.ResponsePacket(socketSide!, packet);"
+],
+[
+163,
+"                PlayerServer playerServer = _server.Players.FindPlayerBySocket(socketSide);",
+"                PlayerServer playerServer = _server.Players.FindPlayerBySocket(socketSide!);"
+],
+[
+172,
+"            => _server.Players.LoginStart(socketSide, packet);",
+"            => _server.Players.LoginStart(socketSide!, packet);"
+],
+[
+178,
+"            => _server.Players.FindPlayerBySocket(socketSide)?.PacketUseEntity(packet);",
+"            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketUseEntity(packet);"
+],
+[
+184,
+"            => _server.Players.FindPlayerBySocket(socketSide)?.PacketPlayerPosition(packet);",
+"            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerPosition(packet);"
+],
+[
+190,
+"            => _server.Players.FindPlayerBySocket(socketSide)?.PacketUseItem(packet);",
+"            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketUseItem(packet);"
+],
+[
+196,
+"            => _server.Players.FindPlayerBySocket(socketSide)?.PacketDamageItem(packet);",
+"            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketDamageItem(packet);"
+],
+[
+202,
+"            => _server.Players.FindPlayerBySocket(socketSide)?.PacketPlayerDigging(packet);",
+"            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerDigging(packet);"
+],
+[
+208,
+"            => _server.Players.FindPlayerBySocket(socketSide)?.PacketPlayerBlockPlacement(packet);",
+"            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerBlockPlacement(packet);"
+],
+[
+214,
+"            => _server.Players.FindPlayerBySocket(socketSide)?.PacketHeldItemChange(packet);",
+"            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketHeldItemChange(packet);"
+],
+[
+220,
+"            => _server.Players.FindPlayerBySocket(socketSide)?.PacketPlayerAnimation(packet);",
+"            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerAnimation(packet);"
+],
+[
+226,
+"            => _server.Players.FindPlayerBySocket(socketSide)?.PacketClickWindow(packet);",
+"            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketClickWindow(packet);"
+],
+[
+232,
+"            => _server.Players.ClientMessage(_server.Players.FindPlayerBySocket(socketSide), packet);",
+"            => _server.Players.ClientMessage(_server.Players.FindPlayerBySocket(socketSide!), packet);"
+],
+[
+238,
+"            => _server.Players.FindPlayerBySocket(socketSide)?.PacketPlayerSetting(packet);",
+"            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerSetting(packet);"
+],
+[
+244,
+"            => _server.Players.FindPlayerBySocket(socketSide)?.PacketAcknowledgeChunks(packet);",
+"            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketAcknowledgeChunks(packet);"
+]
+],
+"Network\\Packets\\Server\\PacketS2FSetSlot.cs": [
+[
+36,
+"                ItemStack.WriteStream(Stack, stream);",
+"                ItemStack.WriteStream(Stack!, stream);"
+]
+],
+"World\\AllWorlds.cs": [
+[
+21,
+"        public GameServer Server { get; protected set; }",
+"        public GameServer Server { get; protected set; } = null!;"
+]
+],
+"World\\CollisionBase.cs": [
+[
+379,
+"                EntityBase entityHit = null;",
+"                EntityBase entityHit = null!;"
+]
+],
+"World\\ColorsBiom.cs": [
+[
+15,
+"        private Vector3[] _grassColors;",
+"        private Vector3[] _grassColors = null!;"
+],
+[
+20,
+"        private Vector3[] _waterColors;",
+"        private Vector3[] _waterColors = null!;"
+]
+],
+"World\\GeneratingAtlas.cs": [
+[
+26,
+"        private byte[] _buffer;",
+"        private byte[] _buffer = null!;"
+],
+[
+30,
+"        private bool[,] _mask; ",
+"        private bool[,] _mask = null!; "
+]
+],
+"World\\WorldBase.cs": [
+[
+29,
+"        public Rand Rnd { get; protected set; }",
+"        public Rand Rnd { get; protected set; } = null!;"
+],
+[
+33,
+"        public Profiler Filer { get; protected set; }",
+"        public Profiler Filer { get; protected set; } = null!;"
+],
+[
+37,
+"        public ChunkProvider ChunkPr { get; protected set; }",
+"        public ChunkProvider ChunkPr { get; protected set; } = null!;"
+],
+[
+41,
+"        public WorldSettings Settings { get; protected set; }",
+"        public WorldSettings Settings { get; protected set; } = null!;"
+],
+[
+404,
+"                ChunkBase chunk = null;",
+"                ChunkBase chunk = null!;"
+]
+],
+"World\\WorldClient.cs": [
+[
+74,
+"        private void _ChunkPrClient_ChunkMappingChanged(object sender, System.EventArgs e)",
+"        private void _ChunkPrClient_ChunkMappingChanged(object? sender, System.EventArgs e)"
+],
+[
+334,
+"            string calendar = Settings == null ? \"Null\" : Settings.Environment.ToString();",
+"            string calendar = (Settings == null ? \"Null\" : Settings.Environment.ToString())!;"
+],
+[
+342,
+"        public event StringEventHandler TagDebug;",
+"        public event StringEventHandler? TagDebug;"
+]
+],
+"World\\WorldServer.cs": [
+[
+51,
+"        public readonly WaitHandler Wait;",
+"        public readonly WaitHandler Wait = null!;"
+],
+[
+283,
+"            => ChunkPr.GetChunk(chunkPosX, chunkPosY) as ChunkServer;",
+"            => (ChunkPr.GetChunk(chunkPosX, chunkPosY) as ChunkServer)!;"
+],
+[
+289,
+"            => ChunkPr.GetChunk(chunkPos) as ChunkServer;",
+"            => (ChunkPr.GetChunk(chunkPos) as ChunkServer)!;"
+],
+[
+296,
+"            => ChunkPr.GetChunk(blockPos.GetPositionChunkX(), blockPos.GetPositionChunkZ()) as ChunkServer;",
+"            => (ChunkPr.GetChunk(blockPos.GetPositionChunkX(), blockPos.GetPositionChunkZ()) as ChunkServer)!;"
+],
+[
+486,
+"            PlayerServer player = null;",
+"            PlayerServer player = null!;"
+],
+[
+501,
+"            return player;",
+"            return player!;"
+],
+[
+571,
+"                    blockOld.OnBreakBlock(this, chunk, blockPos, blockStateOld, null);",
+"                    blockOld.OnBreakBlock(this, chunk, blockPos, blockStateOld, null!);"
+]
+],
+"World\\WorldSettings.cs": [
+[
+48,
+"        public IEnvironment Environment { get; protected set; }",
+"        public IEnvironment Environment { get; protected set; } = null!;"
+],
+[
+52,
+"        public IChunkProviderGenerate ChunkGenerate { get; protected set; }",
+"        public IChunkProviderGenerate ChunkGenerate { get; protected set; } = null!;"
+],
+[
+61,
+"        public readonly string PathWorld;",
+"        public readonly string PathWorld = null!;"
+],
+[
+65,
+"        protected readonly string _pathFileSetting;",
+"        protected readonly string _pathFileSetting = null!;"
+]
+],
+"World\\Block\\BlockBase.cs": [
+[
+29,
+"        public string Alias { get; private set; }",
+"        public string Alias { get; private set; } = null!;"
+],
+[
+88,
+"        public Vector3[] ParticleColors { get; protected set; }",
+"        public Vector3[] ParticleColors { get; protected set; } = null!;"
+],
+[
+139,
+"        protected Vector3[][] _hitbox;",
+"        protected Vector3[][] _hitbox = null!;"
+],
+[
+207,
+"        protected QuadSide[][] _quads;",
+"        protected QuadSide[][] _quads = null!;"
+],
+[
+211,
+"        protected ulong[][][] _maskCullFaces;",
+"        protected ulong[][][] _maskCullFaces = null!;"
+],
+[
+215,
+"        protected bool[][] _cullFaces;",
+"        protected bool[][] _cullFaces = null!;"
+],
+[
+219,
+"        protected bool[][] _forceDrawFaces;",
+"        protected bool[][] _forceDrawFaces = null!;"
+],
+[
+223,
+"        protected bool[][] _forceDrawNotExtremeFaces;",
+"        protected bool[][] _forceDrawNotExtremeFaces = null!;"
+],
+[
+695,
+"        public virtual SideLiquid GetSideLiquid(int index) => null;",
+"        public virtual SideLiquid GetSideLiquid(int index) => null!;"
+]
+],
+"World\\Block\\BlockPos.cs": [
+[
+303,
+"        public override bool Equals(object obj)",
+"        public override bool Equals(object? obj)"
+],
+[
+305,
+"            if (obj.GetType() == typeof(BlockPos))",
+"            if (obj!.GetType() == typeof(BlockPos))"
+]
+],
+"World\\Block\\BlockShapeDefinition.cs": [
+[
+20,
+"        public ulong[][][] MaskCullFaces { get; private set; }",
+"        public ulong[][][] MaskCullFaces { get; private set; } = null!;"
+],
+[
+24,
+"        public bool[][] CullFaces { get; private set; }",
+"        public bool[][] CullFaces { get; private set; } = null!;"
+],
+[
+28,
+"        public bool[][] ForceDrawFaces { get; private set; }",
+"        public bool[][] ForceDrawFaces { get; private set; } = null!;"
+],
+[
+32,
+"        public bool[][] ForceDrawNotExtremeFaces { get; private set; }",
+"        public bool[][] ForceDrawNotExtremeFaces { get; private set; } = null!;"
+],
+[
+51,
+"        private QuadSide[][] _quads;",
+"        private QuadSide[][] _quads = null!;"
+]
+],
+"World\\Block\\BlocksReg.cs": [
+[
+45,
+"        public static void Initialization(IProgress<string> progress = null)",
+"        public static void Initialization(IProgress<string>? progress = null)"
+]
+],
+"World\\Block\\BlockState.cs": [
+[
+113,
+"        public override bool Equals(object obj)",
+"        public override bool Equals(object? obj)"
+],
+[
+115,
+"            if (obj.GetType() == typeof(BlockState))",
+"            if (obj!.GetType() == typeof(BlockState))"
+]
+],
+"World\\Block\\DestroyBlockProgress.cs": [
+[
+18,
+"        private Vertex3d[][] _vertices;",
+"        private Vertex3d[][] _vertices = null!;"
+],
+[
+56,
+"        private static Vertex3d[] _threadVertices;",
+"        private static Vertex3d[] _threadVertices = null!;"
+]
+],
+"World\\Block\\MaterialBase.cs": [
+[
+63,
+"        private int[] _samplesBreak;",
+"        private int[] _samplesBreak = null!;"
+],
+[
+67,
+"        private int[] _samplesPlace;",
+"        private int[] _samplesPlace = null!;"
+],
+[
+71,
+"        private int[] _samplesStep;",
+"        private int[] _samplesStep = null!;"
+]
+],
+"World\\Block\\ShapeAdd.cs": [
+[
+37,
+"        public float[] Rotate;",
+"        public float[] Rotate = null!;"
+]
+],
+"World\\Block\\ShapeFace.cs": [
+[
+30,
+"        private QuadSide _quad;",
+"        private QuadSide _quad = null!;"
+]
+],
+"World\\Block\\List\\BlockLiquid.cs": [
+[
+22,
+"        protected SideLiquid[] _sideLiquids;",
+"        protected SideLiquid[] _sideLiquids = null!;"
+]
+],
+"World\\Block\\List\\BlockNull.cs": [
+[
+12,
+"        public BlockNull() : base(null)",
+"        public BlockNull() : base(null!)"
+]
+],
+"World\\BlockEntity\\BlockEntityArrays.cs": [
+[
+38,
+"                _entitiesObjects[id] = resourcesEntity;",
+"                _entitiesObjects[id] = resourcesEntity!;"
+],
+[
+65,
+"                BlockEntityBase entity = Activator.CreateInstance(_entitiesObjects[index].EntityType) as BlockEntityBase;",
+"                BlockEntityBase entity = (Activator.CreateInstance(_entitiesObjects[index].EntityType) as BlockEntityBase)!;"
+],
+[
+66,
+"                entity.InitServer(index);",
+"                entity!.InitServer(index);"
+]
+],
+"World\\BlockEntity\\BlockEntityBase.cs": [
+[
+52,
+"        public ChunkServer Chunk { get; private set; }",
+"        public ChunkServer Chunk { get; private set; } = null!;"
+]
+],
+"World\\BlockEntity\\BlocksEntityReg.cs": [
+[
+22,
+"        public static void Initialization(IProgress<string> progress = null)",
+"        public static void Initialization(IProgress<string>? progress = null)"
+]
+],
+"World\\Chunk\\ChunkPosition.cs": [
+[
+12,
+"        public object Tag { get; }",
+"        public object Tag { get; } = null!;"
+],
+[
+18,
+"            Tag = null;",
+"            Tag = null!;"
+],
+[
+21,
+"        public override bool Equals(object obj)",
+"        public override bool Equals(object? obj)"
+],
+[
+23,
+"            if (obj.GetType() == typeof(ChunkPosition))",
+"            if (obj!.GetType() == typeof(ChunkPosition))"
+]
+],
+"World\\Chunk\\ChunkProvider.cs": [
+[
+50,
+"            => _chunkMapping.Get(x, y) as ChunkBase;",
+"            => (_chunkMapping.Get(x, y) as ChunkBase)!;"
+],
+[
+57,
+"            => _chunkMapping.Get(chunkPos.X, chunkPos.Y) as ChunkBase;",
+"            => (_chunkMapping.Get(chunkPos.X, chunkPos.Y) as ChunkBase)!;"
+]
+],
+"World\\Chunk\\ChunkProviderClient.cs": [
+[
+49,
+"                UnloadChunk(_chunkMapping.Get(chx, chy) as ChunkClient);",
+"                UnloadChunk((_chunkMapping.Get(chx, chy) as ChunkClient)!);"
+],
+[
+54,
+"                ChunkClient chunkRender = _chunkMapping.Get(chx, chy) as ChunkClient;",
+"                ChunkClient chunkRender = (_chunkMapping.Get(chx, chy) as ChunkClient)!;"
+],
+[
+62,
+"                chunkRender.SetBinaryZip(packet.BufferRead, packet.IsBiom, packet.FlagsYAreas);",
+"                chunkRender!.SetBinaryZip(packet.BufferRead!, packet.IsBiom, packet.FlagsYAreas);"
+],
+[
+89,
+"             => _chunkMapping.Get(x, y) as ChunkClient;",
+"             => (_chunkMapping.Get(x, y) as ChunkClient)!;"
+],
+[
+144,
+"        public event EventHandler ChunkMappingChanged;",
+"        public event EventHandler? ChunkMappingChanged;"
+]
+],
+"World\\Chunk\\ChunkProviderServer.cs": [
+[
+83,
+"        private readonly JobScheduler _reliefScheduler;",
+"        private readonly JobScheduler _reliefScheduler = null!;"
+],
+[
+87,
+"        private readonly ReliefJob _reliefJob;",
+"        private readonly ReliefJob _reliefJob = null!;"
+],
+[
+156,
+"                _presentChunks[i] = null;",
+"                _presentChunks[i] = null!;"
+],
+[
+158,
+"            for (int i = 0; i < relief; i++) _reliefJob.Chunks[i] = null;",
+"            for (int i = 0; i < relief; i++) _reliefJob.Chunks[i] = null!;"
+],
+[
+191,
+"                return _loadingChunkMapping.Get(x, y) as ChunkServer;",
+"                return (_loadingChunkMapping.Get(x, y) as ChunkServer)!;"
+],
+[
+201,
+"            => _chunkMapping.Get(chunkPos.X, chunkPos.Y) as ChunkServer;",
+"            => (_chunkMapping.Get(chunkPos.X, chunkPos.Y) as ChunkServer)!;"
+],
+[
+280,
+"                    ex.Message, ex.StackTrace, chunk.ToPosition(), chunk.ToRegion());",
+"                    ex.Message, ex.StackTrace!, chunk.ToPosition(), chunk.ToRegion());"
+],
+[
+322,
+"                chunk = _chunkMapping.Get(x, y) as ChunkServer;",
+"                chunk = (_chunkMapping.Get(x, y) as ChunkServer)!;"
+]
+],
+"World\\Chunk\\ChunkServer.cs": [
+[
+469,
+"            return _mapBlocksEntity.ContainsKey(key) ? _mapBlocksEntity[key] : null;",
+"            return (_mapBlocksEntity.ContainsKey(key) ? _mapBlocksEntity[key] : null)!;"
+],
+[
+669,
+"                    TagCompound tagCompound = tagListSections.Get(i) as TagCompound;",
+"                    TagCompound tagCompound = (tagListSections.Get(i) as TagCompound)!;"
+],
+[
+670,
+"                    y = tagCompound.GetByte(\"Y\");",
+"                    y = tagCompound!.GetByte(\"Y\");"
+],
+[
+696,
+"                    TagCompound tagCompound = tagListTickBlocks.Get(i) as TagCompound;",
+"                    TagCompound tagCompound = (tagListTickBlocks.Get(i) as TagCompound)!;"
+],
+[
+698,
+"                        tagCompound.GetByte(\"X\"), tagCompound.GetShort(\"Y\"), tagCompound.GetByte(\"Z\"),",
+"                        tagCompound!.GetByte(\"X\"), tagCompound.GetShort(\"Y\"), tagCompound.GetByte(\"Z\"),"
+],
+[
+715,
+"                        TagCompound tagCompound = tagListTileEntities.Get(i) as TagCompound;",
+"                        TagCompound tagCompound = (tagListTileEntities.Get(i) as TagCompound)!;"
+],
+[
+716,
+"                        BlockEntityBase blockEntity = Ce.BlocksEntity.CreateEntityServer((ushort)tagCompound.GetShort(\"Id\"));",
+"                        BlockEntityBase blockEntity = Ce.BlocksEntity.CreateEntityServer((ushort)tagCompound!.GetShort(\"Id\"));"
+],
+[
+739,
+"                        TagCompound tagCompound = tagListEntities.Get(i) as TagCompound;",
+"                        TagCompound tagCompound = (tagListEntities.Get(i) as TagCompound)!;"
+],
+[
+740,
+"                        EntityBase entity = Ce.Entities.CreateEntityServer((ushort)tagCompound.GetShort(\"Id\"), WorldServ);",
+"                        EntityBase entity = Ce.Entities.CreateEntityServer((ushort)tagCompound!.GetShort(\"Id\"), WorldServ);"
+]
+],
+"World\\Chunk\\ChunkStorage.cs": [
+[
+46,
+"        public int[] Data;",
+"        public int[] Data = null!;"
+],
+[
+76,
+"            Data = null;",
+"            Data = null!;"
+],
+[
+109,
+"            Data = null;",
+"            Data = null!;"
+],
+[
+174,
+"                        Data = null;",
+"                        Data = null!;"
+]
+],
+"World\\Chunk\\MapChunk.cs": [
+[
+113,
+"            return null;",
+"            return null!;"
+],
+[
+215,
+"                    _buffer[index] = null;",
+"                    _buffer[index] = null!;"
+]
+],
+"World\\Gen\\Feature\\FeatureArea.cs": [
+[
+15,
+"        protected readonly IChunkPrimer _chunkPrimer;",
+"        protected readonly IChunkPrimer _chunkPrimer = null!;"
+]
+],
+"World\\Gen\\Layer\\GenLayer.cs": [
+[
+19,
+"        protected GenLayer _parent;",
+"        protected GenLayer _parent = null!;"
+]
+],
+"World\\Light\\WorldLight.cs": [
+[
+73,
+"        private ChunkBase _chunk;",
+"        private ChunkBase _chunk = null!;"
+]
+]
+}

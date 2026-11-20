@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.World.Block.List
+﻿#nullable enable
+namespace Mvk.Engine.World.Block.List
 {
     /// <summary>
     /// Блок с полупрозрачными текстурами, для отдельной сетки которая сортируется

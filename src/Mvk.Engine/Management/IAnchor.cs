@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Management
+﻿#nullable enable
+namespace Mvk.Engine.Management
 {
     /// <summary>
     /// Интерфейс для якоря который может загружать чанки

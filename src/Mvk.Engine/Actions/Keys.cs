@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Actions
+﻿#nullable enable
+namespace Mvk.Engine.Actions
 {
     /// <summary>
     /// Зажатие кнопки клавиатуры

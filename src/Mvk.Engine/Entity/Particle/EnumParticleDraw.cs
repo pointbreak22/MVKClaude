@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Entity.Particle
+﻿#nullable enable
+namespace Mvk.Engine.Entity.Particle
 {
     /// <summary>
     /// Варианты графической прорисовки частиц

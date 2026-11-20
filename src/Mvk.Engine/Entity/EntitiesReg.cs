@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Layer;
@@ -57,7 +58,7 @@ namespace Mvk.Engine.Entity
         /// <summary>
         /// Инициализация моделей сущности, если window не указывать, прорисовки о статусе не будет (для сервера)
         /// </summary>
-        public static void Initialization(IProgress<string> progress = null)
+        public static void Initialization(IProgress<string>? progress = null)
         {
             progress?.Report(L.T("CreateModelsEntities"));
 
@@ -228,7 +229,7 @@ namespace Mvk.Engine.Entity
 
                 if (jsonRead.IsThereFile)
                 {
-                    ShapeEntity shape = null;
+                    ShapeEntity shape = null!;
                     if (FlagRender)
                     {
                         string modelFile = jsonRead.Compound.GetString(Cte.Model);
@@ -249,7 +250,7 @@ namespace Mvk.Engine.Entity
                         }
                     }
 
-                    ResourcesEntity modelEntity = new ResourcesEntity(alias, entityType, shape.Index);
+                    ResourcesEntity modelEntity = new ResourcesEntity(alias, entityType, shape!.Index);
                     modelEntity.ReadStateFromJson(jsonRead.Compound);
                     if (FlagRender)
                     {

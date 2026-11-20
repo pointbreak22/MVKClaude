@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Mvk.Engine.Entity
@@ -42,7 +43,7 @@ namespace Mvk.Engine.Entity
         /// </summary>
         /// <returns>true - урон был нанесён</returns>
         public virtual bool OnAttack(byte source, float hitY, float damage,
-            EntityLiving entityAttack = null)
+            EntityLiving entityAttack = null!)
         {
             Console.Write("OnAttack " + damage);
             if (_IsImmuneToAll() && source != (byte)EnumDamageSource.OutOfWorld) return false;

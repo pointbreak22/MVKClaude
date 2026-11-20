@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Command;
+﻿#nullable enable
+using Mvk.Engine.Command;
 using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.Particle;
 using Mvk.Engine.Entity.Player;
@@ -17,7 +18,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Игровой сервер
         /// </summary>
-        public GameServer Server { get; private set; }
+        public GameServer Server { get; private set; } = null!;
 
         public GameModServer() { }
 

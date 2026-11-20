@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Network.Packets.Server;
+﻿#nullable enable
+using Mvk.Engine.Network.Packets.Server;
 using Mvk.Core.Maths;
 
 namespace Mvk.Engine.Entity.AI

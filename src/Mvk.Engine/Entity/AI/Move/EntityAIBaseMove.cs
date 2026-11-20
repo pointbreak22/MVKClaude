@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Entity.AI
+﻿#nullable enable
+namespace Mvk.Engine.Entity.AI
 {
     /// <summary>
     /// Абстрактный класс ИИ для перемещений

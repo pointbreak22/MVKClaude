@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Realms
+﻿#nullable enable
+namespace Mvk.Engine.Realms
 {
     /// <summary>
     /// Статический класс констант стиля чата

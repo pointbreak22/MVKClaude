@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Core.Json;
 using Mvk.Engine.Json;
@@ -27,7 +28,7 @@ namespace Mvk.Engine.Item
         /// <summary>
         /// Для краша, название раздела
         /// </summary>
-        protected string _log;
+        protected string _log = null!;
         /// <summary>
         /// Индекс квада
         /// </summary>
@@ -36,7 +37,7 @@ namespace Mvk.Engine.Item
         /// <summary>
         /// Объект результата квада
         /// </summary>
-        private QuadSide[] _quads;
+        private QuadSide[] _quads = null!;
 
         public ItemShapeDefinition(string alias) => _alias = alias;
 

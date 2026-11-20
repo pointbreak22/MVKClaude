@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Network;
 using Mvk.Core.Util;
@@ -16,7 +17,7 @@ namespace Mvk.Engine.Command
         private readonly EnumForWhat _forWhat;
         private readonly BlockPos _blockPos;
         private readonly ushort _entityId;
-        private PlayerServer _player;
+        private PlayerServer _player = null!;
 
         public CommandSender(string message)
         {
@@ -24,7 +25,7 @@ namespace Mvk.Engine.Command
             _forWhat = EnumForWhat.Null;
             _entityId = 0;
             _blockPos = new BlockPos();
-            _player = null;
+            _player = null!;
         }
 
         public CommandSender(string message, ushort entityId)
@@ -33,7 +34,7 @@ namespace Mvk.Engine.Command
             _forWhat = EnumForWhat.Entity;
             _entityId = entityId;
             _blockPos = new BlockPos();
-            _player = null;
+            _player = null!;
         }
         public CommandSender(string message, BlockPos blockPos)
         {
@@ -41,7 +42,7 @@ namespace Mvk.Engine.Command
             _forWhat = EnumForWhat.Entity;
             _entityId = 0;
             _blockPos = blockPos;
-            _player = null;
+            _player = null!;
         }
 
         public CommandSender(string message, MovingObjectPosition movingObject)
@@ -66,7 +67,7 @@ namespace Mvk.Engine.Command
                 _entityId = 0;
                 _blockPos = new BlockPos();
             }
-            _player = null;
+            _player = null!;
         }
 
         /// <summary>

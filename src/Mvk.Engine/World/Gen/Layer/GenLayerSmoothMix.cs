@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.World.Gen.Layer
+﻿#nullable enable
+namespace Mvk.Engine.World.Gen.Layer
 {
     /// <summary>
     /// Эфект гладкости, смешать соседние в средний, для высот рельефа

@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity.Render;
+﻿#nullable enable
+using Mvk.Engine.Entity.Render;
 using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.World;
@@ -85,8 +86,8 @@ namespace Mvk.Engine.Entity
         {
             if (index < Count)
             {
-                EntityBase entity = Activator.CreateInstance(_entitiesObjects[index].EntityType) as EntityBase;
-                entity.InitRender(index, renderFactory);
+                EntityBase entity = (Activator.CreateInstance(_entitiesObjects[index].EntityType) as EntityBase)!;
+                entity!.InitRender(index, renderFactory);
                 return entity;
             }
             throw new Exception(Sr.GetString(Sr.IndexOutsideEntityType, index, Count));
@@ -100,8 +101,8 @@ namespace Mvk.Engine.Entity
         {
             if (index < Count)
             {
-                EntityBase entity = Activator.CreateInstance(_entitiesObjects[index].EntityType) as EntityBase;
-                entity.InitServer(index, worldServer);
+                EntityBase entity = (Activator.CreateInstance(_entitiesObjects[index].EntityType) as EntityBase)!;
+                entity!.InitServer(index, worldServer);
                 return entity;
             }
             throw new Exception(Sr.GetString(Sr.IndexOutsideEntityType, index, Count));

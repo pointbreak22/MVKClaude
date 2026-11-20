@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Engine.World;
 using Mvk.Engine.World.Block;
 using Mvk.Core.Maths;
@@ -16,7 +17,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
         /// <summary>
         /// Отслеживаемый объект
         /// </summary>
-        public PathEntity CurrentPath { get; protected set; }
+        public PathEntity CurrentPath { get; protected set; } = null!;
         /// <summary>
         /// Скорость перемещения
         /// </summary>
@@ -78,7 +79,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
         /// </summary>
         public virtual PathEntity GetPathToXYZ(BlockPos blockPos)
         {
-            if (!_CanNavigate()) return null;
+            if (!_CanNavigate()) return null!;
             return _pathFinder.CreateEntityPathTo(_world, _entity, blockPos, PathConst.PathSearchRange);
         }
 
@@ -87,7 +88,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
         /// </summary>
         public virtual PathEntity GetPathToEntityLiving(EntityLiving entity)
         {
-            if (!_CanNavigate()) return null;
+            if (!_CanNavigate()) return null!;
             return _pathFinder.CreateEntityPathTo(_world, _entity, entity, PathConst.PathSearchRange);
         }
 
@@ -105,7 +106,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
             PathEntity path = GetPathToXYZ(blockPos);
             // Проверка на доступ чтоб сущность могла дойти до конечной точки
             if (!allowPartialPath && path != null && !path.IsDestinationSame()) return false;
-            return SetPath(path, speed);
+            return SetPath(path!, speed);
         }
 
         /// <summary>
@@ -120,7 +121,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
             PathEntity path = GetPathToEntityLiving(entity);
             // Проверка на доступ чтоб сущность могла дойти до конечной точки
             if (!allowPartialPath && path != null && !path.IsDestinationSame()) return false;
-            return SetPath(path, speed);
+            return SetPath(path!, speed);
         }
 
         /// <summary>
@@ -131,7 +132,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
         {
             if (path == null)
             {
-                CurrentPath = null;
+                CurrentPath = null!;
                 return false;
             }
             if (!path.IsSamePath(CurrentPath))
@@ -166,7 +167,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
         /// Нельзя очищать навигациию в ResetTask!!! Так-как новая задача по навигации может быть очищена прошлой задачей
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ClearPathEntity() => CurrentPath = null;
+        public void ClearPathEntity() => CurrentPath = null!;
 
         public virtual void OnUpdateNavigation()
         {
@@ -193,7 +194,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
 
                 if (!NoPath())
                 {
-                    _entity.MoveHelper.SetMoveTo(CurrentPath.GetPosition(_entity), _speed);
+                    _entity.MoveHelper.SetMoveTo(CurrentPath!.GetPosition(_entity), _speed);
                 }
             }
         }

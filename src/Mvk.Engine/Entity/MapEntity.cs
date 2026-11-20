@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
@@ -57,7 +58,7 @@ namespace Mvk.Engine.Entity
         public T GetAt(int index)
         {
             if (index >= 0 && index < Count) return _list[index];
-            return default(T);
+            return default(T)!;
         }
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace Mvk.Engine.Entity
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Get(int id)
-            => _map.ContainsKey(id) ? _map[id] : default(T);
+            => (_map.ContainsKey(id) ? _map[id] : default(T))!;
 
         public override string ToString() => _list.Count.ToString();
     }

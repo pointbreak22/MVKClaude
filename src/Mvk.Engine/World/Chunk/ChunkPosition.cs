@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.World.Chunk
+﻿#nullable enable
+namespace Mvk.Engine.World.Chunk
 {
     public struct ChunkPosition : IChunkPosition
     {
@@ -8,18 +9,18 @@
         /// <summary>
         /// Дополнительные данные
         /// </summary>
-        public object Tag { get; }
+        public object Tag { get; } = null!;
 
         public ChunkPosition(int x, int y)
         {
             CurrentChunkX = x;
             CurrentChunkY = y;
-            Tag = null;
+            Tag = null!;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            if (obj.GetType() == typeof(ChunkPosition))
+            if (obj!.GetType() == typeof(ChunkPosition))
             {
                 var pos = (ChunkPosition)obj;
                 if (CurrentChunkX == pos.CurrentChunkX && CurrentChunkY == pos.CurrentChunkY)

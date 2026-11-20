@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Item;
@@ -16,7 +17,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// <summary>
         /// Стак который используется в перемещении из слотов, образно он в указателе мыши
         /// </summary>
-        public ItemStack StackAir { get; private set; }
+        public ItemStack StackAir { get; private set; } = null!;
 
         /// <summary>
         /// Лимит ячеек кармана
@@ -43,7 +44,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// <summary>
         /// Управление контейнером для передачи пачками
         /// </summary>
-        private readonly ConteinerManagement _conteiner;
+        private readonly ConteinerManagement _conteiner = null!;
         /// <summary>
         /// Креативный ли инвентарь
         /// </summary>
@@ -61,7 +62,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// Активный блок инвентаря (склад), если null, то работаем с инвентарём игрока.
         /// Только для сервера
         /// </summary>
-        protected IBlockStorage _blockStorage;
+        protected IBlockStorage _blockStorage = null!;
 
         public InventoryPlayer(PlayerServer playerServer, byte pocketCount, byte clothCount, byte backpackCount)
             // Первый слот одеждый это ячейка левой руки
@@ -111,12 +112,12 @@ namespace Mvk.Engine.Entity.Inventory
         /// </summary>
         public override bool AddItemStackToInventory(ItemStack itemStack)
         {
-            ItemStack stackSlot = itemStack?.Copy();
+            ItemStack stackSlot = itemStack?.Copy()!;
 
             // Сразу в карманы пробуем
             _conteiner.IdDamageCategory = 2;
             _conteiner.IdDamageSlotIgnor = _currentIndex;
-            if (!_conteiner.AddItemStackToInventory(_items, 0, stackSlot, LimitPocket)) // * в карман
+            if (!_conteiner.AddItemStackToInventory(_items, 0, stackSlot!, LimitPocket)) // * в карман
             {
                 // Если не залезло всё, суём в рюкзак
                 _conteiner.IdDamageCategory = 1;
@@ -125,7 +126,7 @@ namespace Mvk.Engine.Entity.Inventory
                     stackSlot, LimitBackpack))
                 {
                     // Что-то осталось
-                    itemStack.SetAmount(stackSlot.Amount);
+                    itemStack!.SetAmount(stackSlot.Amount);
                     return false;
                 }
             }
@@ -153,7 +154,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// </summary>
         public void ServerCloseInventory()
         {
-            _blockStorage = null;
+            _blockStorage = null!;
             _isCreative = false;
         }
 
@@ -190,8 +191,8 @@ namespace Mvk.Engine.Entity.Inventory
         /// </summary>
         public void ClickInventoryOnServer(int slotIn, bool isRight, bool isShift)
         {
-            ItemStack stackAir = StackAir?.Copy();
-            ItemStack stackSlot = _GetStackInSlotAndStorage(slotIn)?.Copy();
+            ItemStack stackAir = StackAir?.Copy()!;
+            ItemStack stackSlot = _GetStackInSlotAndStorage(slotIn)?.Copy()!;
 
             if (stackSlot == null) 
             {
@@ -456,13 +457,13 @@ namespace Mvk.Engine.Entity.Inventory
         /// Server
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void _SetSendSlotContents(int slotIn, ItemStack stack = null)
+        private void _SetSendSlotContents(int slotIn, ItemStack? stack = null)
         {
-            SetInventorySlotContents(slotIn, stack);
+            SetInventorySlotContents(slotIn, stack!);
             if (slotIn != 255 && slotIn > 99)
             {
                 // Изменения ячейки хранилища в TileEntity
-                _OnSlotStorageChanged(slotIn, stack);
+                _OnSlotStorageChanged(slotIn, stack!);
             }
         }
 
@@ -471,8 +472,8 @@ namespace Mvk.Engine.Entity.Inventory
         /// Server
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void _SetSendAirContents(ItemStack stack = null)
-            => SetInventorySlotContents(255, stack);
+        private void _SetSendAirContents(ItemStack? stack = null)
+            => SetInventorySlotContents(255, stack!);
 
         /// <summary>
         /// Проверка и замена стака если мы берём в воздух.
@@ -511,7 +512,7 @@ namespace Mvk.Engine.Entity.Inventory
                 {
                     return _blockStorage.GetStackInSlot(slotIn - 100);
                 }
-                return null;
+                return null!;
             }
             // слот у игрока
             return GetStackInSlot(slotIn);
@@ -676,7 +677,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// <summary>
         /// Событие изменён лимит карманов
         /// </summary>
-        public event EventHandler LimitPocketChanged;
+        public event EventHandler? LimitPocketChanged;
         /// <summary>
         /// Событие изменён лимит карманов
         /// </summary>
@@ -686,7 +687,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// <summary>
         /// Событие изменён лимит рюкзака
         /// </summary>
-        public event EventHandler LimitBackpackChanged;
+        public event EventHandler? LimitBackpackChanged;
         /// <summary>
         /// Событие изменён лимит рюкзака
         /// </summary>
@@ -696,7 +697,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// <summary>
         /// Событие слот задан
         /// </summary>
-        public event SlotEventHandler SlotSetted;
+        public event SlotEventHandler? SlotSetted;
         /// <summary>
         /// Событие слот задан
         /// </summary>
@@ -711,7 +712,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// <summary>
         /// Событие слот хранилища (TileEntity) изменён
         /// </summary>
-        public event SlotEventHandler SlotStorageChanged;
+        public event SlotEventHandler? SlotStorageChanged;
         /// <summary>
         /// Событие слот хранилища (TileEntity) изменён
         /// </summary>
@@ -721,7 +722,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// <summary>
         /// Событие изменён индекс выбраного слота правой руки
         /// </summary>
-        public event EventHandler CurrentIndexChanged;
+        public event EventHandler? CurrentIndexChanged;
         /// <summary>
         /// Событие изменён индекс выбраного слота правой руки
         /// </summary>

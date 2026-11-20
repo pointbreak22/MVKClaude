@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Event
+﻿#nullable enable
+namespace Mvk.Engine.Event
 {
     public delegate void GameStopEventHandler(object sender, GameStopEventArgs e);
     public class GameStopEventArgs

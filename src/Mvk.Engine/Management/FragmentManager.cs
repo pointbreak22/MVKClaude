@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Games;
@@ -259,7 +260,7 @@ namespace Mvk.Engine.Management
             }
             else
             {
-                ChunkForAnchor chunkForAnchor = _chunkForAnchors.Get(x, y) as ChunkForAnchor;
+                ChunkForAnchor chunkForAnchor = (_chunkForAnchors.Get(x, y) as ChunkForAnchor)!;
                 if (chunkForAnchor == null)
                 {
                     // Создаём чанк для якоря
@@ -276,7 +277,7 @@ namespace Mvk.Engine.Management
         /// </summary>
         private void _ChunkForAnchorRemove(int x, int y, IAnchor anchor, bool isClient)
         {
-            ChunkForAnchor chunkForAnchor = _chunkForAnchors.Get(x, y) as ChunkForAnchor;
+            ChunkForAnchor chunkForAnchor = (_chunkForAnchors.Get(x, y) as ChunkForAnchor)!;
             if (chunkForAnchor != null)
             {
                 if (isClient)

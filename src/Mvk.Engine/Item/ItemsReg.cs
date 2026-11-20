@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -43,7 +44,7 @@ namespace Mvk.Engine.Item
         /// <summary>
         /// Инициализация блоков, если window не указывать, прорисовки о статусе не будет (для сервера)
         /// </summary>
-        public static void Initialization(IProgress<string> progress = null)
+        public static void Initialization(IProgress<string>? progress = null)
         {
             progress?.Report(L.T("CreateItems"));
 

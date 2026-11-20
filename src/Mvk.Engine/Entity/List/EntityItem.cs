@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.MetaData;
 using Mvk.Engine.Entity.Physics;
 using Mvk.Engine.Entity.Player;
@@ -84,7 +85,7 @@ namespace Mvk.Engine.Entity.List
         public override void InitRender(ushort index, IEntityRenderFactory renderFactory)
         {
             IndexEntity = index;
-            Render = renderFactory.Create(EntityRenderKind.Item, this, null);
+            Render = renderFactory.Create(EntityRenderKind.Item, this, null!);
             _InitMetaData();
             _InitSize();
         }
@@ -265,7 +266,7 @@ namespace Mvk.Engine.Entity.List
             if (itemStack == null)
             {
                 // TODO::2025-08-26 Ошибка отсутствия стака
-                return null;
+                return null!;
                 //if (World != null && World is WorldServer worldServer)
                 //{
                 //    worldServer.Log.Log("Item entity " + Id + " has no item?!");
@@ -281,7 +282,7 @@ namespace Mvk.Engine.Entity.List
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetEntityItemStack(ItemStack itemStack)
         {
-            if (!MetaData.UpdateObject(0, itemStack?.Copy()))
+            if (!MetaData.UpdateObject(0, itemStack?.Copy()!))
             {
                 MetaData.SetObjectWatched(0);
             }

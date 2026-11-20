@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity;
+﻿#nullable enable
+using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.Particle;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Item;
@@ -20,7 +21,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Основной клиент
         /// </summary>
-        public GameBase Game { get; private set; }
+        public GameBase Game { get; private set; } = null!;
         /// <summary>
         /// Цвета биомов
         /// </summary>
@@ -53,7 +54,7 @@ namespace Mvk.Engine.Games
         /// <summary>
         /// Создать настройки мира по id
         /// </summary>
-        public virtual WorldSettings CreateWorldSettings(byte id) => null;
+        public virtual WorldSettings CreateWorldSettings(byte id) => null!;
 
         /// <summary>
         /// Мир остановлен, стоп и смена мира

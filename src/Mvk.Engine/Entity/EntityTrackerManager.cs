@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Games;
 using Mvk.Engine.Network;
@@ -98,9 +99,9 @@ namespace Mvk.Engine.Entity
             if (trackerEntry != null)
             {
                 _trackedEntities.Remove(trackerEntry.Id, trackerEntry);
-                _trackedPlayers.Remove(trackerEntry.Id, trackerEntry.TrackedEntity as PlayerServer);
+                _trackedPlayers.Remove(trackerEntry.Id, (trackerEntry.TrackedEntity as PlayerServer)!);
                 trackerEntry.DestroyEntityPacketToTrackedPlayers();
-                entity.Tracker = null;
+                entity.Tracker = null!;
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.World;
 using Mvk.Core.Maths;
@@ -10,11 +11,11 @@ namespace Mvk.Engine.Entity.AI.PathFinding
     /// </summary>
     public abstract class NodeProcessor
     {
-        protected WorldServer _world;
+        protected WorldServer _world = null!;
         protected Dictionary<int, PathPoint> _map = new Dictionary<int, PathPoint>();
         protected int _sizeXZ;
         protected int _sizeY;
-        protected PathPoint _pathPointEnd;
+        protected PathPoint _pathPointEnd = null!;
 
         /// <summary>
         /// Инициализация
@@ -51,7 +52,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
                 return _pathPointEnd;
             }
 
-            return null;
+            return null!;
         }
 
         /// <summary>

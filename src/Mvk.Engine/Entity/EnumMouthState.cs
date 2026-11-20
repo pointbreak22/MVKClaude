@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Entity
+﻿#nullable enable
+namespace Mvk.Engine.Entity
 {
     /// <summary>
     /// Состояние рта

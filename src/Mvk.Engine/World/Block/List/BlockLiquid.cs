@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Core.Json;
 using Mvk.Engine.Json;
@@ -18,7 +19,7 @@ namespace Mvk.Engine.World.Block.List
         /// <summary>
         /// Стороны для прорисовки жидкого блока
         /// </summary>
-        protected SideLiquid[] _sideLiquids;
+        protected SideLiquid[] _sideLiquids = null!;
 
         public BlockLiquid(MaterialBase material, bool alphaSort) : base(material)
         {

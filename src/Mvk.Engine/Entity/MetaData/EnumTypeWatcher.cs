@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Entity.MetaData
+﻿#nullable enable
+namespace Mvk.Engine.Entity.MetaData
 {
     /// <summary>
     /// Перечесление тип наблюдателя

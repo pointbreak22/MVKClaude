@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.IO;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
@@ -14,7 +15,7 @@ namespace Mvk.Engine.World.Block
         /// <summary>
         /// Вершины всех шагов разрушения
         /// </summary>
-        private Vertex3d[][] _vertices;
+        private Vertex3d[][] _vertices = null!;
 
         /// <summary>
         /// Регистрация вставляется в разделе регистрации блоков, для вставки в тикстурный атлас
@@ -52,6 +53,6 @@ namespace Mvk.Engine.World.Block
         /// Вершины разрушения потока построения сеток (результат GetVertices до следующего вызова в том же потоке)
         /// </summary>
         [ThreadStatic]
-        private static Vertex3d[] _threadVertices;
+        private static Vertex3d[] _threadVertices = null!;
     }
 }

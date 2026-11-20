@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.World;
+﻿#nullable enable
+using Mvk.Engine.World;
 
 namespace Mvk.Engine.Entity.AI
 {

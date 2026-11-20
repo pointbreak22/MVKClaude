@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Item;
+﻿#nullable enable
+using Mvk.Engine.Item;
 
 namespace Mvk.Engine.Entity.Inventory
 {
@@ -12,7 +13,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// <summary>
         /// Объект одной ячейки
         /// </summary>
-        public readonly ItemStack Stack;
+        public readonly ItemStack Stack = null!;
         /// <summary>
         /// Количество предметов добавляется к стаку, если оно равно как в стаке, значит целиком
         /// </summary>

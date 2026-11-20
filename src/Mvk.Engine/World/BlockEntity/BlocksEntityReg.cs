@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using Mvk.Engine.Entity;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
@@ -18,7 +19,7 @@ namespace Mvk.Engine.World.BlockEntity
         /// <summary>
         /// Инициализация блоков, если window не указывать, прорисовки о статусе не будет (для сервера)
         /// </summary>
-        public static void Initialization(IProgress<string> progress = null)
+        public static void Initialization(IProgress<string>? progress = null)
         {
             progress?.Report(L.T("CreateBlocksEntity"));
 

@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Audio
+﻿#nullable enable
+namespace Mvk.Engine.Audio
 {
     /// <summary>
     /// Структура семпла для регистрации

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity;
@@ -465,7 +466,7 @@ namespace Mvk.Engine.World.Chunk
         public BlockEntityBase GetBlockEntity(int x, int y, int z)
         {
             int key = y << 8 | z << 4 | x;
-            return _mapBlocksEntity.ContainsKey(key) ? _mapBlocksEntity[key] : null;
+            return (_mapBlocksEntity.ContainsKey(key) ? _mapBlocksEntity[key] : null)!;
         }
 
         /// <summary>
@@ -665,8 +666,8 @@ namespace Mvk.Engine.World.Chunk
                 bool[] flag = new bool[NumberSections];
                 for (int i = 0; i < count; i++)
                 {
-                    TagCompound tagCompound = tagListSections.Get(i) as TagCompound;
-                    y = tagCompound.GetByte("Y");
+                    TagCompound tagCompound = (tagListSections.Get(i) as TagCompound)!;
+                    y = tagCompound!.GetByte("Y");
                     flag[y] = true;
                     StorageArrays[y].ReadDataFromNBT(tagCompound);
                 }
@@ -692,9 +693,9 @@ namespace Mvk.Engine.World.Chunk
             {
                 for (int i = 0; i < count; i++)
                 {
-                    TagCompound tagCompound = tagListTickBlocks.Get(i) as TagCompound;
+                    TagCompound tagCompound = (tagListTickBlocks.Get(i) as TagCompound)!;
                     _tickBlocks.Add(new BlockTick(
-                        tagCompound.GetByte("X"), tagCompound.GetShort("Y"), tagCompound.GetByte("Z"),
+                        tagCompound!.GetByte("X"), tagCompound.GetShort("Y"), tagCompound.GetByte("Z"),
                         tagCompound.GetBool("Liquid"), (uint)tagCompound.GetInt("Tick") + tick,
                         tagCompound.GetBool("P")));
                 }
@@ -711,8 +712,8 @@ namespace Mvk.Engine.World.Chunk
                 {
                     try
                     {
-                        TagCompound tagCompound = tagListTileEntities.Get(i) as TagCompound;
-                        BlockEntityBase blockEntity = Ce.BlocksEntity.CreateEntityServer((ushort)tagCompound.GetShort("Id"));
+                        TagCompound tagCompound = (tagListTileEntities.Get(i) as TagCompound)!;
+                        BlockEntityBase blockEntity = Ce.BlocksEntity.CreateEntityServer((ushort)tagCompound!.GetShort("Id"));
                         blockEntity.ReadFromNBT(tagCompound, this);
                         SetBlockEntity(blockEntity);
                     }
@@ -735,8 +736,8 @@ namespace Mvk.Engine.World.Chunk
                 {
                     try
                     {
-                        TagCompound tagCompound = tagListEntities.Get(i) as TagCompound;
-                        EntityBase entity = Ce.Entities.CreateEntityServer((ushort)tagCompound.GetShort("Id"), WorldServ);
+                        TagCompound tagCompound = (tagListEntities.Get(i) as TagCompound)!;
+                        EntityBase entity = Ce.Entities.CreateEntityServer((ushort)tagCompound!.GetShort("Id"), WorldServ);
                         entity.ReadFromNBT(tagCompound);
                         World.SpawnEntityInWorld(entity);
                     }

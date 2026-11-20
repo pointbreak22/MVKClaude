@@ -1,4 +1,5 @@
-﻿/// <summary>
+﻿#nullable enable
+/// <summary>
 /// StringsResource 
 /// Строки ресурсов, на которые ссылается код
 /// </summary>

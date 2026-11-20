@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.Particle;
@@ -25,7 +26,7 @@ namespace Mvk.Engine.World.Block
         /// <summary>
         /// Псевдоним блока из таблицы
         /// </summary>
-        public string Alias { get; private set; }
+        public string Alias { get; private set; } = null!;
 
         /// <summary>
         /// Блок рендера
@@ -84,7 +85,7 @@ namespace Mvk.Engine.World.Block
         /// <summary>
         /// Массив различных цветов частичек блока
         /// </summary>
-        public Vector3[] ParticleColors { get; protected set; }
+        public Vector3[] ParticleColors { get; protected set; } = null!;
         /// <summary>
         /// Количесто частичек при разрушении блока
         /// </summary>
@@ -135,7 +136,7 @@ namespace Mvk.Engine.World.Block
         /// <summary>
         /// Массив точек линий хитбокса
         /// </summary>
-        protected Vector3[][] _hitbox;
+        protected Vector3[][] _hitbox = null!;
 
         #endregion
 
@@ -203,23 +204,23 @@ namespace Mvk.Engine.World.Block
         /// <summary>
         /// Массив сторон прямоугольных форм
         /// </summary>
-        protected QuadSide[][] _quads;
+        protected QuadSide[][] _quads = null!;
         /// <summary>
         /// Маска на все варианты и стороны, 4 ulong-a (256 бит)
         /// </summary>
-        protected ulong[][][] _maskCullFaces;
+        protected ulong[][][] _maskCullFaces = null!;
         /// <summary>
         /// Для оптимизации отбраковка стороны, чтоб не использовать маску
         /// </summary>
-        protected bool[][] _cullFaces;
+        protected bool[][] _cullFaces = null!;
         /// <summary>
         /// Принудительное рисование стороны
         /// </summary>
-        protected bool[][] _forceDrawFaces;
+        protected bool[][] _forceDrawFaces = null!;
         /// <summary>
         /// Принудительное рисование не крайней стороны 
         /// </summary>
-        protected bool[][] _forceDrawNotExtremeFaces;
+        protected bool[][] _forceDrawNotExtremeFaces = null!;
 
         #endregion
 
@@ -691,7 +692,7 @@ namespace Mvk.Engine.World.Block
         /// Получить сторону для прорисовки жидкого блока
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual SideLiquid GetSideLiquid(int index) => null;
+        public virtual SideLiquid GetSideLiquid(int index) => null!;
 
         /// <summary>
         /// Имеется ли отбраковка конкретной стороны, конкретного варианта

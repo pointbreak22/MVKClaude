@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Event
+﻿#nullable enable
+namespace Mvk.Engine.Event
 {
     public delegate void StringEventHandler(object sender, StringEventArgs e);
     public class StringEventArgs
@@ -10,7 +11,7 @@
         /// <summary>
         /// Дополнительный объект
         /// </summary>
-        public object Tag { get; private set; }
+        public object Tag { get; private set; } = null!;
 
         public StringEventArgs(string text) => Text = text;
 

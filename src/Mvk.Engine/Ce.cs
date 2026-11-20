@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿#nullable enable
+using System.Diagnostics;
 using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.Particle;
 using Mvk.Engine.Item;
@@ -50,23 +51,23 @@ public sealed class Ce
     /// <summary>
     /// Различные массивы блоков
     /// </summary>
-    public static BlockArrays Blocks;
+    public static BlockArrays Blocks = null!;
     /// <summary>
     /// Различные массивы сущностей
     /// </summary>
-    public static EntityArrays Entities;
+    public static EntityArrays Entities = null!;
     /// <summary>
     /// Различные массивы блоков сущностей, в первой части аналог TileEntity
     /// </summary>
-    public static BlockEntityArrays BlocksEntity;
+    public static BlockEntityArrays BlocksEntity = null!;
     /// <summary>
     /// Различные массивы предметов
     /// </summary>
-    public static ItemArrays Items;
+    public static ItemArrays Items = null!;
     /// <summary>
     /// Различные массивы частичек
     /// </summary>
-    public static EntityFXArrays EntitiesFX;
+    public static EntityFXArrays EntitiesFX = null!;
 
     /// <summary>
     /// Какой FPS вне игры, для уменьшения нагрузки на комп

@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Nbt;
+﻿#nullable enable
+using Mvk.Core.Nbt;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -152,7 +153,7 @@ namespace Mvk.Engine.Nbt
                     }
                     return compound;
                 }
-                return null;
+                return null!;
             }
             catch (Exception)
             {

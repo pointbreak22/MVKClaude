@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -79,11 +80,11 @@ namespace Mvk.Engine.World.Chunk
         /// <summary>
         /// Пул потоков рельефа в режиме генерации Parallel, иначе null
         /// </summary>
-        private readonly JobScheduler _reliefScheduler;
+        private readonly JobScheduler _reliefScheduler = null!;
         /// <summary>
         /// Рельеф пакета: генератор на поток и чанки пакета
         /// </summary>
-        private readonly ReliefJob _reliefJob;
+        private readonly ReliefJob _reliefJob = null!;
         /// <summary>
         /// Чанки пакета, которым нужен ChunkPresent (не были готовы до загрузки)
         /// </summary>
@@ -152,9 +153,9 @@ namespace Mvk.Engine.World.Chunk
             for (int i = 0; i < present; i++)
             {
                 _presentChunks[i].ChunkPresent();
-                _presentChunks[i] = null;
+                _presentChunks[i] = null!;
             }
-            for (int i = 0; i < relief; i++) _reliefJob.Chunks[i] = null;
+            for (int i = 0; i < relief; i++) _reliefJob.Chunks[i] = null!;
         }
 
         /// <summary>
@@ -187,7 +188,7 @@ namespace Mvk.Engine.World.Chunk
         {
             if (!(_chunkMapping.Get(x, y) is ChunkServer chunk))
             {
-                return _loadingChunkMapping.Get(x, y) as ChunkServer;
+                return (_loadingChunkMapping.Get(x, y) as ChunkServer)!;
             }
             return chunk;
         }
@@ -197,7 +198,7 @@ namespace Mvk.Engine.World.Chunk
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ChunkServer GetChunkServer(Vector2i chunkPos)
-            => _chunkMapping.Get(chunkPos.X, chunkPos.Y) as ChunkServer;
+            => (_chunkMapping.Get(chunkPos.X, chunkPos.Y) as ChunkServer)!;
 
         /// <summary>
         /// Добавить чанк на удаление
@@ -276,7 +277,7 @@ namespace Mvk.Engine.World.Chunk
             catch (Exception ex)
             {
                 _worldServer.SetLog(Srl.CouldNotReadChunkInRegion,
-                    ex.Message, ex.StackTrace, chunk.ToPosition(), chunk.ToRegion());
+                    ex.Message, ex.StackTrace!, chunk.ToPosition(), chunk.ToRegion());
             }
         }
 
@@ -318,7 +319,7 @@ namespace Mvk.Engine.World.Chunk
                 x = Conv.IndexToChunkX(index);
                 y = Conv.IndexToChunkY(index);
                 _droppedChunks.RemoveLast();
-                chunk = _chunkMapping.Get(x, y) as ChunkServer;
+                chunk = (_chunkMapping.Get(x, y) as ChunkServer)!;
                 if (chunk != null)
                 {
                     chunk.OnChunkUnload();

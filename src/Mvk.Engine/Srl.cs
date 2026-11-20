@@ -1,4 +1,5 @@
-﻿/// <summary>
+﻿#nullable enable
+/// <summary>
 /// StringsResourceLogs 
 /// Строки ресурсов логов, на которые ссылается код
 /// </summary>

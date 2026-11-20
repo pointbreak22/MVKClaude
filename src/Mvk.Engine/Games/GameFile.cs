@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.World.Gen;
+﻿#nullable enable
+using Mvk.Engine.World.Gen;
 using System;
 using System.IO;
 using Mvk.Core.Nbt;
@@ -111,7 +112,7 @@ namespace Mvk.Engine.Games
             {
                 return NBTTools.ReadFromFile(pathFile, true);
             }
-            return null;
+            return null!;
         }
     }
 }

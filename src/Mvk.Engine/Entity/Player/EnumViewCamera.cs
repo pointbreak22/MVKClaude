@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Entity.Player
+﻿#nullable enable
+namespace Mvk.Engine.Entity.Player
 {
     /// <summary>
     /// Варианты вида камеры

@@ -1,3 +1,4 @@
+﻿#nullable enable
 using System.Runtime.CompilerServices;
 using Mvk.Core.Maths;
 using Mvk.Core.Util;

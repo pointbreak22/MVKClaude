@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.World.Environment
+﻿#nullable enable
+namespace Mvk.Engine.World.Environment
 {
     /// <summary>
     /// Фаза луны

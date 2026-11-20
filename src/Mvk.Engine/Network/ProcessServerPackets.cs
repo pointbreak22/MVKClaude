@@ -151,7 +151,7 @@ namespace Mvk.Engine.Network
         /// Ping-pong
         /// </summary>
         private void _Handle00Ping(SocketSide? socketSide, Packet00PingPong packet)
-            => _server.ResponsePacket(socketSide, packet);
+            => _server.ResponsePacket(socketSide!, packet);
 
         /// <summary>
         /// Сохранить жизнь
@@ -160,7 +160,7 @@ namespace Mvk.Engine.Network
         {
             if (_pingKeySend == packet.Time)
             {
-                PlayerServer playerServer = _server.Players.FindPlayerBySocket(socketSide);
+                PlayerServer playerServer = _server.Players.FindPlayerBySocket(socketSide!);
                 playerServer?.SetPing(_lastPingTime);
             }
         }
@@ -169,79 +169,79 @@ namespace Mvk.Engine.Network
         /// Пакет проверки логина
         /// </summary>
         private void _Handle02LoginStart(SocketSide? socketSide, PacketC02LoginStart packet)
-            => _server.Players.LoginStart(socketSide, packet);
+            => _server.Players.LoginStart(socketSide!, packet);
 
         /// <summary>
         /// Пакет взаимодействие с сущностью
         /// </summary>
         private void _Handle03UseEntity(SocketSide? socketSide, PacketC03UseEntity packet)
-            => _server.Players.FindPlayerBySocket(socketSide)?.PacketUseEntity(packet);
+            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketUseEntity(packet);
         
         /// <summary>
         /// Пакет позиции игрока
         /// </summary>
         private void _Handle04PlayerPosition(SocketSide? socketSide, PacketC04PlayerPosition packet)
-            => _server.Players.FindPlayerBySocket(socketSide)?.PacketPlayerPosition(packet);
+            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerPosition(packet);
 
         /// <summary>
         /// Пакет взаимодействие с выбранным предметом в руке без RayCast блока
         /// </summary>
         private void _Handle05UseItem(SocketSide? socketSide, PacketC05UseItem packet)
-            => _server.Players.FindPlayerBySocket(socketSide)?.PacketUseItem(packet);
+            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketUseItem(packet);
 
         /// <summary>
         /// Пакет урона предмета в руке
         /// </summary>
         private void _Handle06DamageItem(SocketSide? socketSide, PacketC06DamageItem packet)
-            => _server.Players.FindPlayerBySocket(socketSide)?.PacketDamageItem(packet);
+            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketDamageItem(packet);
 
         /// <summary>
         /// Пакет игрок копает / ломает
         /// </summary>
         private void _Handle07PlayerDigging(SocketSide? socketSide, PacketC07PlayerDigging packet)
-            => _server.Players.FindPlayerBySocket(socketSide)?.PacketPlayerDigging(packet);
+            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerDigging(packet);
 
         /// <summary>
         /// Пакет игрок устанавливает или взаимодействует с блоком
         /// </summary>
         private void _Handle08PlayerBlockPlacement(SocketSide? socketSide, PacketC08PlayerBlockPlacement packet)
-            => _server.Players.FindPlayerBySocket(socketSide)?.PacketPlayerBlockPlacement(packet);
+            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerBlockPlacement(packet);
 
         /// <summary>
         /// Пакет игрок отправляем на сервер выбранный слот
         /// </summary>
         private void _Handle09HeldItemChange(SocketSide? socketSide, PacketC09HeldItemChange packet)
-            => _server.Players.FindPlayerBySocket(socketSide)?.PacketHeldItemChange(packet);
+            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketHeldItemChange(packet);
 
         /// <summary>
         /// Пакет анимации игрока
         /// </summary>
         private void _Handle0APlayerAnimation(SocketSide? socketSide, PacketC0APlayerAnimation packet)
-            => _server.Players.FindPlayerBySocket(socketSide)?.PacketPlayerAnimation(packet);
+            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerAnimation(packet);
 
         /// <summary>
         /// Пакет кликов по окну и контролам
         /// </summary>
         private void _Handle0EClickWindow(SocketSide? socketSide, PacketC0EClickWindow packet)
-            => _server.Players.FindPlayerBySocket(socketSide)?.PacketClickWindow(packet);
+            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketClickWindow(packet);
 
         /// <summary>
         /// Пакет передачии сообщения или команды
         /// </summary>
         private void _Handle14Message(SocketSide? socketSide, PacketC14Message packet)
-            => _server.Players.ClientMessage(_server.Players.FindPlayerBySocket(socketSide), packet);
+            => _server.Players.ClientMessage(_server.Players.FindPlayerBySocket(socketSide!), packet);
 
         /// <summary>
         /// Пакет настроек клиента
         /// </summary>
         private void _Handle15PlayerSetting(SocketSide? socketSide, PacketC15PlayerSetting packet)
-            => _server.Players.FindPlayerBySocket(socketSide)?.PacketPlayerSetting(packet);
+            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketPlayerSetting(packet);
 
         /// <summary>
         /// Пакет подтверждение фрагментов
         /// </summary>
         private void _Handle20AcknowledgeChunks(SocketSide? socketSide, PacketC20AcknowledgeChunks packet)
-            => _server.Players.FindPlayerBySocket(socketSide)?.PacketAcknowledgeChunks(packet);
+            => _server.Players.FindPlayerBySocket(socketSide!)?.PacketAcknowledgeChunks(packet);
 
         #endregion
     }

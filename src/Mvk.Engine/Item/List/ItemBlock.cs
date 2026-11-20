@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Player;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
@@ -93,7 +94,7 @@ namespace Mvk.Engine.Item.List
             {
                 BlockState blockState = Block.OnBlockPlaced(world, blockPos,
                    CreateBlockState(stack), side, facing, playerYaw);
-                if (Block.CanBlockStay(world, null, blockPos, blockState.Met))
+                if (Block.CanBlockStay(world, null!, blockPos, blockState.Met))
                 {
                     BlockState blockStateOld = world.GetBlockState(blockPos);
                     if (world.SetBlockState(blockPos, blockState, BlockFlag.cParticle))
@@ -105,7 +106,7 @@ namespace Mvk.Engine.Item.List
                                 && player is PlayerServer playerServer)
                             {
                                 blockStateOld.GetBlock().DropBlockAsItem(playerServer.GetWorldServer(), 
-                                    null, blockPos, blockStateOld);
+                                    null!, blockPos, blockStateOld);
 
                                 if (Block.Material.IsSamplePlace())
                                 {

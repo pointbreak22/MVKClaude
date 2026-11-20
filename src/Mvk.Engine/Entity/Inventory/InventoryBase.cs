@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Item;
 using Mvk.Core.Nbt;
@@ -53,7 +54,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// Получить текущий стак правой руки
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual ItemStack GetCurrentItem() => null;
+        public virtual ItemStack GetCurrentItem() => null!;
 
         /// <summary>
         /// Задать в текущий стак правой руки
@@ -65,7 +66,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// Получить текущий стак левой руки
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual ItemStack GetCurrentLeftItem() => null;
+        public virtual ItemStack GetCurrentLeftItem() => null!;
 
         /// <summary>
         /// Задать в текущий стак левой руки
@@ -77,7 +78,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// Возвращает стaк в слоте slotIn
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual ItemStack GetStackInSlot(int slotIn) => null;
+        public virtual ItemStack GetStackInSlot(int slotIn) => null!;
 
         /// <summary>
         /// Устанавливает стaк в слоте slotIn, без событий!!!, для загрузки
@@ -96,7 +97,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// для рендера
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual ItemStack GetOutside(int slotIn) => null;
+        public virtual ItemStack GetOutside(int slotIn) => null!;
 
         /// <summary>
         /// Получить список стаков для внешности (что в руках и одежда)
@@ -155,7 +156,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// Получить активный блок хранилища, если нет вернёт null
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual IBlockStorage GetBlockStorage() => null;
+        public virtual IBlockStorage GetBlockStorage() => null!;
 
         /// <summary>
         /// Уменьшить количество предметом в текущей руке
@@ -194,7 +195,7 @@ namespace Mvk.Engine.Entity.Inventory
         /// <summary>
         /// Событие изменён предмет внешности (что в руках или одежда)
         /// </summary>
-        public event EventHandler OutsideChanged;
+        public event EventHandler? OutsideChanged;
         /// <summary>
         /// Событие изменён предмет внешности (что в руках или одежда)
         /// flags = -1 все

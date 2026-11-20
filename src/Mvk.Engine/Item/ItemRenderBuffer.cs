@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Render;
 using Mvk.Core.Json;
@@ -20,15 +21,15 @@ namespace Mvk.Engine.Item
         /// <summary>
         /// Буфер сетки для рендера
         /// </summary>
-        private VertexEntityBuffer _buffer;
+        private VertexEntityBuffer _buffer = null!;
         /// <summary>
         /// Буфер сетки для рендера для Gui
         /// </summary>
-        private VertexEntityBuffer _bufferGui;
+        private VertexEntityBuffer _bufferGui = null!;
         /// <summary>
         /// Буфер сетки для рендера для сущности держать
         /// </summary>
-        private VertexEntityBuffer _bufferHold;
+        private VertexEntityBuffer _bufferHold = null!;
 
         /// <summary>
         /// Инициализация предметов данные с json, 
@@ -90,8 +91,8 @@ namespace Mvk.Engine.Item
 
         public void Clear()
         {
-            _buffer = null;
-            _bufferGui = null;
+            _buffer = null!;
+            _bufferGui = null!;
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Animation;
@@ -94,7 +95,7 @@ namespace Mvk.Engine.Entity.Model
         /// <summary>
         /// Для краша, название раздела
         /// </summary>
-        private string _log;
+        private string _log = null!;
 
         /// <summary>
         /// Ширина
@@ -151,10 +152,10 @@ namespace Mvk.Engine.Entity.Model
                 _MoveCubesFromFolderToParent();
 
                 // Определения уровней на кубах
-                _LayerDefinitions(null, _treeBones);
+                _LayerDefinitions(null!, _treeBones);
 
                 // Удаляем невидемые кубы и не используемые кости
-                _ClearVisibleCube(null, _treeBones);
+                _ClearVisibleCube(null!, _treeBones);
 
                 // После всех корректировок, строим индекксацию костей у кубов
                 _cubes.Clear();
@@ -448,7 +449,7 @@ namespace Mvk.Engine.Entity.Model
                     return cube;
                 }
             }
-            return null;
+            return null!;
         }
 
         #region Корректировки древа костей с кубами
@@ -526,7 +527,7 @@ namespace Mvk.Engine.Entity.Model
         private void _MoveCubesFromFolderToParent()
         {
             byte byteTree = 0;
-            while (_MoveCubesFromFolderToParent(null, _treeBones) > 0)
+            while (_MoveCubesFromFolderToParent(null!, _treeBones) > 0)
             {
                 if (++byteTree >= 8)
                 {

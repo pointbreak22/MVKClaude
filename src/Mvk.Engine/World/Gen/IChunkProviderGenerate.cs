@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.World.Chunk;
+﻿#nullable enable
+using Mvk.Engine.World.Chunk;
 
 namespace Mvk.Engine.World.Gen
 {

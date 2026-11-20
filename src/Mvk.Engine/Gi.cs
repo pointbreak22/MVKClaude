@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
@@ -47,7 +48,7 @@ public sealed class Gi
     /// Выбранный объект блока для рендера (у каждого потока построения сеток свой)
     /// </summary>
     [ThreadStatic]
-    public static BlockBase Block;
+    public static BlockBase Block = null!;
     /// <summary>
     /// Объект процесса разруцшения блока
     /// </summary>

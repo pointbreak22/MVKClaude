@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Entity.Render
+﻿#nullable enable
+namespace Mvk.Engine.Entity.Render
 {
     /// <summary>
     /// Позиция предмета в кости

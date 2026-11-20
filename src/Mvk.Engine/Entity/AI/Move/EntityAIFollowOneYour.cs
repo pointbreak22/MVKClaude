@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Entity.AI
+﻿#nullable enable
+namespace Mvk.Engine.Entity.AI
 {
     /// <summary>
     /// Задача следовать за одним из своих

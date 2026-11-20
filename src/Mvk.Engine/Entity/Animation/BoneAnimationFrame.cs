@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Mvk.Engine.Entity.Animation
@@ -61,7 +62,7 @@ namespace Mvk.Engine.Entity.Animation
         public override string ToString()
             => string.Format("T:{0:0.00} [{1:0.00}; {2:0.00}; {3:0.00}]", Time, X, Y, Z);
 
-        public int CompareTo(object obj)
+        public int CompareTo(object? obj)
         {
             if (obj is BoneAnimationFrame v)
             {

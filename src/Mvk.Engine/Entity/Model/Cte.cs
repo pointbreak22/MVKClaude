@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Entity.Model
+﻿#nullable enable
+namespace Mvk.Engine.Entity.Model
 {
     /// <summary>
     /// Константы названий тег для параметров сущности в json

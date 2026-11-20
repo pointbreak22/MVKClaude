@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#nullable enable
+using System.Runtime.CompilerServices;
 using Mvk.Core.Maths;
 
 namespace Mvk.Engine.Entity.AI.PathFinding
@@ -31,7 +32,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
         /// <summary>
         /// Предшествующая этому точка на заданном пути
         /// </summary>
-        public PathPoint Previous;
+        public PathPoint Previous = null!;
         /// <summary>
         /// Истинно, если навигатор уже посетил эту точку
         /// </summary>
@@ -80,9 +81,9 @@ namespace Mvk.Engine.Entity.AI.PathFinding
             return x * x + y * y + z * z;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            if (obj.GetType() == typeof(PathPoint))
+            if (obj!.GetType() == typeof(PathPoint))
             {
                 var point = (PathPoint)obj;
                 if (_hash == point._hash && CoordX == point.CoordX 

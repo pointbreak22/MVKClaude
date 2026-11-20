@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Item;
 using Mvk.Core.Json;
@@ -16,19 +17,19 @@ namespace Mvk.Engine.World.Block
         /// <summary>
         /// Маска на все варианты и стороны, 4 ulong-a (256 бит)
         /// </summary>
-        public ulong[][][] MaskCullFaces { get; private set; }
+        public ulong[][][] MaskCullFaces { get; private set; } = null!;
         /// <summary>
         /// Для оптимизации отбраковка стороны, чтоб не использовать маску
         /// </summary>
-        public bool[][] CullFaces { get; private set; }
+        public bool[][] CullFaces { get; private set; } = null!;
         /// <summary>
         /// Принудительное рисование стороны, true если сторона не касается края
         /// </summary>
-        public bool[][] ForceDrawFaces { get; private set; }
+        public bool[][] ForceDrawFaces { get; private set; } = null!;
         /// <summary>
         /// Принудительное рисование не крайней стороны 
         /// </summary>
-        public bool[][] ForceDrawNotExtremeFaces { get; private set; }
+        public bool[][] ForceDrawNotExtremeFaces { get; private set; } = null!;
 
         /// <summary>
         /// Отбраковка всех сторон всех сторон во всех вариантах
@@ -47,7 +48,7 @@ namespace Mvk.Engine.World.Block
         /// <summary>
         /// Объект результата квада
         /// </summary>
-        private QuadSide[][] _quads;
+        private QuadSide[][] _quads = null!;
         /// <summary>
         /// Индекс варианта
         /// </summary>

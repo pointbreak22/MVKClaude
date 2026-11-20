@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Mvk.Engine.Entity.AI.PathFinding
@@ -54,7 +55,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
         {
             PathPoint points = _pathPoints[0];
             _pathPoints[0] = _pathPoints[--_count];
-            _pathPoints[_count] = null;
+            _pathPoints[_count] = null!;
             if (_count > 0) _SortForward(0);
             points.Index = -1;
             return points;
@@ -124,7 +125,7 @@ namespace Mvk.Engine.Entity.AI.PathFinding
 
                 if (index3 >= _count)
                 {
-                    point3 = null;
+                    point3 = null!;
                     distance3 = float.PositiveInfinity;
                 }
                 else
@@ -143,8 +144,8 @@ namespace Mvk.Engine.Entity.AI.PathFinding
                 else
                 {
                     if (distance3 >= distance) break;
-                    _pathPoints[index] = point3;
-                    point3.Index = index;
+                    _pathPoints[index] = point3!;
+                    point3!.Index = index;
                     index = index3;
                 }
             }

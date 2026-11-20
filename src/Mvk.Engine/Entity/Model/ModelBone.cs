@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using Mvk.Engine.Entity.Animation;
 
 namespace Mvk.Engine.Entity.Model

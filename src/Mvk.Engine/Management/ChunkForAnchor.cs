@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using System.Net.Security;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Network;
@@ -28,7 +29,7 @@ namespace Mvk.Engine.Management
         /// <summary>
         /// Дополнительные данные
         /// </summary>
-        public object Tag { get; }
+        public object Tag { get; } = null!;
 
         /// <summary>
         /// Позиция X текущего чанка

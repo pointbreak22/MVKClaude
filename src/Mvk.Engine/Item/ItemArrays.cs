@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Item
+﻿#nullable enable
+namespace Mvk.Engine.Item
 {
     /// <summary>
     /// Различные массивы предметов

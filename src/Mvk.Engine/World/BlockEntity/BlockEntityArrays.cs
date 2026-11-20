@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using Mvk.Engine.Entity;
 using Mvk.Engine.World.Chunk;
 
@@ -34,7 +35,7 @@ namespace Mvk.Engine.World.BlockEntity
                 BlockEntityAlias[id] = BlocksEntityReg.Table.GetAlias(id);
                 resourcesEntity = BlocksEntityReg.Table[id];
                 resourcesEntity?.SetIndex(id);
-                _entitiesObjects[id] = resourcesEntity;
+                _entitiesObjects[id] = resourcesEntity!;
             }
         }
 
@@ -61,8 +62,8 @@ namespace Mvk.Engine.World.BlockEntity
         {
             if (index < Count)
             {
-                BlockEntityBase entity = Activator.CreateInstance(_entitiesObjects[index].EntityType) as BlockEntityBase;
-                entity.InitServer(index);
+                BlockEntityBase entity = (Activator.CreateInstance(_entitiesObjects[index].EntityType) as BlockEntityBase)!;
+                entity!.InitServer(index);
                 return entity;
             }
             throw new Exception(Sr.GetString(Sr.IndexOutsideEntityType, index, Count));

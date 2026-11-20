@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity.Render;
+﻿#nullable enable
+using Mvk.Engine.Entity.Render;
 
 namespace Mvk.Engine.Entity.Layer
 {
@@ -32,7 +33,7 @@ namespace Mvk.Engine.Entity.Layer
         /// <summary>
         /// Буфер сетки формы, для рендера
         /// </summary>
-        public VertexEntityBuffer BufferMesh;
+        public VertexEntityBuffer BufferMesh = null!;
 
         public LayerBuffer(string name, string texture, string[] folder)
         {

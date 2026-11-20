@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Entity.Animation
+﻿#nullable enable
+namespace Mvk.Engine.Entity.Animation
 {
     /// <summary>
     /// Объект анимационного конкретного клипа с набором ключевых кадров отдельной кости.

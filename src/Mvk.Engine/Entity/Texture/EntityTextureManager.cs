@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Shape;
@@ -40,7 +41,7 @@ namespace Mvk.Engine.Entity.Texture
         /// <summary>
         /// Массив всех групп текстур
         /// </summary>
-        private GroupTexture[] _groups;
+        private GroupTexture[] _groups = null!;
 
         /// <summary>
         /// Инициализация текстурного менеджера
@@ -93,7 +94,7 @@ namespace Mvk.Engine.Entity.Texture
             }
 
             // Освобождаем не нужную память
-            _groups = null;
+            _groups = null!;
         }
 
         /// <summary>

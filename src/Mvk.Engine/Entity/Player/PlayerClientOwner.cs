@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Physics;
 using Mvk.Engine.Entity.Render;
@@ -140,7 +141,7 @@ namespace Mvk.Engine.Entity.Player
         /// <summary>
         /// Менеджер действий рук игрока 
         /// </summary>
-        protected HandManager _handManager;
+        protected HandManager _handManager = null!;
 
         public PlayerClientOwner(GameBase game) : base(game) // IndexEntity ещё не определён
         {
@@ -459,7 +460,7 @@ namespace Mvk.Engine.Entity.Player
             int i, xc, zc, xb, zb, x1, y1, z1, x2, y2, z2;
             ChunkClient chunk;
             Vector3i vec;
-            ListFast<Vector2i> debug = Ce.IsDebugDrawChunks ? new ListFast<Vector2i>() : null;
+            ListFast<Vector2i> debug = (Ce.IsDebugDrawChunks ? new ListFast<Vector2i>() : null)!;
             FrustumCulling.Clear();
             OverviewCircles.Clear();
             int countOC = Ce.OverviewCircles.Length;
@@ -496,7 +497,7 @@ namespace Mvk.Engine.Entity.Player
                     }
                     if (Ce.IsDebugDrawChunks)
                     {
-                        debug.Add(new Vector2i(xc + chunkPosX, zc + chunkPosZ));
+                        debug!.Add(new Vector2i(xc + chunkPosX, zc + chunkPosZ));
                     }
                 }
                 else
@@ -511,7 +512,7 @@ namespace Mvk.Engine.Entity.Player
             }
             if (Ce.IsDebugDrawChunks)
             {
-                OnTagDebug(Debug.Key.FrustumCulling.ToString(), debug.ToArray());
+                OnTagDebug(Debug.Key.FrustumCulling.ToString(), debug!.ToArray());
             }
             Debug.CountMeshFC = FrustumCulling.Count;
         }
@@ -784,7 +785,7 @@ namespace Mvk.Engine.Entity.Player
                 int chY = ChunkPositionY;
                 int chZ = ChunkPositionZ;
                 Vector3i pos;
-                ChunkClient chunk = null;
+                ChunkClient chunk = null!;
                 int count = Ce.OverviewAlphaSphere.Length;
                 int x, z, xOld, zOld;
                 xOld = zOld = 0;
@@ -798,7 +799,7 @@ namespace Mvk.Engine.Entity.Player
 
                     if (body && x == xOld && z == zOld)
                     {
-                        chunk.ModifiedToRenderAlpha(pos.Y + chY);
+                        chunk!.ModifiedToRenderAlpha(pos.Y + chY);
                     }
                     chunk = _game.World.ChunkPrClient.GetChunkClient(x, z);
                     if (chunk != null)
@@ -889,7 +890,7 @@ namespace Mvk.Engine.Entity.Player
                 else if (MovingObject.IsEntity())
                 {
                     Debug.BlockFocus =
-                        MovingObject.Entity.GetType()
+                        MovingObject.Entity!.GetType()
                         //"Entity[" + MovingObject.Entity.GetType() + "]:" 
                         + MovingObject.Entity.GetName() + " " 
                         + MovingObject.RayHit.Y + " ";
@@ -1120,7 +1121,7 @@ namespace Mvk.Engine.Entity.Player
                 Physics.ToDebugString()
                 );
 
-            string render = Render.ToString();
+            string render = Render.ToString()!;
 
             string chunkStorage = "";
             ChunkBase chunk = _game.World.GetChunk(ChunkPositionX, ChunkPositionZ);
@@ -1143,7 +1144,7 @@ namespace Mvk.Engine.Entity.Player
         /// <summary>
         /// Событие любого объекта с сервера для отладки
         /// </summary>
-        public event StringEventHandler TagDebug;
+        public event StringEventHandler? TagDebug;
         public void OnTagDebug(string title, object tag)
             => TagDebug?.Invoke(this, new StringEventArgs(title, tag));
 

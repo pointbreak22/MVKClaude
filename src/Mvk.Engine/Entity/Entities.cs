@@ -1,4 +1,5 @@
-﻿//using System;
+﻿#nullable enable
+//using System;
 //using Mvk.Engine.World;
 //namespace Mvk.Engine.Entity
 //{
