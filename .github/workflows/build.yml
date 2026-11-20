@@ -27,7 +27,7 @@ jobs:
       # Mesa llvmpipe (OpenGL) и lavapipe (Vulkan) в виртуальном X-сервере; на Windows без GPU тест пропускает бэкенд
       - name: Mesa software renderers
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-vulkan-drivers libvulkan1
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-vulkan-drivers libvulkan1 libx11-6 libxrandr2 libxinerama1 libxcursor1 libxi6 libxext6 libxkbcommon0
       - run: dotnet build MvkClaude.slnx -c Release
       - name: Test (Linux)
         if: runner.os == 'Linux'
