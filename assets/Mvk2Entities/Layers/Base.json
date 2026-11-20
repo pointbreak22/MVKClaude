@@ -54,6 +54,30 @@
             Name: "CamouflageJacket",
             Folder: ["L-JacketB1", "L-JacketFLC", "L-JacketALC", "L-JacketFRC", "L-JacketARC"],
             Texture: "Base"
+        },
+        {
+            Group: "Hat",
+            Name: "ArmorHelmet",
+            Folder: ["L-Hat", "L-Hat3"],
+            Texture: "Armor"
+        },
+        {
+            Group: "Jacket",
+            Name: "ArmorChest",
+            Folder: ["L-JacketB1", "L-JacketFLC", "L-JacketALC", "L-JacketFRC", "L-JacketARC"],
+            Texture: "Armor"
+        },
+        {
+            Group: "Pants",
+            Name: "ArmorLegs",
+            Folder: ["L-PantsB1", "L-PantsH1", "L-PantsR1", "L-PantsL1", "L-PantsSR1", "L-PantsSL1"],
+            Texture: "Armor"
+        },
+        {
+            Group: "Shoes",
+            Name: "ArmorBoots",
+            Folder: ["L-ShoesSL1", "L-ShoesFL1", "L-ShoesSR1", "L-ShoesFR1"],
+            Texture: "Armor"
         }
         
         

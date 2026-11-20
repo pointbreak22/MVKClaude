@@ -5,6 +5,6 @@
     Sprite: "Items/Cloth/ChestplateIron",
     SpriteGui: "Items/Cloth/ChestplateIron",
     PutOnBody: "Jacket",
-    NameLayer: "CamouflageJacket",
+    NameLayer: "ArmorChest",
     Protection: 0.3
 }

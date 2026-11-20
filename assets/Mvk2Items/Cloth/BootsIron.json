@@ -5,6 +5,6 @@
     Sprite: "Items/Cloth/BootsIron",
     SpriteGui: "Items/Cloth/BootsIron",
     PutOnBody: "Shoes",
-    NameLayer: "BootsBranded",
+    NameLayer: "ArmorBoots",
     Protection: 0.1
 }

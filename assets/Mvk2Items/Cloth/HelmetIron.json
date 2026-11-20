@@ -5,6 +5,6 @@
     Sprite: "Items/Cloth/HelmetIron",
     SpriteGui: "Items/Cloth/HelmetIron",
     PutOnBody: "Hat",
-    NameLayer: "CapDark",
+    NameLayer: "ArmorHelmet",
     Protection: 0.15
 }

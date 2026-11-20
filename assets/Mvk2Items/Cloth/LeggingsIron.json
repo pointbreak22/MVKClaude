@@ -5,6 +5,6 @@
     Sprite: "Items/Cloth/LeggingsIron",
     SpriteGui: "Items/Cloth/LeggingsIron",
     PutOnBody: "Pants",
-    NameLayer: "PantsJeans",
+    NameLayer: "ArmorLegs",
     Protection: 0.2
 }

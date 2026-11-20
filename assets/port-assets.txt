@@ -18,3 +18,5 @@ Mvk2Textures/Items/Tools/Powder.png
 Mvk2Textures/Items/Tools/Shell.png
 Mvk2Sounds/Shot.wav
 Mvk2Sounds/Explode.wav
+# Не PNG: в Mvk2Entities/Models/Humanoid.bbmodel добавлена своя текстура LayerArmor.png (перекраска LayerPlayerTop в металл),
+# в Mvk2Entities/Layers/Base.json слои ArmorHelmet, ArmorChest, ArmorLegs, ArmorBoots
