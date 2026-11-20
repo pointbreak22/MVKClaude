@@ -34,6 +34,8 @@ namespace Mvk.Desktop
     {
         private static int Main(string[] args)
         {
+            // Нативные библиотеки Silk.NET из runtimes рядом с программой (Linux без системных GLFW и Shaderc)
+            NativeLibraryPaths.Register();
             // Журнал по-русски читается и в файле, и в консоли Windows (иначе кодовая страница 866)
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             string? assets = null;

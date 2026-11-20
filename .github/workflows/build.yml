@@ -24,11 +24,11 @@ jobs:
         with:
           global-json-file: global.json
       # Тестовая сцена RHI на OpenGL и Vulkan (RenderBackendTests): на Linux без GPU её рисуют
-      # Mesa llvmpipe (OpenGL) и lavapipe (Vulkan) в виртуальном X-сервере (GLFW и Shaderc из системы: загрузчик Silk.NET
-      # на новом Ubuntu не находит библиотеки из runtimes/linux-x64/native, docs/improvements.md P8); на Windows без GPU тест пропускает бэкенд
+      # Mesa llvmpipe (OpenGL) и lavapipe (Vulkan) в виртуальном X-сервере;
+      # на Windows без GPU тест пропускает бэкенд
       - name: Mesa software renderers
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-vulkan-drivers libvulkan1 libx11-6 libxrandr2 libxinerama1 libxcursor1 libxi6 libxext6 libxkbcommon0 libglfw3 libshaderc-dev
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-vulkan-drivers libvulkan1 libx11-6 libxrandr2 libxinerama1 libxcursor1 libxi6 libxext6 libxkbcommon0
       - run: dotnet build MvkClaude.slnx -c Release
       - name: Test (Linux)
         if: runner.os == 'Linux'
