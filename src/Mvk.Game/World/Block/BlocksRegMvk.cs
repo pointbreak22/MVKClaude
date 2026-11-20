@@ -256,6 +256,10 @@ namespace Mvk.Game.World.Block
         /// Верёвка
         /// </summary>
         public static BlockRope Rope { get; private set; }
+        /// <summary>
+        /// Факел: светящийся тонкий столбик
+        /// </summary>
+        public static BlockBase Torch { get; private set; }
 
         #endregion
 
@@ -354,6 +358,8 @@ namespace Mvk.Game.World.Block
 
             BlocksReg.RegisterBlockClass("DoorOfPlanks", DoorOfPlanks = new BlockDoor(materials.Door));
             BlocksReg.RegisterBlockClass("Rope", Rope = new BlockRope(materials.Rope));
+            // Новые блоки порта — только в конце регистрации
+            Torch = BlocksReg.RegisterBlockClass("Torch", materials.Rope);
             
 
             // Регистрация текстуры разрушения блока

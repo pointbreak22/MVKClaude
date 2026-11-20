@@ -1,0 +1,17 @@
+{
+    Texture: { All: "Blocks/Torch" }
+    Elements: [
+        {   From: [ -1, 0, -1 ],
+            To: [ 1, 14, 1 ],
+            Sharpness: true,
+            Faces: [
+                { Texture:"All", Side:"Down", Uv:[7, 14, 9, 16]},
+                { Texture:"All", Side:"Up", Uv:[7, 2, 9, 4]},
+                { Texture:"All", Side:"North", Uv:[7, 2, 9, 16]},
+                { Texture:"All", Side:"East", Uv:[7, 2, 9, 16]},
+                { Texture:"All", Side:"South", Uv:[7, 2, 9, 16]},
+                { Texture:"All", Side:"West", Uv:[7, 2, 9, 16]}
+            ]
+        }
+    ]
+}

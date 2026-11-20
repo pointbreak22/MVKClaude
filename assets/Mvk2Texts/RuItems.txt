@@ -9,3 +9,4 @@ HelmetIron:Железный шлем
 ChestplateIron:Железный нагрудник
 LeggingsIron:Железные поножи
 BootsIron:Железные ботинки
+Torch:Факел

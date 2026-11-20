@@ -8,3 +8,4 @@ HelmetIron:Iron helmet
 ChestplateIron:Iron chestplate
 LeggingsIron:Iron leggings
 BootsIron:Iron boots
+Torch:Torch

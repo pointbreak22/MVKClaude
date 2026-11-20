@@ -1,0 +1,13 @@
+{
+    АmbientOcclusion: false,
+    NoCollision: true,
+    Passable: true,
+    LightOpacity: 0,
+    LightValue: 14,
+    Translucent: true,
+    ParticleColors: [ "785230", "966844", "ffb432" ],
+    ParticleCount: 6,
+    Variants: [
+        { Shape: "Torch" }
+    ]
+}

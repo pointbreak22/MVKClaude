@@ -1,0 +1,8 @@
+{
+    Parent: "_Base",
+    MaxStackSize: 50,
+    Width: 0.5,
+    Height: 0.125,
+    Sprite: "Items/ItemsForBlock/Torch",
+    SpriteGui: "Items/ItemsForBlock/Torch",
+}

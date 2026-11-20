@@ -1,3 +1,4 @@
+using Mvk.Engine.World.Block;
 using Mvk.Game.Entity.List;
 using Mvk.Game.Entity.Inventory;
 using Mvk.Engine.Item.List;
@@ -30,6 +31,7 @@ namespace Mvk.Desktop
             managerCommand.Registration(new CommandHealth(Server));
             managerCommand.Registration(new CommandWear(Server));
             managerCommand.Registration(new CommandHurt(Server));
+            managerCommand.Registration(new CommandSetBlock(Server));
         }
     }
 
@@ -192,6 +194,38 @@ namespace Mvk.Desktop
             player.Damage.OnAttack((byte)EnumDamageSource.Player, hitY, damage, null!);
             System.Console.WriteLine($"hurt {damage} at {hitY}: {before} -> {player.GetHealth()}");
             return "";
+        }
+    }
+
+    /// <summary>
+    /// /setblock псевдоним [расстояние] [сбоку]: поставить блок на землю перед игроком (по взгляду), сбоку — смещение
+    /// </summary>
+    internal sealed class CommandSetBlock : CommandBase
+    {
+        public CommandSetBlock(GameServer server) : base(server) => Name = "setblock";
+
+        public override string UseCommand(CommandSender sender)
+        {
+            PlayerServer player = sender.GetPlayer();
+            if (player == null) return "";
+            string[] p = sender.GetCommandParams();
+            if (p.Length == 0) return ChatStyle.Red + "setblock: нужен псевдоним блока";
+            float distance = p.Length > 1 ? float.Parse(p[1], CultureInfo.InvariantCulture) : 3f;
+            float side = p.Length > 2 ? float.Parse(p[2], CultureInfo.InvariantCulture) : 0f;
+            for (int i = 0; i < Ce.Blocks.BlockAlias.Length; i++)
+            {
+                if (Ce.Blocks.BlockAlias[i] != p[0]) continue;
+                WorldServer world = player.GetWorldServer();
+                float sin = System.MathF.Sin(player.RotationYaw), cos = System.MathF.Cos(player.RotationYaw);
+                int x = (int)System.MathF.Floor(player.PosX + sin * distance + cos * side);
+                int z = (int)System.MathF.Floor(player.PosZ - cos * distance + sin * side);
+                int y = world.GetHeightMap(x, z);
+                world.SetBlockState(new BlockPos(x, y, z), new BlockState(i), BlockFlag.cNotify);
+                BlockState near = world.GetBlockState(new BlockPos(x + 1, y, z));
+                System.Console.WriteLine($"setblock {p[0]} at {x} {y} {z}, рядом свет блока {near.LightBlock} неба {near.LightSky}");
+                return "";
+            }
+            return ChatStyle.Red + "setblock: нет блока " + p[0];
         }
     }
 }
