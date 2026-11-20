@@ -249,7 +249,7 @@ namespace Mvk.Engine.Renderer.World
         private void _DrawMesh(CommandList commands, IGpuBuffer mesh, int countIndices)
         {
             commands.SetVertexBuffer(0, mesh);
-            commands.SetIndexBuffer(_context.Quads.Buffer, IndexFormat.UInt32);
+            _context.Quads.Bind(commands, countIndices / 6);
             commands.DrawIndexed(countIndices);
         }
 

@@ -52,7 +52,7 @@ namespace Mvk.Engine.Renderer.Mesh
                 Debug.MeshCount++;
                 commands.SetVertexBuffer(0, _vboFloat);
                 commands.SetVertexBuffer(1, _vboByte);
-                commands.SetIndexBuffer(_context.Quads.Buffer, IndexFormat.UInt32);
+                _context.Quads.Bind(commands, _countIndices / 6);
                 commands.DrawIndexed(_countIndices);
             }
         }

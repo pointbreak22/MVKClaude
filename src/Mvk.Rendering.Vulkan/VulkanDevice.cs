@@ -370,6 +370,30 @@ namespace Mvk.Rendering.Vulkan
                 _deferred[i].Destroy();
                 _deferred.RemoveAt(i);
             }
+            for (int i = _sweepBuffers.Count - 1; i >= 0; i--)
+            {
+                VkBufferObject b = _sweepBuffers[i];
+                if (b.SweepRetired(CompletedSerial, _frameSerial))
+                {
+                    b.InSweep = false;
+                    _sweepBuffers.RemoveAt(i);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Буферы с запасом областей, которые ещё может читать GPU (освобождаются в _ReleaseCompleted)
+        /// </summary>
+        private readonly List<VkBufferObject> _sweepBuffers = new();
+
+        /// <summary>
+        /// Буфер отложил занятую область в запас: проверять его, пока запас не освобождён
+        /// </summary>
+        internal void TrackRetired(VkBufferObject buffer)
+        {
+            if (buffer.InSweep) return;
+            buffer.InSweep = true;
+            _sweepBuffers.Add(buffer);
         }
 
         /// <summary>
@@ -1082,6 +1106,11 @@ namespace Mvk.Rendering.Vulkan
 
         internal void OnBufferDisposed(VkBufferObject buffer)
         {
+            if (buffer.InSweep)
+            {
+                buffer.InSweep = false;
+                _sweepBuffers.Remove(buffer);
+            }
             for (int i = 0; i < _vertexBuffers.Length; i++) if (_vertexBuffers[i] == buffer) _vertexBuffers[i] = null;
             if (_indexBuffer == buffer) _indexBuffer = null;
         }

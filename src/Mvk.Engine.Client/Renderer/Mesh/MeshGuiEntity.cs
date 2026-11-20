@@ -45,7 +45,7 @@ namespace Mvk.Engine.Renderer.Mesh
             {
                 CommandList commands = _render.Commands;
                 commands.SetVertexBuffer(0, _vbo);
-                commands.SetIndexBuffer(_render.Context.Quads.Buffer, IndexFormat.UInt32);
+                _render.Context.Quads.Bind(commands, _countIndices / 6);
                 commands.DrawIndexed(_countIndices);
             }
         }

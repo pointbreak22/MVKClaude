@@ -32,6 +32,10 @@ namespace Mvk.Rendering.Vulkan
         private Area? _current;
         /// <summary>Области, которые ещё может читать GPU (освобождаются по завершении их кадра)</summary>
         private readonly List<Area> _retired = new();
+        /// <summary>Кадр последней записи SetData: буфер, который давно не пишут, не держит запас</summary>
+        private ulong _lastSetSerial;
+        /// <summary>Буфер в списке устройства на освобождение запаса</summary>
+        internal bool InSweep;
 
         public VkBuffer Buffer => _current?.Buffer ?? default;
         public BufferKind Kind { get; }
@@ -54,12 +58,17 @@ namespace Mvk.Rendering.Vulkan
             ulong bytes = (ulong)(data.Length * sizeof(T));
             Size = (int)bytes;
             if (bytes == 0) return;
+            _lastSetSerial = _device.FrameSerial;
             bool busy = _current != null && _current.LastUsed > _device.CompletedSerial;
             if (_current == null || busy || bytes > _current.Capacity)
             {
                 if (_current != null)
                 {
-                    if (busy) _retired.Add(_current);
+                    if (busy)
+                    {
+                        _retired.Add(_current);
+                        _device.TrackRetired(this);
+                    }
                     else _Free(_current);
                 }
                 _current = _TakeFree(bytes) ?? _Allocate(Math.Max(bytes, _current?.Capacity ?? 0));
@@ -108,6 +117,24 @@ namespace Mvk.Rendering.Vulkan
             _device.Vk.UnmapMemory(_device.Device, a.Memory);
             _device.Vk.DestroyBuffer(_device.Device, a.Buffer, null);
             _device.Vk.FreeMemory(_device.Device, a.Memory, null);
+        }
+
+        /// <summary>
+        /// Освободить запас, который GPU уже не читает, если буфер давно не пишут (сетка секции после перестройки).
+        /// Буферы, которые пишутся каждый кадр, сохраняют запас для повторного использования.
+        /// </summary>
+        /// <returns>Запаса не осталось, буфер можно убрать из списка устройства</returns>
+        internal bool SweepRetired(ulong completedSerial, ulong frameSerial)
+        {
+            if (frameSerial - _lastSetSerial <= 2) return _retired.Count == 0;
+            for (int i = _retired.Count - 1; i >= 0; i--)
+            {
+                Area a = _retired[i];
+                if (a.LastUsed > completedSerial) continue;
+                _retired.RemoveAt(i);
+                _Free(a);
+            }
+            return _retired.Count == 0;
         }
 
         public void Dispose()

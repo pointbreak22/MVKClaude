@@ -53,9 +53,18 @@ namespace Mvk.Engine.Renderer
     public sealed class QuadIndexBuffer : IDisposable
     {
         /// <summary>
+        /// Сколько квадов покрывают 16-битные индексы (65536 вершин)
+        /// </summary>
+        public const int MaxQuads16 = 16384;
+        /// <summary>
         /// Буфер индексов (uint)
         /// </summary>
         public readonly IGpuBuffer Buffer;
+        /// <summary>
+        /// Буфер 16-битных индексов на MaxQuads16 квадов: вдвое меньше чтения индексов у сеток до 65536 вершин
+        /// (сетки секций, сущностей, GUI, частиц)
+        /// </summary>
+        public readonly IGpuBuffer Buffer16;
         /// <summary>
         /// На сколько квадов сейчас хватает индексов
         /// </summary>
@@ -64,7 +73,30 @@ namespace Mvk.Engine.Renderer
         public QuadIndexBuffer(IGraphicsDevice device)
         {
             Buffer = device.CreateBuffer(BufferKind.Index, BufferUsage.Static);
-            Ensure(16384);
+            Ensure(MaxQuads16);
+            Buffer16 = device.CreateBuffer(BufferKind.Index, BufferUsage.Static);
+            ushort[] indices = new ushort[MaxQuads16 * 6];
+            for (int q = 0; q < MaxQuads16; q++)
+            {
+                ushort v = (ushort)(q * 4);
+                int i = q * 6;
+                indices[i] = v;
+                indices[i + 1] = (ushort)(v + 1);
+                indices[i + 2] = (ushort)(v + 2);
+                indices[i + 3] = v;
+                indices[i + 4] = (ushort)(v + 2);
+                indices[i + 5] = (ushort)(v + 3);
+            }
+            Buffer16.SetData<ushort>(indices);
+        }
+
+        /// <summary>
+        /// Выбрать индексы для сетки из quadCount квадов: 16-битные, пока вершин не больше 65536, иначе 32-битные
+        /// </summary>
+        public void Bind(CommandList commands, int quadCount)
+        {
+            if (quadCount <= MaxQuads16) commands.SetIndexBuffer(Buffer16, IndexFormat.UInt16);
+            else commands.SetIndexBuffer(Buffer, IndexFormat.UInt32);
         }
 
         /// <summary>
@@ -91,6 +123,10 @@ namespace Mvk.Engine.Renderer
             QuadCapacity = capacity;
         }
 
-        public void Dispose() => Buffer.Dispose();
+        public void Dispose()
+        {
+            Buffer.Dispose();
+            Buffer16.Dispose();
+        }
     }
 }
