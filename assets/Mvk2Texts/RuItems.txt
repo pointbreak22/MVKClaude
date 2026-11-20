@@ -10,3 +10,5 @@ ChestplateIron:Железный нагрудник
 LeggingsIron:Железные поножи
 BootsIron:Железные ботинки
 Torch:Факел
+SwordIron:Железный меч
+HoeIron:Железная мотыга

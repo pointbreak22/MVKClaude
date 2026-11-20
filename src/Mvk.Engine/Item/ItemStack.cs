@@ -142,6 +142,17 @@ namespace Mvk.Engine.Item
         public bool IsItemStackDamageable() => Item.MaxDamage > 0;
 
         /// <summary>
+        /// Износ на сервере: прибавить урон предмету, true — предмет сломался (износ обнулён)
+        /// </summary>
+        public bool Wear(int damage)
+        {
+            ItemDamaged += damage;
+            if (ItemDamaged < Item.MaxDamage) return false;
+            ItemDamaged = 0;
+            return true;
+        }
+
+        /// <summary>
         /// Возвращает true, если стак может содержать 2 или более единиц элемента.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

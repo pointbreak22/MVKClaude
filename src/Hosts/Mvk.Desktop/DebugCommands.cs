@@ -32,6 +32,8 @@ namespace Mvk.Desktop
             managerCommand.Registration(new CommandWear(Server));
             managerCommand.Registration(new CommandHurt(Server));
             managerCommand.Registration(new CommandSetBlock(Server));
+            managerCommand.Registration(new CommandHold(Server));
+            managerCommand.Registration(new CommandAttack(Server));
         }
     }
 
@@ -136,6 +138,8 @@ namespace Mvk.Desktop
             PlayerServer player = sender.GetPlayer();
             if (player == null) return "";
             WorldServer world = player.GetWorldServer();
+            ItemStack held = player.Inventory.GetCurrentItem();
+            if (held != null) System.Console.WriteLine($"held {held.Item.Alias} износ {held.ItemDamaged}/{held.Item.MaxDamage}");
             for (int i = 0; i < world.LoadedEntityList.Count; i++)
             {
                 if (world.LoadedEntityList.GetAt(i) is EntityLiving living && living is not PlayerServer)
@@ -226,6 +230,61 @@ namespace Mvk.Desktop
                 return "";
             }
             return ChatStyle.Red + "setblock: нет блока " + p[0];
+        }
+    }
+
+    /// <summary>
+    /// /hold псевдоним [количество]: положить предмет в правую руку (текущий слот)
+    /// </summary>
+    internal sealed class CommandHold : CommandBase
+    {
+        public CommandHold(GameServer server) : base(server) => Name = "hold";
+
+        public override string UseCommand(CommandSender sender)
+        {
+            PlayerServer player = sender.GetPlayer();
+            if (player == null) return "";
+            string[] p = sender.GetCommandParams();
+            if (p.Length == 0) return ChatStyle.Red + "hold: нужен псевдоним предмета";
+            int amount = p.Length > 1 ? int.Parse(p[1], CultureInfo.InvariantCulture) : 1;
+            for (int i = 0; i < Ce.Items.ItemAlias.Length; i++)
+            {
+                if (Ce.Items.ItemAlias[i] != p[0]) continue;
+                player.Inventory.SetInventorySlotContents(player.Inventory.GetCurrentIndex(), new ItemStack(Ce.Items.ItemObjects[i], (byte)amount));
+                return "";
+            }
+            return ChatStyle.Red + "hold: нет предмета " + p[0];
+        }
+    }
+
+    /// <summary>
+    /// /attack [высота]: серверный путь удара игрока по ближайшему мобу (тот же пакет, что шлёт клиент),
+    /// проверка урона оружия и износа без прицеливания мышью
+    /// </summary>
+    internal sealed class CommandAttack : CommandBase
+    {
+        public CommandAttack(GameServer server) : base(server) => Name = "attack";
+
+        public override string UseCommand(CommandSender sender)
+        {
+            PlayerServer player = sender.GetPlayer();
+            if (player == null) return "";
+            string[] p = sender.GetCommandParams();
+            float hitY = p.Length > 0 ? float.Parse(p[0], CultureInfo.InvariantCulture) : .5f;
+            WorldServer world = player.GetWorldServer();
+            EntityLiving? target = null;
+            float best = float.MaxValue;
+            for (int i = 0; i < world.LoadedEntityList.Count; i++)
+            {
+                if (world.LoadedEntityList.GetAt(i) is EntityLiving living && living is not PlayerServer)
+                {
+                    float dx = living.PosX - player.PosX, dz = living.PosZ - player.PosZ;
+                    if (dx * dx + dz * dz < best) { best = dx * dx + dz * dz; target = living; }
+                }
+            }
+            if (target == null) return ChatStyle.Red + "attack: нет мобов";
+            player.PacketUseEntity(new Mvk.Engine.Network.Packets.Client.PacketC03UseEntity(target.Id, hitY, 0, .1f, 0));
+            return "";
         }
     }
 }

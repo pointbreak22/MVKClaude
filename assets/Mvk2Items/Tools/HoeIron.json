@@ -1,0 +1,14 @@
+{
+    MaxStackSize: 1,
+    MaxDamage: 600,
+    SlotClothIndex: 1,
+    Damage: 2.0,
+    Pause: 6,
+    Acceleration: 0.8,
+    Level: 2,
+    Width: 0.75,
+    Height: 0.125,
+    Action: "ActionShovel",
+    Sprite: "Items/Tools/HoeIron",
+    SpriteGui: "Items/Tools/HoeIron"
+}

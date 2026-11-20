@@ -9,3 +9,5 @@ ChestplateIron:Iron chestplate
 LeggingsIron:Iron leggings
 BootsIron:Iron boots
 Torch:Torch
+SwordIron:Iron sword
+HoeIron:Iron hoe

@@ -465,6 +465,8 @@ namespace Mvk.Engine.Entity.Player
                         {
                             // Если урон сработал добавляем импулс
                             entity.SetPhysicsImpulse(packet.X, packet.Y, packet.Z);
+                            // [ПОВЕДЕНИЕ] Износ оружия или инструмента при ударе (сервер)
+                            if (stack != null) ItemWear.DamageHeld(this, 1);
                         }
                     }
                 }

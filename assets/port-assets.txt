@@ -6,3 +6,5 @@ Mvk2Textures/Items/Cloth/LeggingsIron.png
 Mvk2Textures/Items/Cloth/BootsIron.png
 Mvk2Textures/Blocks/Torch.png
 Mvk2Textures/Items/ItemsForBlock/Torch.png
+Mvk2Textures/Items/Tools/SwordIron.png
+Mvk2Textures/Items/Tools/HoeIron.png

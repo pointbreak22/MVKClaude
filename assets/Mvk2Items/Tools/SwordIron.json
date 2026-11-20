@@ -1,0 +1,14 @@
+{
+    MaxStackSize: 1,
+    MaxDamage: 400,
+    SlotClothIndex: 1,
+    Damage: 6.0,
+    Pause: 10,
+    Acceleration: 1.5,
+    Level: 2,
+    Width: 0.75,
+    Height: 0.125,
+    Action: "AttackRight",
+    Sprite: "Items/Tools/SwordIron",
+    SpriteGui: "Items/Tools/SwordIron"
+}
