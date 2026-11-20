@@ -1,3 +1,5 @@
+using Mvk.Engine.Item;
+using Mvk.Engine.Entity.List;
 using System.Globalization;
 using Mvk.Engine;
 using Mvk.Engine.Command;
@@ -21,6 +23,8 @@ namespace Mvk.Desktop
         {
             base.InitCommand(managerCommand);
             managerCommand.Registration(new CommandSummon(Server));
+            managerCommand.Registration(new CommandThrow(Server));
+            managerCommand.Registration(new CommandHealth(Server));
         }
     }
 
@@ -50,6 +54,85 @@ namespace Mvk.Desktop
                 entity.PosZ = player.PosZ - cos * distance + sin * side;
                 entity.PosY = world.GetHeightMap((int)System.MathF.Floor(entity.PosX), (int)System.MathF.Floor(entity.PosZ));
                 world.SpawnEntityInWorld(entity);
+            }
+            return "";
+        }
+    }
+
+    /// <summary>
+    /// /throw псевдоним [сила]: бросить предмет снарядом от игрока (проверка EntityProjectile)
+    /// </summary>
+    internal sealed class CommandThrow : CommandBase
+    {
+        public CommandThrow(GameServer server) : base(server) => Name = "throw";
+
+        public override string UseCommand(CommandSender sender)
+        {
+            PlayerServer player = sender.GetPlayer();
+            if (player == null) return ChatStyle.Red + "throw: нет игрока";
+            string[] p = sender.GetCommandParams();
+            if (p.Length == 0) return ChatStyle.Red + "throw: нужен псевдоним предмета";
+            float power = p.Length > 1 ? float.Parse(p[1], CultureInfo.InvariantCulture) : 1f;
+            for (int i = 0; i < Ce.Items.ItemAlias.Length; i++)
+            {
+                if (Ce.Items.ItemAlias[i] == p[0])
+                {
+                    EntityProjectile? projectile = EntityProjectile.Throw(player, new ItemStack(Ce.Items.ItemObjects[i], 1), power);
+                    if (projectile != null && p.Length > 2 && p[2] == "aim") _Aim(player, projectile, power);
+                    return "";
+                }
+            }
+            return ChatStyle.Red + "throw: нет предмета " + p[0];
+        }
+
+        /// <summary>
+        /// Направить снаряд прямо в ближайшую живую сущность (не игрока): проверка попадания без прицеливания
+        /// </summary>
+        private static void _Aim(PlayerServer player, EntityProjectile projectile, float power)
+        {
+            WorldServer world = player.GetWorldServer();
+            EntityLiving? target = null;
+            float best = float.MaxValue;
+            for (int i = 0; i < world.LoadedEntityList.Count; i++)
+            {
+                if (world.LoadedEntityList.GetAt(i) is EntityLiving living && living is not PlayerServer)
+                {
+                    float dx = living.PosX - projectile.PosX, dz = living.PosZ - projectile.PosZ;
+                    float d = dx * dx + dz * dz;
+                    if (d < best) { best = d; target = living; }
+                }
+            }
+            if (target == null) return;
+            float tx = target.PosX - projectile.PosX;
+            float len0 = System.MathF.Sqrt(tx * tx + (target.PosZ - projectile.PosZ) * (target.PosZ - projectile.PosZ));
+            float ty = target.PosY + target.Size.GetHeight() * .5f - projectile.PosY + len0 * len0 * .004f;
+            float tz = target.PosZ - projectile.PosZ;
+            float len = System.MathF.Sqrt(tx * tx + ty * ty + tz * tz);
+            float speed = 1.4f * power;
+            projectile.Physics.MotionX = tx / len * speed;
+            projectile.Physics.MotionY = ty / len * speed + .1f;
+            projectile.Physics.MotionZ = tz / len * speed;
+        }
+    }
+
+    /// <summary>
+    /// /hp: напечатать в консоль здоровье живых сущностей мира, кроме игроков
+    /// </summary>
+    internal sealed class CommandHealth : CommandBase
+    {
+        public CommandHealth(GameServer server) : base(server) => Name = "hp";
+
+        public override string UseCommand(CommandSender sender)
+        {
+            PlayerServer player = sender.GetPlayer();
+            if (player == null) return "";
+            WorldServer world = player.GetWorldServer();
+            for (int i = 0; i < world.LoadedEntityList.Count; i++)
+            {
+                if (world.LoadedEntityList.GetAt(i) is EntityLiving living && living is not PlayerServer)
+                {
+                    System.Console.WriteLine($"hp {living.Id}: {living.GetHealth()} dead {living.IsDead} pos {living.PosX:0.0} {living.PosY:0.0} {living.PosZ:0.0} size {living.Size.GetHeight():0.00} coll {living.CanBeCollidedWith()}");
+                }
             }
             return "";
         }

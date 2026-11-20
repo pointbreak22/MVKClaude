@@ -31,6 +31,8 @@ namespace Mvk.Game.Entity
         public static void Initialization()
         {
             EntitiesReg.RegisterEntityClass("Item", typeof(EntityItemMvk), true);
+            // Снаряд: брошенный предмет, попадание считает сервер
+            EntitiesReg.RegisterEntityClass(EntityProjectile.Alias, typeof(EntityProjectileMvk), true);
             EntitiesReg.RegisterEntityClass("Chicken", typeof(EntityChicken));
 
             //ModelEntitiesReg.RegisterModelEntityClass("Chick");

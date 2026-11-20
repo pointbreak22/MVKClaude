@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Mvk.Engine.Entity.List;
+using System;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Item;
 
@@ -29,7 +30,8 @@ namespace Mvk.Game.Item.List
         /// </summary>
         public override void OnUseAction(ItemStack stack, PlayerServer player)
         {
-            player.DropItem(stack.Copy(1), true, true);
+            // Быстрый бросок снарядом (в оригинале выброшенный предмет)
+            EntityProjectile.Throw(player, stack.Copy(1), 1);
             if (!player.CreativeMode)
             {
                 player.Inventory.DecrCurrentItem(1);
@@ -97,7 +99,9 @@ namespace Mvk.Game.Item.List
                 // Бросок
                 number -= 100;
                 //Console.WriteLine("Бросок " + number);
-                player.DropItem(stack.Copy(1), true, number > 1);
+                // Бросок с замахом: сила от времени удержания (в оригинале выброшенный предмет)
+                if (number > 1) EntityProjectile.Throw(player, stack.Copy(1), .5f + number * .125f);
+                else player.DropItem(stack.Copy(1), true, false);
                 if (!player.CreativeMode)
                 {
                     player.Inventory.DecrCurrentItem(1);

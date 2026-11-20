@@ -29,3 +29,12 @@
 | res/Assets | assets/ | 6 | ✅ | байт в байт (`.gitattributes`: `-text`), `Mvk.Desktop` копирует в вывод сборки; правки только `[ПОВЕДЕНИЕ]` |
 | (инструмент) | tools/OrigShot | 6 | ✅ | кадры оригинала без изменений для сравнения с портом, `compare.py` |
 | (новое) | src/Mvk.Rendering.Vulkan | 10 | 🟨 | бэкенд RHI на Vulkan: устройство, цепочка показа, буферы, текстуры, шейдеры GLSL 330 → SPIR-V, конвейеры, карта теней; кадры в полёте — дальше |
+
+## Из старого проекта автора Mvk (SuperAnt30/Mvk, `original-mvk/`, только чтение)
+
+Берутся идеи и устройство механик, код пишется свой; ассеты старого проекта не переносятся (лицензии нет,
+происхождение графики и звуков неясно), вместо них свои заглушки.
+
+| Старый Mvk | Порт | Статус |
+|---|---|---|
+| `MvkServer/Entity/List/EntityThrowable.cs`, `EntityExplosives.cs` (бросок, полёт, попадание лучом) | `Mvk.Engine/Entity/List/EntityProjectile.cs` (из `tools/port/new`), `Mvk.Game/Entity/List/EntityProjectileMvk.cs` (из `tools/port/game_new`), сущность `Projectile` | ✅ попадание считает сервер |

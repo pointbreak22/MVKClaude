@@ -34,6 +34,14 @@ namespace Mvk.Engine.Entity
         /// Игрок
         /// </summary>
         Player = 6,
+        /// <summary>
+        /// Кусочек: брошенный снаряд (EntityProjectile)
+        /// </summary>
+        Piece = 7,
+        /// <summary>
+        /// Источник взрыва
+        /// </summary>
+        ExplosionSource = 8,
 
 
         ///// <summary>
@@ -44,14 +52,6 @@ namespace Mvk.Engine.Entity
         ///// Соприкосновение с кактусом
         ///// </summary>
         //Cactus,
-        ///// <summary>
-        ///// Источник взрыва
-        ///// </summary>
-        //ExplosionSource,
-        ///// <summary>
-        ///// Кусочек
-        ///// </summary>
-        //Piece,
         
         ///// <summary>
         ///// Нанести урон мобом
