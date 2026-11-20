@@ -207,7 +207,15 @@ namespace Mvk.Desktop
                     {
                         byte[] pixels = new byte[w * h * 4];
                         device.ReadPixels(0, 0, w, h, pixels);
-                        PngWriter.Write(screenshot, w, h, pixels);
+                        if (screenshot.EndsWith(".rgba", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Сырые пиксели для тестов бэкендов (RenderBackendTests): ширина, высота, RGBA
+                            using var file = new BinaryWriter(File.Create(screenshot));
+                            file.Write(w);
+                            file.Write(h);
+                            file.Write(pixels);
+                        }
+                        else PngWriter.Write(screenshot, w, h, pixels);
                         Console.WriteLine($"Снимок {w}x{h}: {screenshot}");
                         window.Close();
                     }

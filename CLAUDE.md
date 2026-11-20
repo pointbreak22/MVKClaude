@@ -129,4 +129,5 @@ OpenGL, `Mvk.Platform` (ввод через `InputActionMap`, звук OpenAL, `
 оригинала завершён (`docs/migration-map.md`). Генерация однопоточная (решение пользователя), R26 ждёт решения.
 Этап 10 идёт: 10.1 готов (`Mvk.Rendering.Vulkan`, `--backend vulkan`, игра целиком на Vulkan, шейдеры GLSL 330 → 450
 через `GlslToVulkan` и Shaderc). 10.2 готов (два кадра в полёте, Vulkan 208 кадров/с против 191 у OpenGL, сцены совпадают). Технические улучшения: `ViewState` вместо статического `Gi`, `Registries` и регистрация один раз на процесс,
-включаемый режим генерации Parallel (по умолчанию Original). Этап 8 (две руки) ждёт описания управления от пользователя. Новых тестов на каждый шаг не пишем. Android отложен. См. `docs/progress.md`.
+включаемый режим генерации Parallel (по умолчанию Original). Частицы в Engine (`ParticleList`), Nullable в Engine Network и Util, 16-битные индексы, тест бэкендов
+`RenderBackendTests`. Этап 8 (две руки) ждёт описания управления от пользователя. Новых тестов на каждый шаг не пишем. Android отложен. См. `docs/progress.md`.

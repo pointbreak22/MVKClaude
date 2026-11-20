@@ -14,6 +14,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mvk.Platform\Mvk.Platform.csproj" />
     <ProjectReference Include="..\..\src\Mvk.Rendering\Mvk.Rendering.csproj" />
+    <!-- Хост с тестовой сценой RHI: тест бэкендов запускает его процессом (RenderBackendTests) -->
+    <ProjectReference Include="..\..\src\Hosts\Mvk.Desktop\Mvk.Desktop.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <ItemGroup>
     <!-- Эталоны, снятые со старого проекта -->

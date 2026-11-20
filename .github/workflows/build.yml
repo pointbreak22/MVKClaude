@@ -23,5 +23,15 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
+      # Тестовая сцена RHI на OpenGL и Vulkan (RenderBackendTests): на Linux без GPU её рисуют
+      # Mesa llvmpipe (OpenGL) и lavapipe (Vulkan) в виртуальном X-сервере; на Windows без GPU тест пропускает бэкенд
+      - name: Mesa software renderers
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-vulkan-drivers libvulkan1
       - run: dotnet build MvkClaude.slnx -c Release
-      - run: dotnet test MvkClaude.slnx -c Release --no-build
+      - name: Test (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a -s "-screen 0 1920x1080x24" dotnet test MvkClaude.slnx -c Release --no-build
+      - name: Test (Windows)
+        if: runner.os != 'Linux'
+        run: dotnet test MvkClaude.slnx -c Release --no-build
