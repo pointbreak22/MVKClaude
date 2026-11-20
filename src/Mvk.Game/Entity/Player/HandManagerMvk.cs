@@ -1,4 +1,6 @@
-﻿using Mvk.Game.Entity.List;
+﻿using Mvk.Game.Item.List;
+using Mvk.Engine.Network.Packets.Client;
+using Mvk.Game.Entity.List;
 using Mvk.Game.Item.List.Tool;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Games;
@@ -20,6 +22,46 @@ namespace Mvk.Game.Entity.Player
             : base(game, player)
         {
             _playerMvk = player;
+        }
+
+        /// <summary>
+        /// Блок щитом отправлен серверу
+        /// </summary>
+        private bool _blocking;
+
+        /// <summary>
+        /// Можно ли блокировать: щит в левой руке, правая свободна или держит оружие или инструмент
+        /// </summary>
+        private bool _CanBlock()
+        {
+            if (_player.Inventory.GetCurrentLeftItem()?.Item is not ItemShield) return false;
+            ItemStack right = _player.Inventory.GetCurrentItem();
+            return right == null || (right.Item is ItemAbTool && !right.Item.Two);
+        }
+
+        protected override void _Second(bool begin)
+        {
+            if (_CanBlock())
+            {
+                if (!_blocking)
+                {
+                    _blocking = true;
+                    _game.TrancivePacket(new PacketC0BBlocking(true));
+                }
+                return;
+            }
+            base._Second(begin);
+        }
+
+        protected override void _SecondEnd()
+        {
+            if (_blocking)
+            {
+                _blocking = false;
+                _game.TrancivePacket(new PacketC0BBlocking(false));
+                return;
+            }
+            base._SecondEnd();
         }
 
         /// <summary>

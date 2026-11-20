@@ -11,3 +11,5 @@ BootsIron:Iron boots
 Torch:Torch
 SwordIron:Iron sword
 HoeIron:Iron hoe
+Shield:Shield
+Shield.tip:Shield§u§cIn the left hand: hold the place button to block a hit from the front§r

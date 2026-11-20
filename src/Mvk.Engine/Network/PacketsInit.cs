@@ -67,6 +67,7 @@ namespace Mvk.Engine.Network
                 case 0x08: return new PacketC08PlayerBlockPlacement();
                 case 0x09: return new PacketC09HeldItemChange();
                 case 0x0A: return new PacketC0APlayerAnimation();
+                case 0x0B: return new PacketC0BBlocking();
                 case 0x0E: return new PacketC0EClickWindow();
                 case 0x14: return new PacketC14Message();
                 case 0x15: return new PacketC15PlayerSetting();

@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Item;
+﻿using Mvk.Game.Item.List;
+using Mvk.Engine.Item;
 using Mvk.Game.Item;
 using Mvk.Game.Entity.List;
 using Mvk.Game.Entity.Inventory;
@@ -76,6 +77,13 @@ namespace Mvk.Game.Entity.Damage
         public override bool OnAttack(byte source, float hitY, float damage,
             EntityLiving entityAttack = null)
         {
+            // Блок щитом (сервер): атакующий спереди, щит в левой руке
+            if (entityAttack != null && _entity is PlayerServerMvk blocker && blocker.IsBlocking
+                && blocker.InvPlayer.GetCurrentLeftItem()?.Item is ItemShield shield && _IsInFront(blocker, entityAttack))
+            {
+                damage *= 1f - shield.Protection;
+                ItemWear.DamageSlot(blocker, InventoryPlayerMvk.PocketCount, 1);
+            }
             if (_entity is EntityMob entityMob) entityMob.EntityAge = 0;
             if (_entity.GetHealth() <= 0) return false;
 
@@ -147,6 +155,17 @@ namespace Mvk.Game.Entity.Damage
                     + _Cloth(inventory, EnumCloth.Pants) + _Cloth(inventory, EnumCloth.Shoes)) / 4f,
                 _ => 0
             };
+        }
+
+        /// <summary>
+        /// Атакующий перед игроком: угол между взглядом и направлением на атакующего не больше 90°
+        /// </summary>
+        private static bool _IsInFront(EntityLiving player, EntityLiving attacker)
+        {
+            float dx = attacker.PosX - player.PosX, dz = attacker.PosZ - player.PosZ;
+            // Взгляд игрока: yaw 0 — на -Z (как бросок предмета)
+            float lookX = MathF.Sin(player.RotationYaw), lookZ = -MathF.Cos(player.RotationYaw);
+            return dx * lookX + dz * lookZ >= 0;
         }
 
         /// <summary>

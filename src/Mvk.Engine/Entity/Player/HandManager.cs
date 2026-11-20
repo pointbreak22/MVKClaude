@@ -30,7 +30,7 @@ namespace Mvk.Engine.Entity.Player
         /// <summary>
         /// Класс игры
         /// </summary>
-        private readonly GameBase _game;
+        protected readonly GameBase _game;
 
         /// <summary>
         /// Пауза для активного действия (ЛКМ)

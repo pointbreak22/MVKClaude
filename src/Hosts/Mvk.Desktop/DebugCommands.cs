@@ -34,6 +34,7 @@ namespace Mvk.Desktop
             managerCommand.Registration(new CommandSetBlock(Server));
             managerCommand.Registration(new CommandHold(Server));
             managerCommand.Registration(new CommandAttack(Server));
+            managerCommand.Registration(new CommandBlock(Server));
         }
     }
 
@@ -194,8 +195,18 @@ namespace Mvk.Desktop
             string[] p = sender.GetCommandParams();
             float damage = p.Length > 0 ? float.Parse(p[0], CultureInfo.InvariantCulture) : 1f;
             float hitY = p.Length > 1 ? float.Parse(p[1], CultureInfo.InvariantCulture) : -1f;
+            // третий параметр mob — удар от ближайшего моба (для щита: направление атакующего)
+            EntityLiving? attacker = null;
+            if (p.Length > 2 && p[2] == "mob")
+            {
+                WorldServer world = player.GetWorldServer();
+                for (int i = 0; i < world.LoadedEntityList.Count; i++)
+                {
+                    if (world.LoadedEntityList.GetAt(i) is EntityLiving living && living is not PlayerServer) attacker = living;
+                }
+            }
             float before = player.GetHealth();
-            player.Damage.OnAttack((byte)EnumDamageSource.Player, hitY, damage, null!);
+            player.Damage.OnAttack((byte)EnumDamageSource.Player, hitY, damage, attacker!);
             System.Console.WriteLine($"hurt {damage} at {hitY}: {before} -> {player.GetHealth()}");
             if (player is PlayerServerMvk mvk)
             {
@@ -294,6 +305,32 @@ namespace Mvk.Desktop
             }
             if (target == null) return ChatStyle.Red + "attack: нет мобов";
             player.PacketUseEntity(new Mvk.Engine.Network.Packets.Client.PacketC03UseEntity(target.Id, hitY, 0, .1f, 0));
+            return "";
+        }
+    }
+
+    /// <summary>
+    /// /block on|off [псевдоним]: блок щитом на сервере (как пакет C0B), псевдоним — положить предмет в левую руку
+    /// </summary>
+    internal sealed class CommandBlock : CommandBase
+    {
+        public CommandBlock(GameServer server) : base(server) => Name = "block";
+
+        public override string UseCommand(CommandSender sender)
+        {
+            if (sender.GetPlayer() is not PlayerServerMvk player) return "";
+            string[] p = sender.GetCommandParams();
+            if (p.Length > 1)
+            {
+                for (int i = 0; i < Ce.Items.ItemAlias.Length; i++)
+                {
+                    if (Ce.Items.ItemAlias[i] == p[1])
+                    {
+                        player.InvPlayer.SetInventorySlotContents(InventoryPlayerMvk.PocketCount, new ItemStack(Ce.Items.ItemObjects[i], 1));
+                    }
+                }
+            }
+            player.PacketBlocking(new Mvk.Engine.Network.Packets.Client.PacketC0BBlocking(p.Length == 0 || p[0] != "off"));
             return "";
         }
     }

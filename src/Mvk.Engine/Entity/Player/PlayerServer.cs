@@ -434,6 +434,16 @@ namespace Mvk.Engine.Entity.Player
         /// <summary>
         /// Пакет: Взаимодействие с сущностью
         /// </summary>
+        /// <summary>
+        /// Игрок держит блок щитом (вторая кнопка зажата); работает ли блок, решает урон сервера
+        /// </summary>
+        public bool IsBlocking { get; private set; }
+
+        /// <summary>
+        /// Пакет: блок щитом начат или закончен
+        /// </summary>
+        public void PacketBlocking(PacketC0BBlocking packet) => IsBlocking = packet.Blocking;
+
         public virtual void PacketUseEntity(PacketC03UseEntity packet)
         {
             EntityBase entity = GetWorldServer().LoadedEntityList.Get(packet.Index);

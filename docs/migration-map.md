@@ -43,3 +43,4 @@
 | (новое) факел | блок `Torch` (`assets/Mvk2Blocks/Torch.json`, форма `Shapes/Torch.json`), предмет `Torch` (`ItemsForBlock`), шов `game_seam8_projectile_torch.py` | ✅ свет 14, без огня |
 | (новое) меч, мотыга, серверный износ | `Mvk.Game/Item/List/Tool/ItemSword.cs`, `ItemHoe.cs` (из `tools/port/game_new`), `Mvk.Engine/Item/ItemWear.cs` (из `tools/port/new`), швы `item_wear.py`, `game_seam8_projectile_sword.py` | ✅ |
 | (новое) износ брони | шов `game_seam8_projectile_armorwear.py`, `MaxDamage` в `assets/Mvk2Items/Cloth/*Iron.json` | ✅ |
+| (новое) щит | `Mvk.Game/Item/List/ItemShield.cs` (game_new), пакет `PacketC0BBlocking` (new), швы `item_shield.py`, `game_seam8_projectile_sword_shield.py` | ✅ блок считает сервер |
