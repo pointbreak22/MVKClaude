@@ -1,4 +1,5 @@
-﻿using Mvk.Game.Item.List;
+﻿using Mvk.Game.Item.List.Tool;
+using Mvk.Game.Item.List;
 using Mvk.Engine.Item;
 using Mvk.Game.Item;
 using Mvk.Game.Entity.List;
@@ -77,12 +78,11 @@ namespace Mvk.Game.Entity.Damage
         public override bool OnAttack(byte source, float hitY, float damage,
             EntityLiving entityAttack = null)
         {
-            // Блок щитом (сервер): атакующий спереди, щит в левой руке
+            // Блок (сервер): атакующий спереди, щит в любой руке или два меча «крестом»
             if (entityAttack != null && _entity is PlayerServerMvk blocker && blocker.IsBlocking
-                && blocker.InvPlayer.GetCurrentLeftItem()?.Item is ItemShield shield && _IsInFront(blocker, entityAttack))
+                && _IsInFront(blocker, entityAttack))
             {
-                damage *= 1f - shield.Protection;
-                ItemWear.DamageSlot(blocker, InventoryPlayerMvk.PocketCount, 1);
+                damage = _Block(blocker, damage);
             }
             if (_entity is EntityMob entityMob) entityMob.EntityAge = 0;
             if (_entity.GetHealth() <= 0) return false;
@@ -155,6 +155,35 @@ namespace Mvk.Game.Entity.Damage
                     + _Cloth(inventory, EnumCloth.Pants) + _Cloth(inventory, EnumCloth.Shoes)) / 4f,
                 _ => 0
             };
+        }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Урон после блока: щит в левой, иначе в правой руке снимает свою долю (Protection) и изнашивается;
+        /// два меча снимают CrossProtection и изнашиваются оба
+        /// </summary>
+        private static float _Block(PlayerServerMvk blocker, float damage)
+        {
+            InventoryPlayerMvk inventory = blocker.InvPlayer;
+            int left = InventoryPlayerMvk.PocketCount;
+            int right = inventory.GetCurrentIndex();
+            if (inventory.GetStackInSlot(left)?.Item is ItemShield shieldLeft)
+            {
+                ItemWear.DamageSlot(blocker, left, 1);
+                return damage * (1f - shieldLeft.Protection);
+            }
+            if (inventory.GetStackInSlot(right)?.Item is ItemShield shieldRight)
+            {
+                ItemWear.DamageSlot(blocker, right, 1);
+                return damage * (1f - shieldRight.Protection);
+            }
+            if (inventory.GetStackInSlot(left)?.Item is ItemSword swordLeft
+                && inventory.GetStackInSlot(right)?.Item is ItemSword swordRight)
+            {
+                ItemWear.DamageSlot(blocker, left, 1);
+                ItemWear.DamageSlot(blocker, right, 1);
+                return damage * (1f - System.Math.Min(swordLeft.CrossProtection, swordRight.CrossProtection));
+            }
+            return damage;
         }
 
         /// <summary>

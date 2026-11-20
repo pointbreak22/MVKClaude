@@ -1,0 +1,75 @@
+#nullable enable
+using Mvk.Core.Maths;
+using Mvk.Engine.Item;
+using Mvk.Engine.Network.Packets.Client;
+using Mvk.Engine.Util;
+using Mvk.Game.Item.List;
+using Mvk.Game.Item.List.Tool;
+
+namespace Mvk.Game.Entity.Player
+{
+    /// <summary>
+    /// [ПОВЕДЕНИЕ] Две руки Малювек (выживание): щит в любой руке, раскрытие щита на время действия другой руки,
+    /// удар щитом с разгона, «крест» двумя мечами. Состояние блока серверу (пакет C0B) шлёт менеджер левой руки:
+    /// его такт идёт последним, он видит обе руки. Работает ли блок и чем (щит или два меча), решает сервер
+    /// (DamageLiving).
+    /// </summary>
+    public partial class HandManagerMvk
+    {
+        /// <summary>
+        /// Менеджер другой руки
+        /// </summary>
+        public HandManagerMvk? Other;
+
+        /// <summary>
+        /// Предмет руки менеджера без учёта руки действия
+        /// </summary>
+        private ItemStack? _ItemOf(HandManagerMvk hand)
+            => hand._left ? _player.Inventory.GetCurrentLeftItem() : _player.Inventory.GetCurrentRightItem();
+
+        /// <summary>
+        /// «Крест»: в обеих руках мечи и обе кнопки зажаты дольше порога удержания
+        /// </summary>
+        private bool _Cross()
+            => Other != null && HandTicks >= HoldTicks && Other.HandTicks >= HoldTicks
+            && _ItemOf(this)?.Item is ItemSword && _ItemOf(Other)?.Item is ItemSword;
+
+        /// <summary>
+        /// При «кресте» мечи не бьют, а держат блок
+        /// </summary>
+        protected override bool _HoldOverride() => _Cross();
+
+        /// <summary>
+        /// Перезарядка оружия щит не раскрывает (одной рукой, при закрытом щите)
+        /// </summary>
+        protected override bool _HoldOpensGuard()
+            => !(_Use == HandUse.Charge && _player.Inventory.GetCurrentItem()?.Item is ItemGun);
+
+        /// <summary>
+        /// Удар щитом с разгона: малый урон, сильное отталкивание (сервер проверяет бег, Knockback щита)
+        /// </summary>
+        protected override void _GuardPress()
+        {
+            MovingObjectPosition moving = _player.MovingObject;
+            if (!_player.IsSprinting() || !moving.IsEntity()) return;
+            Vector3 vec = (moving.Entity!.GetPositionVec() - _player.GetPositionVec()).Normalize();
+            _game.TrancivePacket(new PacketC03UseEntity(moving.Entity.Id, moving.RayHit.Y,
+                vec.X * .9f, vec.Y * .18f, vec.Z * .9f).Hand(_left));
+            _player.Render.SetAnimationCodeAdd("ActionAxe");
+        }
+
+        /// <summary>
+        /// Конец такта левой руки: блок держится, если щит одной руки зажат и другая рука не действует, или «крест»
+        /// </summary>
+        protected override void _AfterHandTick()
+        {
+            if (!_left || Other == null) return;
+            bool want = (Guarding && !Other.Acting) || (Other.Guarding && !Acting) || _Cross();
+            if (want != _playerMvk.BlockingSent)
+            {
+                _playerMvk.BlockingSent = want;
+                _game.TrancivePacket(new PacketC0BBlocking(want));
+            }
+        }
+    }
+}

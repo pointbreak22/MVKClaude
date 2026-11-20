@@ -14,7 +14,7 @@ namespace Mvk.Game.Entity.Player
     /// Объект менеджер действий рук игрока. Левой и правой клавишей мыши.
     /// В прошлом было объект ItemInWorldManager, что-то подобное, но там именно очередь ударов
     /// </summary>
-    public class HandManagerMvk : HandManager
+    public partial class HandManagerMvk : HandManager
     {
         private readonly PlayerClientOwnerMvk _playerMvk;
 
@@ -60,6 +60,13 @@ namespace Mvk.Game.Entity.Player
 
         protected override void _Second(bool begin)
         {
+            if (_player.IsTwoHands())
+            {
+                // Две руки: защиту щитом ведёт такт рук (_AfterHandTick)
+                if (_player.Inventory.GetCurrentItem()?.Item is ItemShield) return;
+                base._Second(begin);
+                return;
+            }
             if (_CanBlock())
             {
                 if (!_blocking)
@@ -74,6 +81,12 @@ namespace Mvk.Game.Entity.Player
 
         protected override void _SecondEnd()
         {
+            if (_player.IsTwoHands())
+            {
+                if (_player.Inventory.GetCurrentItem()?.Item is ItemShield) return;
+                base._SecondEnd();
+                return;
+            }
             if (_blocking)
             {
                 _blocking = false;

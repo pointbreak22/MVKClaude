@@ -469,6 +469,8 @@ namespace Mvk.Engine.Entity.Player
                 }
                 else if (packet.Action == PacketC03UseEntity.EnumAction.Attack)
                 {
+                    // [ПОВЕДЕНИЕ] Удар предметом на предплечье (щитом) только с разгона
+                    if (Inventory.GetCurrentItem()?.Item.Forearm == true && !IsSprinting()) return;
                     // [ПОВЕДЕНИЕ] Не чаще раза в 4 такта на руку
                     uint tick = _server.TickCounterGlobal;
                     int hand = packet.Left ? 1 : 0;
@@ -485,8 +487,10 @@ namespace Mvk.Engine.Entity.Player
                         if (entity.Damage.OnAttack((byte)EnumDamageSource.Player, 
                             packet.HitY, damage, this))
                         {
-                            // Если урон сработал добавляем импулс
-                            entity.SetPhysicsImpulse(packet.X, packet.Y, packet.Z);
+                            // Если урон сработал добавляем импулс; [ПОВЕДЕНИЕ] толчок ограничен, сила по предмету
+                            float knockback = stack != null ? stack.Item.Knockback : 1;
+                            entity.SetPhysicsImpulse(Math.Clamp(packet.X, -1, 1) * knockback,
+                                Math.Clamp(packet.Y, -.3f, .3f) * knockback, Math.Clamp(packet.Z, -1, 1) * knockback);
                             // [ПОВЕДЕНИЕ] Износ оружия или инструмента при ударе (сервер)
                             if (stack != null) ItemWear.DamageHeld(this, 1);
                         }

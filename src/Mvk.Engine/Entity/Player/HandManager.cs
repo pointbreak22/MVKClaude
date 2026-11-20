@@ -158,6 +158,53 @@ namespace Mvk.Engine.Entity.Player
         public void SetHand(bool down) => _hand = down;
 
         /// <summary>
+        /// Сколько тактов после действия руки раскрыт щит другой руки
+        /// </summary>
+        public const int ActOpenTicks = 8;
+        /// <summary>
+        /// Тактов, пока рука считается действующей
+        /// </summary>
+        private int _actTicks;
+
+        /// <summary>
+        /// Кнопка руки зажата (и рука не придерживает двуручный предмет другой)
+        /// </summary>
+        public bool HandDown => _hand && !_HandBusy();
+        /// <summary>
+        /// Тактов от нажатия (не больше порога удержания), 0 — кнопка отпущена
+        /// </summary>
+        public int HandTicks => _hand ? _handTicks : 0;
+        /// <summary>
+        /// Рука держит защиту (щит)
+        /// </summary>
+        public bool Guarding => _holding && _use == HandUse.Guard;
+        /// <summary>
+        /// Рука действует (удар, выстрел, установка, натяжение): щит другой руки на это время раскрыт
+        /// </summary>
+        public bool Acting => _actTicks > 0;
+        /// <summary>
+        /// Чем рука действует в текущем нажатии
+        /// </summary>
+        protected HandUse _Use => _use;
+
+        /// <summary>
+        /// Нажатие руки с защитой (щитом), до начала защиты
+        /// </summary>
+        protected virtual void _GuardPress() { }
+        /// <summary>
+        /// Наследник сам ведёт удержание (true — обычное удержание пропускается)
+        /// </summary>
+        protected virtual bool _HoldOverride() => false;
+        /// <summary>
+        /// Раскрывает ли удержание щит другой руки
+        /// </summary>
+        protected virtual bool _HoldOpensGuard() => true;
+        /// <summary>
+        /// Конец такта руки (выживание)
+        /// </summary>
+        protected virtual void _AfterHandTick() { }
+
+        /// <summary>
         /// Две руки: в выживании; творческий режим по прежней схеме
         /// </summary>
         private bool _TwoHands() => !_player.CreativeMode;
@@ -179,6 +226,7 @@ namespace Mvk.Engine.Entity.Player
         /// </summary>
         private void _UpdateHand()
         {
+            if (_actTicks > 0) _actTicks--;
             bool holdAction = _holding && _use == HandUse.Action;
             bool holdSecond = _holding && _use != HandUse.Action;
             if (!holdAction && _pauseAction > 0) _pauseAction--;
@@ -196,6 +244,7 @@ namespace Mvk.Engine.Entity.Player
                     {
                         _clickPending = false;
                         _holding = true;
+                        _GuardPress();
                         _HoldBegin();
                     }
                     else
@@ -226,6 +275,7 @@ namespace Mvk.Engine.Entity.Player
                 _HandClick();
             }
             _handPrev = hand;
+            _AfterHandTick();
         }
 
         /// <summary>
@@ -234,6 +284,7 @@ namespace Mvk.Engine.Entity.Player
         private void _HandClick()
         {
             if (_player.IsSpectator()) return;
+            _actTicks = ActOpenTicks;
             if (_use == HandUse.Place)
             {
                 _counterSecond = 0;
@@ -259,6 +310,8 @@ namespace Mvk.Engine.Entity.Player
         /// </summary>
         private void _HoldBegin()
         {
+            if (_HoldOverride()) return;
+            if (_use != HandUse.Guard && _HoldOpensGuard()) _actTicks = ActOpenTicks;
             if (_use == HandUse.Action)
             {
                 _Action(false);
@@ -281,6 +334,8 @@ namespace Mvk.Engine.Entity.Player
         /// </summary>
         private void _HoldTick()
         {
+            if (_HoldOverride()) return;
+            if (_use != HandUse.Guard && _HoldOpensGuard()) _actTicks = ActOpenTicks;
             if (_use == HandUse.Action)
             {
                 _Action(false);

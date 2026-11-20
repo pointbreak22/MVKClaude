@@ -22,10 +22,17 @@ namespace Mvk.Game.Entity.List
         /// </summary>
         public InventoryPlayerMvk InvPlayer { get; private set; }
 
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Блок (щит или «крест» мечами) отправлен серверу (две руки)
+        /// </summary>
+        public bool BlockingSent;
+
         public PlayerClientOwnerMvk(GameBase game) : base(game)
         {
             _handManager = new HandManagerMvk(game, this);
             _handLeft = new HandManagerMvk(game, this, true);
+            ((HandManagerMvk)_handManager).Other = (HandManagerMvk)_handLeft;
+            ((HandManagerMvk)_handLeft).Other = (HandManagerMvk)_handManager;
         }
 
         /// <summary>

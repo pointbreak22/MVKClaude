@@ -89,6 +89,10 @@ namespace Mvk.Engine.Item
         /// </summary>
         public bool Forearm { get; protected set; } = false;
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Множитель отталкивания при ударе предметом (щит бьёт слабо, но отталкивает сильно)
+        /// </summary>
+        public float Knockback { get; protected set; } = 1;
+        /// <summary>
         /// Группа предметов, образно все виды топоров, если 0, нет группы
         /// </summary>
         //public int Group { get; protected set; } = 0;
@@ -407,6 +411,7 @@ namespace Mvk.Engine.Item
                         else if (json.IsKey(Cti.Action)) Action = json.GetString();
                         else if (json.IsKey(Cti.Two)) Two = json.GetBool();
                         else if (json.IsKey("Forearm")) Forearm = json.GetBool();
+                        else if (json.IsKey("Knockback")) Knockback = json.GetFloat();
                     }
                 }
                 catch

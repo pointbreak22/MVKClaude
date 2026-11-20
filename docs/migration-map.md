@@ -51,3 +51,4 @@
 | (новое) две руки в выживании | `HandManager` (руки, клик и удержание), `InventoryBase.HandLeft`, пакет `PacketC0CHandControl` (new), швы `controls_two_hands.py`, `game_seam8_projectile_torch_hands.py` | ✅ этап 8.1 |
 | (новое) добыча на сервере | `World/BlockHits.cs` (new), `ItemBase.DigAcceleration`, швы `mining_server.py`, `game_seam8_projectile_torch_hands_mining.py` | ✅ этап 8.2 |
 | (новое) двуручность, сила удара, крит | `InventoryBase.HandBusy`, `ItemBase.Forearm`/`DigStrength`/`CritMultiplier`, швы `combat_two_hands.py`, `game_seam8_projectile_torch_hands_mining_combat.py` | ✅ этап 8.3 |
+| (новое) щит в любой руке, «крест» | `game_new/Entity/Player/HandManagerMvkHands.cs`, швы `controls_shield_hands.py`, `game_seam8_projectile_torch_hands_mining_combat_shield.py` | ✅ этап 8.4 |

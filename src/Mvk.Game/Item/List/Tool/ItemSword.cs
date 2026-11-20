@@ -1,4 +1,5 @@
 #nullable enable
+using Mvk.Core.Json;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Item;
 using Mvk.Engine.World.Block;
@@ -11,6 +12,17 @@ namespace Mvk.Game.Item.List.Tool
     /// </summary>
     public class ItemSword : ItemAbTool
     {
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Доля урона, которую снимают два меча «крестом» (json CrossProtection, половина щита)
+        /// </summary>
+        public float CrossProtection { get; private set; } = .375f;
+
+        protected override void _ReadStateFromJson(JsonCompound state)
+        {
+            base._ReadStateFromJson(state);
+            if (state.IsKey("CrossProtection")) CrossProtection = System.Math.Clamp(state.GetFloat("CrossProtection"), 0, 1);
+        }
+
         /// <summary>
         /// Ускорение добычи блока (сервер): только блоки, которые ломаются рукой
         /// </summary>
