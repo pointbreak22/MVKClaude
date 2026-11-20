@@ -197,6 +197,16 @@ namespace Mvk.Desktop
             float before = player.GetHealth();
             player.Damage.OnAttack((byte)EnumDamageSource.Player, hitY, damage, null!);
             System.Console.WriteLine($"hurt {damage} at {hitY}: {before} -> {player.GetHealth()}");
+            if (player is PlayerServerMvk mvk)
+            {
+                string wear = "";
+                foreach (byte key in new byte[] { 2, 4, 6, 8 })
+                {
+                    ItemStack cloth = mvk.InvPlayer.GetStackInSlot(InventoryPlayerMvk.PocketCount + key - 1);
+                    wear += cloth == null ? " -" : $" {cloth.Item.Alias} {cloth.ItemDamaged}/{cloth.Item.MaxDamage}";
+                }
+                System.Console.WriteLine("броня:" + wear);
+            }
             return "";
         }
     }

@@ -1,5 +1,6 @@
 {
     MaxStackSize: 1,
+    MaxDamage: 200,
     SlotClothIndex: [6],
     Sprite: "Items/Cloth/LeggingsIron",
     SpriteGui: "Items/Cloth/LeggingsIron",
