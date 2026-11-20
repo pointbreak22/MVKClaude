@@ -161,6 +161,36 @@ namespace Mvk.Engine.Entity.Inventory
         }
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Расход предмета руки; кончился — рука пополняется таким же стаком из инвентаря (сервер)
+        /// </summary>
+        public override void DecrCurrentItem(byte amount)
+        {
+            int index = GetCurrentIndex();
+            ItemStack before = _items[index];
+            base.DecrCurrentItem(amount);
+            if (_playerServer != null && before != null && _items[index] == null) _RefillHand(index, before);
+        }
+
+        /// <summary>
+        /// Найти такой же предмет (карманы, затем рюкзак) и переложить его стак в слот руки
+        /// </summary>
+        private void _RefillHand(int index, ItemStack used)
+        {
+            int backpack = _pocketCount + _clothCount;
+            for (int i = 0; i < backpack + LimitBackpack && i < _allCount; i++)
+            {
+                if (i == index || i == _currentIndex || (i >= LimitPocket && i < backpack)) continue;
+                ItemStack stack = _items[i];
+                if (stack != null && stack.Item == used.Item && stack.ItemDamaged == used.ItemDamaged)
+                {
+                    SetInventorySlotContents(i, null!);
+                    SetInventorySlotContents(index, stack);
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
         /// Поменять стаки двух слотов местами с рассылкой
         /// </summary>
         private void _SwapSlots(int a, int b)
