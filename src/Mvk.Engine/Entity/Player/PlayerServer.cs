@@ -449,6 +449,7 @@ namespace Mvk.Engine.Entity.Player
         public void PacketBlocking(PacketC0BBlocking packet)
         {
             IsBlocking = packet.Blocking;
+            if (packet.Blocking && packet.Parry) ParryTick = _server.TickCounterGlobal;
             SetHandPose(IsBlocking || IsDrawing);
         }
 
@@ -456,6 +457,21 @@ namespace Mvk.Engine.Entity.Player
         /// [ПОВЕДЕНИЕ] Игрок натягивает лук (задаёт лук на сервере)
         /// </summary>
         public bool IsDrawing { get; private set; }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Такт сервера, когда блок щитом подняли нажатием (окно парирования)
+        /// </summary>
+        public uint ParryTick { get; private set; }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Окно парирования в тактах (0.25 с)
+        /// </summary>
+        public const int ParryTicks = 5;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Идёт ли окно парирования
+        /// </summary>
+        public bool IsParrying() => IsBlocking && ParryTick != 0 && _server.TickCounterGlobal - ParryTick <= ParryTicks;
 
         /// <summary>
         /// [ПОВЕДЕНИЕ] Начало или конец натяжения лука: поза руки

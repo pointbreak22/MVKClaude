@@ -25,6 +25,10 @@ namespace Mvk.Game.Entity.Player
         /// «Крест» был в прошлом такте; тактов, пока после него ждём отпускания обеих кнопок
         /// </summary>
         private bool _crossPrev;
+        /// <summary>
+        /// Рука держала защиту в прошлом такте (нажатие щита — начало парирования)
+        /// </summary>
+        private bool _guardPrev;
         private int _crossEndTicks;
 
         /// <summary>
@@ -110,10 +114,14 @@ namespace Mvk.Game.Entity.Player
                 Other.Strike();
             }
             bool want = (Guarding && !Other.Acting) || (Other.Guarding && !Acting) || cross;
-            if (want != _playerMvk.BlockingSent)
+            // [ПОВЕДЕНИЕ] Щит поднят нажатием кнопки (не возврат после действия другой руки) — окно парирования
+            bool press = (Guarding && !_guardPrev) || (Other.Guarding && !Other._guardPrev);
+            _guardPrev = Guarding;
+            Other._guardPrev = Other.Guarding;
+            if (want != _playerMvk.BlockingSent || (want && press))
             {
                 _playerMvk.BlockingSent = want;
-                _game.TrancivePacket(new PacketC0BBlocking(want));
+                _game.TrancivePacket(new PacketC0BBlocking(want, want && press));
             }
         }
     }
