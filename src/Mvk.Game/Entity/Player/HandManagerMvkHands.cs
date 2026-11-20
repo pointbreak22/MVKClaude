@@ -37,7 +37,15 @@ namespace Mvk.Game.Entity.Player
         /// <summary>
         /// При «кресте» мечи не бьют, а держат блок
         /// </summary>
-        protected override bool _HoldOverride() => _Cross();
+        protected override bool _HoldOverride() => _Cross() || _GunGuarded();
+
+        /// <summary>
+        /// Двуручное оружие (двустволка) при закрытом щите другой руки не стреляет и не перезаряжается
+        /// </summary>
+        private bool _GunGuarded()
+            => Other != null && Other.Guarding && _ItemOf(this)?.Item is ItemGun gun && gun.Two;
+
+        protected override bool _ClickOverride() => _GunGuarded();
 
         /// <summary>
         /// Перезарядка оружия щит не раскрывает (одной рукой, при закрытом щите)

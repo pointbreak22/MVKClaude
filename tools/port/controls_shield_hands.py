@@ -56,6 +56,10 @@ t = rep(t, """        /// <summary>
         /// </summary>
         protected virtual bool _HoldOverride() => false;
         /// <summary>
+        /// Наследник запрещает клик (true — клик пропускается)
+        /// </summary>
+        protected virtual bool _ClickOverride() => false;
+        /// <summary>
         /// Раскрывает ли удержание щит другой руки
         /// </summary>
         protected virtual bool _HoldOpensGuard() => true;
@@ -80,7 +84,7 @@ t = rep(t, """                _clickPending = false;
             _handPrev = hand;
             _AfterHandTick();""", rel, 1)
 t = rep(t, """            if (_player.IsSpectator()) return;
-            if (_use == HandUse.Place)""", """            if (_player.IsSpectator()) return;
+            if (_use == HandUse.Place)""", """            if (_player.IsSpectator() || _ClickOverride()) return;
             _actTicks = ActOpenTicks;
             if (_use == HandUse.Place)""", rel, 1)
 t = rep(t, """        private void _HoldBegin()

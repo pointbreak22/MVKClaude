@@ -19,7 +19,9 @@ namespace Mvk.Game.Item.List
     /// Заряженные стволы хранятся в стаке (Met). Первое действие — выстрел, удержание второго — перезарядка всех пустых
     /// стволов. Клиент только сообщает намерение; заряд, время перезарядки по тактам сервера, расход пули и заряда
     /// из инвентаря, выстрел (быстрый снаряд-пуля с серверным попаданием), отдача, дым, звук и износ — сервер.
-    /// Одноручное или двуручное — признак Two в json (двуручное занимает обе руки: щит при нём не блокирует).
+    /// Одноручное или двуручное — признак Two в json. [ПОВЕДЕНИЕ] Одноручное (мушкет) стреляет при закрытом щите
+    /// (щит раскрывается на выстрел) и перезаряжается под ним; двуручное (двустволка) при закрытом щите только
+    /// держится. Вблизи (CloseRange) урон пули ×CloseMultiplier, по блоку пуля бьёт силой BlockStrength.
     /// </summary>
     public class ItemGun : ItemBase
     {
@@ -30,6 +32,18 @@ namespace Mvk.Game.Item.List
         public string Charge { get; private set; } = "Powder";
         public float Speed { get; private set; } = 4;
         public float Recoil { get; private set; } = .3f;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Сила удара пули по блоку (как удар рукой силой 1; json BlockStrength)
+        /// </summary>
+        public float BlockStrength { get; private set; } = 1;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Дистанция ближнего выстрела в блоках (json CloseRange; 0 — нет)
+        /// </summary>
+        public float CloseRange { get; private set; }
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Множитель урона ближнего выстрела (json CloseMultiplier)
+        /// </summary>
+        public float CloseMultiplier { get; private set; } = 1;
 
         /// <summary>
         /// Такт сервера начала перезарядки у игрока (сервер)
@@ -46,6 +60,9 @@ namespace Mvk.Game.Item.List
             if (state.IsKey("Charge")) Charge = state.GetString("Charge");
             if (state.IsKey("Speed")) Speed = state.GetFloat("Speed");
             if (state.IsKey("Recoil")) Recoil = state.GetFloat("Recoil");
+            if (state.IsKey("BlockStrength")) BlockStrength = state.GetFloat("BlockStrength");
+            if (state.IsKey("CloseRange")) CloseRange = state.GetFloat("CloseRange");
+            if (state.IsKey("CloseMultiplier")) CloseMultiplier = state.GetFloat("CloseMultiplier");
         }
 
         public override string GetToolTip(ItemStack stack) => base.GetToolTip(stack) + " [" + stack.Met + "/" + Barrels + "]";
@@ -61,13 +78,17 @@ namespace Mvk.Game.Item.List
 
         public override void OnUseAction(ItemStack stack, PlayerServer player)
         {
-            if (player is not PlayerServerMvk mvk || stack.Met == 0) return;
+            if (player is not PlayerServerMvk mvk || stack.Met == 0 || _GuardBlocks(player)) return;
             int slot = mvk.InvPlayer.GetCurrentIndex();
             WorldServer world = player.GetWorldServer();
             // Пуля: снаряд с серверным попаданием
             if (EntityProjectile.Throw(player, new ItemStack(ItemsRegMvk.Bullet, 1), Speed, EntityBulletMvk.AliasBullet) is EntityBulletMvk shot)
             {
                 shot.BulletDamage = BulletDamage;
+                shot.BlockStrength = BlockStrength;
+                shot.CloseRange = CloseRange;
+                shot.CloseMultiplier = CloseMultiplier;
+                shot.Origin = new Vector3(player.PosX, player.PosY + player.GetEyeHeight(), player.PosZ);
             }
             mvk.InvPlayer.SetInventorySlotContents(slot, new ItemStack(this, 1, stack.ItemDamaged, (byte)(stack.Met - 1)));
             ItemWear.DamageHeld(player, 1);
@@ -81,6 +102,11 @@ namespace Mvk.Game.Item.List
         }
 
         #endregion
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Двуручное оружие не стреляет и не перезаряжается, пока игрок держит закрытый щит
+        /// </summary>
+        private bool _GuardBlocks(PlayerServer player) => Two && player.IsBlocking;
 
         #region Перезарядка
 
@@ -97,6 +123,11 @@ namespace Mvk.Game.Item.List
         public override void OnUseSecond(ItemStack stack, PlayerServer player, int number)
         {
             if (player is not PlayerServerMvk mvk) return;
+            if (_GuardBlocks(player))
+            {
+                _reloadStart.Remove(player);
+                return;
+            }
             uint tick = player.GetWorldServer().Server.TickCounterGlobal;
             if (number == 0)
             {
