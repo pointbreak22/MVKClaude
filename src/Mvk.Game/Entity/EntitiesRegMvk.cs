@@ -35,6 +35,7 @@ namespace Mvk.Game.Entity
             EntitiesReg.RegisterEntityClass(EntityProjectile.Alias, typeof(EntityProjectileMvk), true);
             // Динамит: снаряд, который взрывается при попадании
             EntitiesReg.RegisterEntityClass(EntityDynamiteMvk.AliasDynamite, typeof(EntityDynamiteMvk), true);
+            EntitiesReg.RegisterEntityClass(EntityArrowMvk.AliasArrow, typeof(EntityArrowMvk), true);
             EntitiesReg.RegisterEntityClass("Chicken", typeof(EntityChicken));
 
             //ModelEntitiesReg.RegisterModelEntityClass("Chick");

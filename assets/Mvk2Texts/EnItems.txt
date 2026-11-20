@@ -13,3 +13,6 @@ SwordIron:Iron sword
 HoeIron:Iron hoe
 Shield:Shield
 Shield.tip:Shield§u§cIn the left hand: hold the place button to block a hit from the front§r
+Bow:Bow
+Bow.tip:Bow§u§cTwo-handed: hold the place button to draw, release to shoot§r
+Arrow:Arrow

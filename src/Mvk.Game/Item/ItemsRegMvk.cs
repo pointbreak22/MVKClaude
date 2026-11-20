@@ -172,6 +172,14 @@ namespace Mvk.Game.Item
         /// Деревянный щит с железной оковкой
         /// </summary>
         public static ItemShield Shield { get; private set; }
+        /// <summary>
+        /// Лук
+        /// </summary>
+        public static ItemBow Bow { get; private set; }
+        /// <summary>
+        /// Стрела
+        /// </summary>
+        public static ItemArrow Arrow { get; private set; }
 
 
         #endregion
@@ -357,6 +365,8 @@ namespace Mvk.Game.Item
             ItemsReg.RegisterItemClass("SwordIron", SwordIron = new ItemSword(), _Tools);
             ItemsReg.RegisterItemClass("HoeIron", HoeIron = new ItemHoe(), _Tools);
             ItemsReg.RegisterItemClass("Shield", Shield = new ItemShield(), _Tools);
+            ItemsReg.RegisterItemClass("Bow", Bow = new ItemBow(), _Tools);
+            ItemsReg.RegisterItemClass("Arrow", Arrow = new ItemArrow(), _Tools);
 
             // Cloth
             ItemsReg.RegisterItemClass("PantsJeans", PantsJeans = new ItemCloth(), _Cloth);

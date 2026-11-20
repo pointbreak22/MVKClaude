@@ -35,6 +35,7 @@ namespace Mvk.Desktop
             managerCommand.Registration(new CommandHold(Server));
             managerCommand.Registration(new CommandAttack(Server));
             managerCommand.Registration(new CommandBlock(Server));
+            managerCommand.Registration(new CommandUse(Server));
         }
     }
 
@@ -331,6 +332,29 @@ namespace Mvk.Desktop
                 }
             }
             player.PacketBlocking(new Mvk.Engine.Network.Packets.Client.PacketC0BBlocking(p.Length == 0 || p[0] != "off"));
+            return "";
+        }
+    }
+
+    /// <summary>
+    /// /use число: серверный путь второго действия предмета в руке (как пакет C05 с числом), печатает руки
+    /// </summary>
+    internal sealed class CommandUse : CommandBase
+    {
+        public CommandUse(GameServer server) : base(server) => Name = "use";
+
+        public override string UseCommand(CommandSender sender)
+        {
+            PlayerServer player = sender.GetPlayer();
+            if (player == null) return "";
+            string[] p = sender.GetCommandParams();
+            int number = p.Length > 0 ? int.Parse(p[0], CultureInfo.InvariantCulture) : 100;
+            ItemStack stack = player.Inventory.GetCurrentItem();
+            stack?.Item.OnUseSecond(stack, player, number);
+            ItemStack right = player.Inventory.GetCurrentItem();
+            ItemStack left = player.Inventory.GetCurrentLeftItem();
+            System.Console.WriteLine($"use {number}: правая {right?.Item.Alias} {right?.Amount} износ {right?.ItemDamaged} мет {right?.Met}, "
+                + $"левая {left?.Item.Alias} {left?.Amount}");
             return "";
         }
     }

@@ -9,3 +9,5 @@ Mvk2Textures/Items/ItemsForBlock/Torch.png
 Mvk2Textures/Items/Tools/SwordIron.png
 Mvk2Textures/Items/Tools/HoeIron.png
 Mvk2Textures/Items/Tools/Shield.png
+Mvk2Textures/Items/Tools/Bow.png
+Mvk2Textures/Items/Tools/Arrow.png

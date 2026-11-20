@@ -1,0 +1,10 @@
+{
+    MaxStackSize: 1,
+    MaxDamage: 350,
+    SlotClothIndex: 1,
+    Two: true,
+    Width: 0.75,
+    Height: 0.125,
+    Sprite: "Items/Tools/Bow",
+    SpriteGui: "Items/Tools/Bow"
+}

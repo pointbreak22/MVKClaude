@@ -78,6 +78,8 @@ namespace Mvk.Game.Item
             tabTools.Add(new ItemStack(ItemsRegMvk.SwordIron));
             tabTools.Add(new ItemStack(ItemsRegMvk.HoeIron));
             tabTools.Add(new ItemStack(ItemsRegMvk.Shield));
+            tabTools.Add(new ItemStack(ItemsRegMvk.Bow));
+            tabTools.Add(new ItemStack(ItemsRegMvk.Arrow, 64));
             tabTools.Add(new ItemStack(ItemsRegMvk.Dynamite));
 
 

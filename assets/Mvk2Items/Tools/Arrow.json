@@ -1,0 +1,8 @@
+{
+    MaxStackSize: 64,
+    Damage: 3.0,
+    Width: 0.6,
+    Height: 0.0625,
+    Sprite: "Items/Tools/Arrow",
+    SpriteGui: "Items/Tools/Arrow"
+}
