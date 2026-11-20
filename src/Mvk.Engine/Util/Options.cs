@@ -198,7 +198,7 @@ namespace Mvk.Engine.Util
         /// <summary>
         /// Контрол присесть
         /// </summary>
-        public static int ControlSneak = (int)Keys.ShiftKey;
+        public static int ControlSneak = (int)Keys.Menu;
         /// <summary>
         /// Контрол ускорение
         /// </summary>

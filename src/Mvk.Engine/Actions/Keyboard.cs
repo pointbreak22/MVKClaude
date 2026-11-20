@@ -47,7 +47,7 @@ namespace Mvk.Engine.Actions
             {
                 // Без сочетания с F3
 
-                if (keys == Keys.Escape || keys == Keys.Menu) _OnInGameMenu();
+                if (keys == Keys.Escape) _OnInGameMenu();
                 else if (keys == Keys.Space && !_game.Player.Movement.Jump)
                 {
                     // Проверка двойного нажатия пробела

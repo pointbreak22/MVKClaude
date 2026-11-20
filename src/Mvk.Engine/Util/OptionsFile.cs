@@ -1,4 +1,5 @@
-﻿#nullable enable
+﻿using Mvk.Engine.Actions;
+#nullable enable
 using Mvk.Core.Util;
 using System;
 using System.IO;
@@ -97,7 +98,11 @@ namespace Mvk.Engine.Util
                 case "ControlStrafeRight": Options.ControlStrafeRight = int.Parse(value); return true;
                 case "ControlBack": Options.ControlBack = int.Parse(value); return true;
                 case "ControlJump": Options.ControlJump = int.Parse(value); return true;
-                case "ControlSneak": Options.ControlSneak = int.Parse(value); return true;
+                case "ControlSneak":
+                    // [ПОВЕДЕНИЕ] Shift из прежних настроек — теперь Alt (присесть)
+                    Options.ControlSneak = int.Parse(value);
+                    if (Options.ControlSneak == (int)Keys.ShiftKey) Options.ControlSneak = (int)Keys.Menu;
+                    return true;
                 case "ControlSprinting": Options.ControlSprinting = int.Parse(value); return true;
                 case "ControlHandAction": Options.ControlHandAction = int.Parse(value); return true;
                 case "ControlHandSecond": Options.ControlHandSecond = int.Parse(value); return true;

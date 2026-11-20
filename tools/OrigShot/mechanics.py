@@ -60,7 +60,9 @@ def run(name, look, script, commands=(), strict_end=True):
         common += ["--cmd", c]
     _run(ORIG, common + ["--trace", orig], os.path.dirname(ORIG), os.path.join(OUT, f"mech-{name}-orig.txt"))
     shutil.rmtree(os.path.join(ROOT, "Games", "1"), ignore_errors=True)
-    _run(PORT, common + ["--trace", port], ROOT, os.path.join(OUT, f"mech-{name}-port.txt"))
+    # [ПОВЕДЕНИЕ] В порте присесть — Alt (Menu), в оригинале Shift: та же сцена, своя клавиша
+    port_common = [x.replace("ShiftKey", "Menu") if x == script else x for x in common]
+    _run(PORT, port_common + ["--trace", port], ROOT, os.path.join(OUT, f"mech-{name}-port.txt"))
     a = open(orig, encoding="utf-8").read().splitlines() if os.path.exists(orig) else []
     b = open(port, encoding="utf-8").read().splitlines() if os.path.exists(port) else []
     if not a or not b:
