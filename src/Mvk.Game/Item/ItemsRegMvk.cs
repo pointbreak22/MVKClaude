@@ -180,6 +180,26 @@ namespace Mvk.Game.Item
         /// Стрела
         /// </summary>
         public static ItemArrow Arrow { get; private set; }
+        /// <summary>
+        /// Пуля
+        /// </summary>
+        public static ItemAmmoPart Bullet { get; private set; }
+        /// <summary>
+        /// Порох
+        /// </summary>
+        public static ItemAmmoPart Powder { get; private set; }
+        /// <summary>
+        /// Гильза
+        /// </summary>
+        public static ItemAmmoPart Shell { get; private set; }
+        /// <summary>
+        /// Мушкет
+        /// </summary>
+        public static ItemGun Musket { get; private set; }
+        /// <summary>
+        /// Двустволка
+        /// </summary>
+        public static ItemGun DoubleBarrel { get; private set; }
 
 
         #endregion
@@ -367,6 +387,11 @@ namespace Mvk.Game.Item
             ItemsReg.RegisterItemClass("Shield", Shield = new ItemShield(), _Tools);
             ItemsReg.RegisterItemClass("Bow", Bow = new ItemBow(), _Tools);
             ItemsReg.RegisterItemClass("Arrow", Arrow = new ItemArrow(), _Tools);
+            ItemsReg.RegisterItemClass("Bullet", Bullet = new ItemAmmoPart(), _Tools);
+            ItemsReg.RegisterItemClass("Powder", Powder = new ItemAmmoPart(), _Tools);
+            ItemsReg.RegisterItemClass("Shell", Shell = new ItemAmmoPart(), _Tools);
+            ItemsReg.RegisterItemClass("Musket", Musket = new ItemGun(), _Tools);
+            ItemsReg.RegisterItemClass("DoubleBarrel", DoubleBarrel = new ItemGun(), _Tools);
 
             // Cloth
             ItemsReg.RegisterItemClass("PantsJeans", PantsJeans = new ItemCloth(), _Cloth);

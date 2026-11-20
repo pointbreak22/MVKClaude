@@ -1,0 +1,8 @@
+{
+    MaxStackSize: 64,
+    Kind: "Powder",
+    Width: 0.4,
+    Height: 0.25,
+    Sprite: "Items/Tools/Powder",
+    SpriteGui: "Items/Tools/Powder"
+}

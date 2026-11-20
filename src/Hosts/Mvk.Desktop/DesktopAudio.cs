@@ -37,7 +37,7 @@ namespace Mvk.Desktop
         public void LoadSample(int index, string fileName)
         {
             if (_device == null) return;
-            PcmSample sample = PcmSample.DecodeOgg(fileName);
+            PcmSample sample = PcmSample.Decode(fileName);
             // Пустой звук в оригинале не проигрывался (sample.Size > 0)
             if (sample.Data.Length > 0) _map[index] = _device.AddSample(sample);
         }

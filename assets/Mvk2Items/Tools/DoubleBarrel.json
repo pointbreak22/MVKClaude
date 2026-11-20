@@ -1,0 +1,17 @@
+{
+    MaxStackSize: 1,
+    MaxDamage: 400,
+    SlotClothIndex: 1,
+    Two: true,
+    Barrels: 2,
+    Caliber: "12",
+    Damage: 8.0,
+    ReloadTicks: 30,
+    Charge: "Shell",
+    Speed: 4.0,
+    Recoil: 0.45,
+    Width: 1.05,
+    Height: 0.1875,
+    Sprite: "Items/Tools/DoubleBarrel",
+    SpriteGui: "Items/Tools/DoubleBarrel"
+}

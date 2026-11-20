@@ -16,3 +16,10 @@ Shield.tip:Shield§u§cIn the left hand: hold the place button to block a hit fr
 Bow:Bow
 Bow.tip:Bow§u§cTwo-handed: hold the place button to draw, release to shoot§r
 Arrow:Arrow
+Musket:Musket
+Musket.tip:Musket§u§cOne-handed. Fire — break button, reload — hold place: bullet and powder§r
+DoubleBarrel:Double-barrel gun
+DoubleBarrel.tip:Double-barrel gun§u§cTwo-handed, two shots in a row. Reload — hold place: bullet and shell per barrel§r
+Bullet:Bullet
+Powder:Gunpowder
+Shell:Shell

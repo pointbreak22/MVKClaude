@@ -79,6 +79,7 @@ namespace Mvk.Game.Entity.Damage
         {
             // Блок щитом (сервер): атакующий спереди, щит в левой руке
             if (entityAttack != null && _entity is PlayerServerMvk blocker && blocker.IsBlocking
+                && blocker.InvPlayer.GetCurrentItem()?.Item.Two != true
                 && blocker.InvPlayer.GetCurrentLeftItem()?.Item is ItemShield shield && _IsInFront(blocker, entityAttack))
             {
                 damage *= 1f - shield.Protection;

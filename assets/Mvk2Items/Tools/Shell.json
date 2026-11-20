@@ -1,0 +1,9 @@
+{
+    MaxStackSize: 64,
+    Kind: "Shell",
+    Caliber: "12",
+    Width: 0.3,
+    Height: 0.2,
+    Sprite: "Items/Tools/Shell",
+    SpriteGui: "Items/Tools/Shell"
+}

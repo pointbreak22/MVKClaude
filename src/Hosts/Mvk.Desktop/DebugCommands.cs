@@ -36,6 +36,7 @@ namespace Mvk.Desktop
             managerCommand.Registration(new CommandAttack(Server));
             managerCommand.Registration(new CommandBlock(Server));
             managerCommand.Registration(new CommandUse(Server));
+            managerCommand.Registration(new CommandPut(Server));
         }
     }
 
@@ -348,13 +349,44 @@ namespace Mvk.Desktop
             PlayerServer player = sender.GetPlayer();
             if (player == null) return "";
             string[] p = sender.GetCommandParams();
-            int number = p.Length > 0 ? int.Parse(p[0], CultureInfo.InvariantCulture) : 100;
             ItemStack stack = player.Inventory.GetCurrentItem();
-            stack?.Item.OnUseSecond(stack, player, number);
+            int number = 0;
+            // fire — первое действие (как пакет C05 без числа), иначе второе с числом
+            if (p.Length > 0 && p[0] == "fire") stack?.Item.OnUseAction(stack, player);
+            else
+            {
+                number = p.Length > 0 ? int.Parse(p[0], CultureInfo.InvariantCulture) : 100;
+                stack?.Item.OnUseSecond(stack, player, number);
+            }
             ItemStack right = player.Inventory.GetCurrentItem();
             ItemStack left = player.Inventory.GetCurrentLeftItem();
             System.Console.WriteLine($"use {number}: правая {right?.Item.Alias} {right?.Amount} износ {right?.ItemDamaged} мет {right?.Met}, "
                 + $"левая {left?.Item.Alias} {left?.Amount}");
+            return "";
+        }
+    }
+
+    /// <summary>
+    /// /put слот псевдоним [количество]: положить предмет в слот инвентаря игрока
+    /// </summary>
+    internal sealed class CommandPut : CommandBase
+    {
+        public CommandPut(GameServer server) : base(server) => Name = "put";
+
+        public override string UseCommand(CommandSender sender)
+        {
+            PlayerServer player = sender.GetPlayer();
+            string[] p = sender.GetCommandParams();
+            if (player == null || p.Length < 2) return "";
+            int slot = int.Parse(p[0], CultureInfo.InvariantCulture);
+            byte amount = p.Length > 2 ? byte.Parse(p[2], CultureInfo.InvariantCulture) : (byte)1;
+            for (int i = 0; i < Ce.Items.ItemAlias.Length; i++)
+            {
+                if (Ce.Items.ItemAlias[i] == p[1])
+                {
+                    player.Inventory.SetInventorySlotContents(slot, new ItemStack(Ce.Items.ItemObjects[i], amount));
+                }
+            }
             return "";
         }
     }

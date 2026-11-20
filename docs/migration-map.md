@@ -45,3 +45,4 @@
 | (новое) износ брони | шов `game_seam8_projectile_armorwear.py`, `MaxDamage` в `assets/Mvk2Items/Cloth/*Iron.json` | ✅ |
 | (новое) щит | `Mvk.Game/Item/List/ItemShield.cs` (game_new), пакет `PacketC0BBlocking` (new), швы `item_shield.py`, `game_seam8_projectile_sword_shield.py` | ✅ блок считает сервер |
 | (новое) лук и стрелы | `Mvk.Game/Item/List/ItemBow.cs`, `ItemArrow.cs`, `Item/ItemAmmo.cs`, `Entity/List/EntityArrowMvk.cs` (game_new), шов `game_seam8_projectile_sword_shield_bow.py` | ✅ выстрел и расход — сервер |
+| (новое) огнестрел | `Mvk.Game/Item/List/ItemGun.cs`, `ItemAmmoPart.cs`, `Entity/List/EntityBulletMvk.cs` (game_new), шов `game_seam8_projectile_sword_shield_bow_gun.py`; wav-звуки: шов `item_sound_wav.py`, `PcmSample.DecodeWav`, `assets/Mvk2Sounds/Shot.wav` | ✅ всё на сервере |

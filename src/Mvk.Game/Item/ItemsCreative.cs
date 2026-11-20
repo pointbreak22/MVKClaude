@@ -80,6 +80,11 @@ namespace Mvk.Game.Item
             tabTools.Add(new ItemStack(ItemsRegMvk.Shield));
             tabTools.Add(new ItemStack(ItemsRegMvk.Bow));
             tabTools.Add(new ItemStack(ItemsRegMvk.Arrow, 64));
+            tabTools.Add(new ItemStack(ItemsRegMvk.Musket));
+            tabTools.Add(new ItemStack(ItemsRegMvk.DoubleBarrel));
+            tabTools.Add(new ItemStack(ItemsRegMvk.Bullet, 32));
+            tabTools.Add(new ItemStack(ItemsRegMvk.Powder, 32));
+            tabTools.Add(new ItemStack(ItemsRegMvk.Shell, 32));
             tabTools.Add(new ItemStack(ItemsRegMvk.Dynamite));
 
 

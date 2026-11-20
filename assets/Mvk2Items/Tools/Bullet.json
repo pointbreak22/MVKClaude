@@ -1,0 +1,9 @@
+{
+    MaxStackSize: 64,
+    Kind: "Bullet",
+    Caliber: "12",
+    Width: 0.2,
+    Height: 0.2,
+    Sprite: "Items/Tools/Bullet",
+    SpriteGui: "Items/Tools/Bullet"
+}

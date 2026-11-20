@@ -11,3 +11,9 @@ Mvk2Textures/Items/Tools/HoeIron.png
 Mvk2Textures/Items/Tools/Shield.png
 Mvk2Textures/Items/Tools/Bow.png
 Mvk2Textures/Items/Tools/Arrow.png
+Mvk2Textures/Items/Tools/Musket.png
+Mvk2Textures/Items/Tools/DoubleBarrel.png
+Mvk2Textures/Items/Tools/Bullet.png
+Mvk2Textures/Items/Tools/Powder.png
+Mvk2Textures/Items/Tools/Shell.png
+Mvk2Sounds/Shot.wav

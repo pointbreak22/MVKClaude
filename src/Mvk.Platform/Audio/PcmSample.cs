@@ -56,6 +56,49 @@ namespace Mvk.Platform.Audio
         }
 
         /// <summary>Декодировать OGG-файл</summary>
+        /// <summary>
+        /// WAV PCM 16 бит (свои синтезированные звуки порта)
+        /// </summary>
+        public static PcmSample DecodeWav(Stream stream)
+        {
+            using var reader = new BinaryReader(stream);
+            if (new string(reader.ReadChars(4)) != "RIFF") throw new InvalidDataException("Не WAV");
+            reader.ReadInt32();
+            if (new string(reader.ReadChars(4)) != "WAVE") throw new InvalidDataException("Не WAV");
+            int channels = 1, rate = 44100, bits = 16;
+            while (stream.Position < stream.Length)
+            {
+                string id = new string(reader.ReadChars(4));
+                int size = reader.ReadInt32();
+                if (id == "fmt ")
+                {
+                    reader.ReadInt16();
+                    channels = reader.ReadInt16();
+                    rate = reader.ReadInt32();
+                    reader.ReadInt32();
+                    reader.ReadInt16();
+                    bits = reader.ReadInt16();
+                    if (size > 16) reader.ReadBytes(size - 16);
+                }
+                else if (id == "data")
+                {
+                    if (bits != 16) throw new InvalidDataException("Нужен WAV 16 бит");
+                    return new PcmSample(channels, rate, reader.ReadBytes(size));
+                }
+                else reader.ReadBytes(size);
+            }
+            throw new InvalidDataException("В WAV нет данных");
+        }
+
+        /// <summary>
+        /// Звук по расширению файла: .wav или ogg
+        /// </summary>
+        public static PcmSample Decode(string path)
+        {
+            using FileStream fs = File.OpenRead(path);
+            return path.EndsWith(".wav", StringComparison.OrdinalIgnoreCase) ? DecodeWav(fs) : DecodeOgg(fs);
+        }
+
         public static PcmSample DecodeOgg(string path)
         {
             using FileStream fs = File.OpenRead(path);
