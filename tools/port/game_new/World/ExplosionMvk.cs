@@ -76,7 +76,7 @@ namespace Mvk.Game.World
             _HurtEntities(world, pos, strength, radius * 2, source);
 
             world.SpawnParticle(EntitiesFXRegMvk.SmokeId, 30 + destroy.Count / 4, pos, new Vector3(radius), 0, 0);
-            world.PlaySoundDistance(AudioIndexs.GetKey("Break"), pos, 1, .45f + rnd.NextFloat() * .1f);
+            world.PlaySoundDistance(AudioIndexs.GetKey("Explode"), pos, 1, .9f + rnd.NextFloat() * .2f);
         }
 
         /// <summary>
