@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity.MetaData;
+﻿#nullable enable
+using Mvk.Engine.Entity.MetaData;
 
 namespace Mvk.Engine.Network.Packets.Server
 {

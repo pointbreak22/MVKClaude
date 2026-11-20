@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Util;
+﻿#nullable enable
+using Mvk.Core.Util;
 using System.Collections.Generic;
 using Mvk.Core.Maths;
 
@@ -33,7 +34,7 @@ namespace Mvk.Engine.Util
         /// <summary>
         /// Изображения для mipmap
         /// </summary>
-        private BufferedImage[] _images;
+        private BufferedImage[]? _images;
 
         public BufferedImage(int width, int height, byte[] buffer,
             uint activeTextureIndex = 0, bool minmap = false)
@@ -138,7 +139,7 @@ namespace Mvk.Engine.Util
         /// <summary>
         /// Получить буфер уровня MipMap
         /// </summary>
-        public BufferedImage GetLevelMipMap(int index) => _images[index];
+        public BufferedImage GetLevelMipMap(int index) => _images![index];
 
     }
 }

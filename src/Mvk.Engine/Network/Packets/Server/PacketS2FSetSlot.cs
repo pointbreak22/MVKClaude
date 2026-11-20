@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Item;
+﻿#nullable enable
+using Mvk.Engine.Item;
 
 namespace Mvk.Engine.Network.Packets.Server
 {
@@ -10,7 +11,7 @@ namespace Mvk.Engine.Network.Packets.Server
         public byte Id => 0x2F;
 
         public short SlotId { get; private set; }
-        public ItemStack Stack { get; private set; }
+        public ItemStack? Stack { get; private set; }
 
         public PacketS2FSetSlot(short slotId, ItemStack stack)
         {

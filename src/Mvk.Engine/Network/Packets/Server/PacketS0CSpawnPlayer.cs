@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity.MetaData;
+﻿#nullable enable
+using Mvk.Engine.Entity.MetaData;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Item;
 

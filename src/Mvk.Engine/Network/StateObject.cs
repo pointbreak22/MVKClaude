@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿#nullable enable
+using System.Net.Sockets;
 
 namespace Mvk.Engine.Network
 {
@@ -15,14 +16,14 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Получить рабочий сокет
         /// </summary>
-        public Socket WorkSocket { get; protected set; } = null;
+        public Socket? WorkSocket { get; protected set; }
 
 
         public StateObject(Socket workSocket) => WorkSocket = workSocket;
 
         public override string ToString()
         {
-            return WorkSocket.RemoteEndPoint.ToString();
+            return WorkSocket?.RemoteEndPoint?.ToString() ?? "";
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.Inventory;
@@ -64,7 +65,7 @@ namespace Mvk.Engine.Network
         {
             Traffic += count + Ce.SizeHeaderTCP;
             _readPacket.SetBuffer(buffer);
-            _ReceivePacket(_readPacket.Receive(PacketsInit.InitServer(buffer[0])));
+            _ReceivePacket(_readPacket.Receive(PacketsInit.InitServer(buffer[0])!));
         }
 
         private void _ReceivePacket(IPacket packet)

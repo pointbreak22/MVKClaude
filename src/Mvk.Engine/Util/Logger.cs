@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Util;
+﻿#nullable enable
+using Mvk.Core.Util;
 using System;
 using System.IO;
 using System.Threading;
@@ -51,7 +52,7 @@ namespace Mvk.Engine.Util
         /// <summary>
         /// Добавить в лог
         /// </summary>
-        public void Log(string logMessage, params object[] args)
+        public void Log(string logMessage, params object?[] args)
         {
             string text = string.Format(logMessage, args);
             log += $"[{DateTime.Now.ToLongTimeString()}] " + text + Ce.Br;
@@ -60,17 +61,17 @@ namespace Mvk.Engine.Util
         /// <summary>
         /// Добавить в лог с префиксом [Client]
         /// </summary>
-        public void Client(string logMessage, params object[] args)
+        public void Client(string logMessage, params object?[] args)
          => Log(Srl.Client + logMessage, args);
         /// <summary>
         /// Добавить в лог с префиксом [Server]
         /// </summary>
-        public void Server(string logMessage, params object[] args)
+        public void Server(string logMessage, params object?[] args)
          => Log(Srl.Server + logMessage, args);
         /// <summary>
         /// Добавить в лог с префиксом [ERROR]
         /// </summary>
-        public void Error(string logMessage, params object[] args)
+        public void Error(string logMessage, params object?[] args)
             => Log(Srl.Error + logMessage, args);
         /// <summary>
         /// Добавить в лог с префиксом [ERROR]
@@ -184,7 +185,7 @@ namespace Mvk.Engine.Util
             public string fileName;
             public long dateTime;
 
-            public int CompareTo(object obj)
+            public int CompareTo(object? obj)
             {
                 if (obj is FileSort fileSort)
                 {
@@ -208,7 +209,7 @@ namespace Mvk.Engine.Util
         /// <summary>
         /// Создать файл c ошибкой краша
         /// </summary>
-        public static void Crash(string logMessage, params object[] args)
+        public static void Crash(string logMessage, params object?[] args)
         {
             Logger logger = new Logger("Crash");
             logger.Error(logMessage, args);
@@ -218,7 +219,7 @@ namespace Mvk.Engine.Util
         /// <summary>
         /// Создать файл c ошибкой краша
         /// </summary>
-        public static void Crash(Exception e, string logMessage = "", params object[] args)
+        public static void Crash(Exception e, string logMessage = "", params object?[] args)
         {
             e = GetException(e);
             Logger logger = new Logger("Crash");
@@ -227,7 +228,7 @@ namespace Mvk.Engine.Util
             {
                 prefix = string.Format(logMessage, args) + Ce.Br;
             }
-            string stackTrace = e.InnerException == null ? e.StackTrace
+            string? stackTrace = e.InnerException == null ? e.StackTrace
                 : e.InnerException.StackTrace + "\r\n" + e.StackTrace;
             logger.Error(prefix + "{0}: {1}{3}------{3}{2}", e.Source, e.Message, stackTrace, Ce.Br);
             logger.Save();
@@ -241,7 +242,7 @@ namespace Mvk.Engine.Util
         /// <summary>
         /// Событие лога
         /// </summary>
-        public event StringEventHandler Loged;
+        public event StringEventHandler? Loged;
         protected virtual void OnLoged(string text) => Loged?.Invoke(this, new StringEventArgs(text));
 
         #endregion

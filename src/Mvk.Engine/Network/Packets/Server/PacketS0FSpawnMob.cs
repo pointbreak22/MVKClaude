@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity;
+﻿#nullable enable
+using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.MetaData;
 using Mvk.Engine.Item;
 
@@ -20,7 +21,7 @@ namespace Mvk.Engine.Network.Packets.Server
         public float Pitch { get; private set; }
         public bool OnGround { get; private set; }
         public WatchableObject[] Data { get; private set; }
-        public ItemStack[] Stacks { get; private set; }
+        public ItemStack[]? Stacks { get; private set; }
 
         private bool _isLiving;
 
@@ -93,7 +94,7 @@ namespace Mvk.Engine.Network.Packets.Server
             {
                 stream.Float(Yaw);
                 stream.Float(Pitch);
-                int count = Stacks.Length;
+                int count = Stacks!.Length;
                 stream.Byte((byte)count);
                 for (int i = 0; i < count; i++)
                 {

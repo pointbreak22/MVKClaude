@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Network.Packets.Server
+﻿#nullable enable
+namespace Mvk.Engine.Network.Packets.Server
 {
     /// <summary>
     /// Передать готовность игры

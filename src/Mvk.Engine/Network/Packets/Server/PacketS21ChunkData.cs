@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using Mvk.Core.Util;
 using Mvk.Engine.Util;
@@ -29,7 +30,7 @@ namespace Mvk.Engine.Network.Packets.Server
         /// <summary>
         /// Буффер чтения чанка
         /// </summary>
-        public byte[] BufferRead { get; private set; }
+        public byte[]? BufferRead { get; private set; }
         /// <summary>
         /// Флаг псевдо чанков
         /// </summary>

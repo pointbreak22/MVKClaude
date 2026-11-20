@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Item;
+﻿#nullable enable
+using Mvk.Engine.Item;
 
 namespace Mvk.Engine.Network.Packets.Server
 {

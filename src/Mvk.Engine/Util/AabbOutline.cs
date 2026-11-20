@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Util;
+﻿#nullable enable
+using Mvk.Core.Util;
 using System;
 using System.Collections.Generic;
 using Mvk.Core.Maths;

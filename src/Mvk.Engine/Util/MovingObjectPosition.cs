@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Util;
+﻿#nullable enable
+using Mvk.Core.Util;
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity;
 using Mvk.Engine.World.Block;
@@ -16,7 +17,7 @@ namespace Mvk.Engine.Util
         /// <summary>
         /// Объект сущьности
         /// </summary>
-        public EntityBase Entity { get; private set; }
+        public EntityBase? Entity { get; private set; }
         /// <summary>
         /// Объект данных блока
         /// </summary>
@@ -191,7 +192,7 @@ namespace Mvk.Engine.Util
             Entity = 2
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj != null && obj is MovingObjectPosition moving
                 && moving._type == _type)
@@ -202,7 +203,7 @@ namespace Mvk.Engine.Util
                 }
                 else if (IsEntity())
                 {
-                    return moving.Entity.Id == Entity.Id;
+                    return moving.Entity!.Id == Entity!.Id;
                 }
                 return true;
             }

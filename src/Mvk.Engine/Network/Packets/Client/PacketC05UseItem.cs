@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Network.Packets.Client
+﻿#nullable enable
+namespace Mvk.Engine.Network.Packets.Client
 {
     /// <summary>
     /// Отправляем на сервер взаимодействие с выбранным предметом в руке без RayCast блока

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 
 namespace Mvk.Engine.Network
 {
@@ -10,11 +11,11 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Массив байт сборки пакета
         /// </summary>
-        private byte[] bytesCache;
+        private byte[]? bytesCache;
         /// <summary>
         /// Массив байт если остаток пакета меньше 5 байт
         /// </summary>
-        private byte[] bytesCache5;
+        private byte[]? bytesCache5;
         /// <summary>
         /// Длинна пакета 
         /// </summary>
@@ -79,7 +80,7 @@ namespace Mvk.Engine.Network
 
                 for (int i = 0; i < lengthPacket; i++)
                 {
-                    bytesCache[i + begin] = dataPacket[i];
+                    bytesCache![i + begin] = dataPacket[i];
                 }
             }
             else
@@ -87,7 +88,7 @@ namespace Mvk.Engine.Network
                 byte[] vs = DivisionAr(dataPacket, indexRun, lengthPacket);
                 for (int i = 0; i < vs.Length; i++)
                 {
-                    bytesCache[i] = vs[i];
+                    bytesCache![i] = vs[i];
                 }
             }
             // Добавляем длинну
@@ -97,7 +98,7 @@ namespace Mvk.Engine.Network
             if (bodyFactLength == bodyLength)
             {
                 // Отправляем событие получения
-                OnReceive(new PacketBufferEventArgs(bytesCache, bodyFactLength));
+                OnReceive(new PacketBufferEventArgs(bytesCache!, bodyFactLength));
 
                 // Обнуляем глобальные переменные
                 bytesCache = null;
@@ -148,7 +149,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Событие, получать
         /// </summary>
-        public event PacketBufferEventHandler Receive;
+        public event PacketBufferEventHandler? Receive;
         /// <summary>
         /// Событие получать
         /// </summary>

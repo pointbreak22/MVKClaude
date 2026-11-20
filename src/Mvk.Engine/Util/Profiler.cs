@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Util;
+﻿#nullable enable
+using Mvk.Core.Util;
 using System;
 using System.Diagnostics;
 
@@ -31,13 +32,13 @@ namespace Mvk.Engine.Util
         private readonly string _prefix;
 
         private readonly Stopwatch _stopwatch = new Stopwatch();
-        private string _profilingSection;
+        private string _profilingSection = "";
         /// <summary>
         /// Части имени секции, строка собирается только для лога:
         /// 0 только имя, 1 имя и строка, 2 имя и два числа через двоеточие
         /// </summary>
         private int _sectionParts;
-        private string _sectionText;
+        private string _sectionText = "";
         private int _sectionX, _sectionY;
         private bool _profilingEnabled = false;
 

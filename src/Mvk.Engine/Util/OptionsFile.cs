@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Util;
+﻿#nullable enable
+using Mvk.Core.Util;
 using System;
 using System.IO;
 
@@ -28,7 +29,7 @@ namespace Mvk.Engine.Util
                     while (true)
                     {
                         // Читаем строку из файла во временную переменную.
-                        string strLine = file.ReadLine();
+                        string? strLine = file.ReadLine();
 
                         // Если достигнут конец файла, прерываем считывание.
                         if (strLine == null) break;

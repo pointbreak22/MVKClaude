@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -15,7 +16,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Сокет сервера
         /// </summary>
-        private Socket socket;
+        private Socket? socket;
         /// <summary>
         /// Порт сервера
         /// </summary>
@@ -154,25 +155,25 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Сетевой поток, работает покуда имеется связь
         /// </summary>
-        private void NetThread(object obj)
+        private void NetThread(object? obj)
         {
             try
             {
-                SocketSide socketClient = obj as SocketSide;
+                SocketSide socketClient = (SocketSide)obj!;
 
                 socketClient.Connect();
             }
             catch(Exception e)
             {
-                SocketSide_Error(obj, new ErrorEventArgs(e));
+                SocketSide_Error(obj!, new ErrorEventArgs(e));
             }
         }
 
         #region SocketSide
 
-        private void SocketSide_Connected(object sender, EventArgs e)
+        private void SocketSide_Connected(object? sender, EventArgs e)
         {
-            SocketSide socketSide = sender as SocketSide;
+            SocketSide socketSide = (SocketSide)sender!;
             OnUserJoined(socketSide);
         }
 
@@ -204,7 +205,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Событие пользователь присоединился
         /// </summary>
-        public event PacketStringEventHandler UserJoined;
+        public event PacketStringEventHandler? UserJoined;
         /// <summary>
         /// Событие пользователь присоединился
         /// </summary>
@@ -214,7 +215,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Событие пользователь вышел
         /// </summary>
-        public event PacketStringEventHandler UserLeft;
+        public event PacketStringEventHandler? UserLeft;
         /// <summary>
         /// Событие пользователь вышел
         /// </summary>
@@ -224,7 +225,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Событие предупреждающая строка
         /// </summary>
-        public event StringEventHandler WarningString;
+        public event StringEventHandler? WarningString;
         /// <summary>
         /// Событие предупреждающая строка
         /// </summary>
@@ -234,7 +235,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Событие, запущен
         /// </summary>
-        public event EventHandler Runned;
+        public event EventHandler? Runned;
         /// <summary>
         /// Событие запущен
         /// </summary>
@@ -243,7 +244,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Событие, остановлен
         /// </summary>
-        public event EventHandler Stopped;
+        public event EventHandler? Stopped;
         /// <summary>
         /// Событие остановлен
         /// </summary>
@@ -252,7 +253,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Событие, ошибка
         /// </summary>
-        public event ErrorEventHandler Error;
+        public event ErrorEventHandler? Error;
         /// <summary>
         /// Событие ошибки
         /// </summary>
@@ -261,7 +262,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Событие, получать пакет
         /// </summary>
-        public event PacketBufferEventHandler ReceivePacket;
+        public event PacketBufferEventHandler? ReceivePacket;
         /// <summary>
         /// Событие получать пакет
         /// </summary>

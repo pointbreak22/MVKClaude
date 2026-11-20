@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Entity.Inventory;
+﻿#nullable enable
+using Mvk.Engine.Entity.Inventory;
 
 namespace Mvk.Engine.Network.Packets.Client
 {

@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Network.Packets
+﻿#nullable enable
+namespace Mvk.Engine.Network.Packets
 {
     /// <summary>
     /// Пакет для сохранения жизни, запускает сервер

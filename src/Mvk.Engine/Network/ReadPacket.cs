@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
@@ -14,7 +15,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Массив
         /// </summary>
-        private byte[] _buffer;
+        private byte[] _buffer = Array.Empty<byte>();
         /// <summary>
         /// Расположение где читаем
         /// </summary>

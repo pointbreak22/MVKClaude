@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Network.Packets.Client;
+﻿#nullable enable
+using Mvk.Engine.Network.Packets.Client;
 
 namespace Mvk.Engine.Network.Packets.Server
 {

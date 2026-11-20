@@ -1,4 +1,5 @@
-﻿using Mvk.Engine.Network.Packets;
+﻿#nullable enable
+using Mvk.Engine.Network.Packets;
 using Mvk.Engine.Network.Packets.Client;
 using Mvk.Engine.Network.Packets.Server;
 
@@ -12,7 +13,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Пакеты пришедшие с сервера
         /// </summary>
-        public static IPacket InitServer(byte index)
+        public static IPacket? InitServer(byte index)
         {
             switch (index)
             {
@@ -51,7 +52,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Пакеты пришедшие с клиента
         /// </summary>
-        public static IPacket InitClient(byte index)
+        public static IPacket? InitClient(byte index)
         {
             switch (index)
             {

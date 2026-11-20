@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Network
+﻿#nullable enable
+namespace Mvk.Engine.Network
 {
     /// <summary>
     /// Создания делегата для PacketBuffer
@@ -21,9 +22,9 @@
         /// <summary>
         /// Объект стороны сокета
         /// </summary>
-        public readonly SocketSide Side;
+        public readonly SocketSide? Side;
 
-        public PacketBufferEventArgs(byte[] bytes, int count, SocketSide socketSide)
+        public PacketBufferEventArgs(byte[] bytes, int count, SocketSide? socketSide)
         {
             Bytes = bytes;
             Count = count;

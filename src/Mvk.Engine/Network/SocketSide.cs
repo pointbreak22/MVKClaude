@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -44,11 +45,11 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Получить рабочий сокет
         /// </summary>
-        private Socket socket;
+        private Socket? socket;
         /// <summary>
         /// Объект-событие
         /// </summary>
-        private AutoResetEvent waitHandler;
+        private AutoResetEvent? waitHandler;
 
         /// <summary>
         /// Создать сокет на стороне клиента
@@ -66,7 +67,7 @@ namespace Mvk.Engine.Network
         public SocketSide(Socket socket)
         {
             this.socket = socket;
-            IPEndPoint iPEndPoint = socket.RemoteEndPoint as IPEndPoint;
+            IPEndPoint iPEndPoint = (IPEndPoint)socket.RemoteEndPoint!;
             ip = iPEndPoint.Address;
             port = iPEndPoint.Port;
             receivingBytes.Receive += ReceivingBytes_Receive;
@@ -157,7 +158,7 @@ namespace Mvk.Engine.Network
                     // Сюда можем попасть в момент когда сокет закрылся в другом потоке
                 }
                 // Ожидаем сигнала
-                waitHandler.WaitOne();
+                waitHandler!.WaitOne();
             }
         }
 
@@ -176,7 +177,7 @@ namespace Mvk.Engine.Network
                 Buffer.BlockCopy(bytes, 0, ret, 5, bytes.Length);
                 packets.Add(ret);
                 // Сигнализируем, что waitHandler в сигнальном состоянии
-                waitHandler.Set();
+                waitHandler!.Set();
             }
         }
 
@@ -257,7 +258,7 @@ namespace Mvk.Engine.Network
             int bytesRead;
             try
             {
-                bytesRead = socket.Receive(buff);
+                bytesRead = socket!.Receive(buff);
             }
             catch
             {
@@ -302,7 +303,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Событие, запущен
         /// </summary>
-        public event EventHandler Connected;
+        public event EventHandler? Connected;
         /// <summary>
         /// Событие запущен
         /// </summary>
@@ -311,7 +312,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Событие, остановлен
         /// </summary>
-        public event StringEventHandler Disconnected;
+        public event StringEventHandler? Disconnected;
         /// <summary>
         /// Событие остановлен
         /// </summary>
@@ -320,7 +321,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Событие ошибка, всегда должно разрывать соединение по итогу
         /// </summary>
-        public event ErrorEventHandler Error;
+        public event ErrorEventHandler? Error;
         /// <summary>
         /// Событие ошибки, всегда должно разрывать соединение по итогу
         /// </summary>
@@ -329,7 +330,7 @@ namespace Mvk.Engine.Network
         /// <summary>
         /// Событие, получать пакет
         /// </summary>
-        public event PacketBufferEventHandler ReceivePacket;
+        public event PacketBufferEventHandler? ReceivePacket;
         /// <summary>
         /// Событие получать пакет
         /// </summary>

@@ -1,4 +1,5 @@
-﻿using Mvk.Core.Util;
+﻿#nullable enable
+using Mvk.Core.Util;
 using System.IO;
 using Mvk.Engine.Actions;
 using Mvk.Core.Maths;
@@ -28,51 +29,51 @@ namespace Mvk.Engine.Util
         /// <summary>
         /// Путь к папке звуков
         /// </summary>
-        public static string PathSounds { get; private set; }
+        public static string PathSounds { get; private set; } = "";
         /// <summary>
         /// Путь к папке шейдеров
         /// </summary>
-        public static string PathShaders { get; private set; }
+        public static string PathShaders { get; private set; } = "";
         /// <summary>
         /// Путь к папке текстур
         /// </summary>
-        public static string PathTextures { get; private set; }
+        public static string PathTextures { get; private set; } = "";
         /// <summary>
         /// Путь к папке данных блока
         /// </summary>
-        public static string PathBlocks { get; private set; }
+        public static string PathBlocks { get; private set; } = "";
         /// <summary>
         /// Путь к папке фигур блока
         /// </summary>
-        public static string PathShapeBlocks { get; private set; }
+        public static string PathShapeBlocks { get; private set; } = "";
         /// <summary>
         /// Путь к папке материалов блока
         /// </summary>
-        public static string PathMaterials { get; private set; }
+        public static string PathMaterials { get; private set; } = "";
         /// <summary>
         /// Путь к папке данных предмета
         /// </summary>
-        public static string PathItems { get; private set; }
+        public static string PathItems { get; private set; } = "";
         /// <summary>
         /// Путь к папке фигур предмета
         /// </summary>
-        public static string PathShapeItems { get; private set; }
+        public static string PathShapeItems { get; private set; } = "";
         /// <summary>
         /// Путь к папке данных сущностей
         /// </summary>
-        public static string PathEntities { get; private set; }
+        public static string PathEntities { get; private set; } = "";
         /// <summary>
         /// Путь к папке слоёв сущностей
         /// </summary>
-        public static string PathLayerEntities { get; private set; }
+        public static string PathLayerEntities { get; private set; } = "";
         /// <summary>
         /// Путь к папке моделей сущностей
         /// </summary>
-        public static string PathModelEntities { get; private set; }
+        public static string PathModelEntities { get; private set; } = "";
         /// <summary>
         /// Путь к папке с текстами
         /// </summary>
-        public static string PathTexts { get; private set; }
+        public static string PathTexts { get; private set; } = "";
 
         #endregion
 

@@ -1,4 +1,5 @@
-﻿namespace Mvk.Engine.Network
+﻿#nullable enable
+namespace Mvk.Engine.Network
 {
     /// <summary>
     /// Создания делегата для PacketBuffer
