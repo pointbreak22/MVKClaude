@@ -34,10 +34,19 @@ namespace Mvk.Core.Nbt
 
         public override string ToString() => "[" + data.Length + " bytes]";
 
-        public override bool Equals(object? value) 
-            => base.Equals(value) ? Equals(data, ((TagByteArray)value).data) : false;
+        /// <summary>
+        /// Равенство по содержимому (в оригинале по ссылке на массив: копия тега не была равна исходному)
+        /// </summary>
+        public override bool Equals(object? value)
+            => base.Equals(value) && value is TagByteArray tag && data.AsSpan().SequenceEqual(tag.data);
 
-        public override int GetHashCode() => base.GetHashCode() ^ data.GetHashCode();
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(GetId());
+            hash.AddBytes(data);
+            return hash.ToHashCode();
+        }
 
         public byte[] GetByteArray() => data;
 

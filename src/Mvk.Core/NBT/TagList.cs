@@ -67,19 +67,28 @@ namespace Mvk.Core.Nbt
             return str;
         }
 
+        /// <summary>
+        /// Равенство по содержимому: тип и элементы по порядку (в оригинале по ссылке на список)
+        /// </summary>
         public override bool Equals(object? value)
         {
-            if (base.Equals(value) && value is TagList list)
+            if (!base.Equals(value) || value is not TagList list || tagType != list.tagType
+                || tagList.Count != list.tagList.Count) return false;
+            for (int i = 0; i < tagList.Count; i++)
             {
-                if (tagType == list.tagType)
-                {
-                    return tagList.Equals(list.tagList);
-                }
+                if (!tagList[i].Equals(list.tagList[i])) return false;
             }
-            return false;
+            return true;
         }
-            
-        public override int GetHashCode() => base.GetHashCode() ^ tagList.GetHashCode();
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(GetId());
+            hash.Add(tagType);
+            for (int i = 0; i < tagList.Count; i++) hash.Add(tagList[i]);
+            return hash.ToHashCode();
+        }
 
         /// <summary>
         /// Вернуть, не имеет ли это соединение тегов

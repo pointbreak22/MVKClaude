@@ -46,10 +46,19 @@ namespace Mvk.Core.Nbt
             return str;
         }
 
-        public override bool Equals(object? value) 
-            => base.Equals(value) ? Equals(intArray, ((TagIntArray)value).intArray) : false;
+        /// <summary>
+        /// Равенство по содержимому (в оригинале по ссылке на массив: копия тега не была равна исходному)
+        /// </summary>
+        public override bool Equals(object? value)
+            => base.Equals(value) && value is TagIntArray tag && intArray.AsSpan().SequenceEqual(tag.intArray);
 
-        public override int GetHashCode() => base.GetHashCode() ^ intArray.GetHashCode();
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(GetId());
+            hash.AddBytes(System.Runtime.InteropServices.MemoryMarshal.AsBytes(intArray.AsSpan()));
+            return hash.ToHashCode();
+        }
 
         public int[] GetIntArray() => intArray;
     }

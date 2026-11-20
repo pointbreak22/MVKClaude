@@ -179,6 +179,33 @@ namespace Mvk.Core.Nbt
         /// </summary>
         public override bool HasNoTags() => tagMap.Count == 0;
 
+        /// <summary>
+        /// Равенство по содержимому: те же ключи с равными тегами (в оригинале сравнивался только тип тега,
+        /// любые две группы были равны)
+        /// </summary>
+        public override bool Equals(object? value)
+        {
+            if (!base.Equals(value) || value is not TagCompound compound || tagMap.Count != compound.tagMap.Count) return false;
+            foreach (KeyValuePair<string, NBTBase> entry in tagMap)
+            {
+                if (!compound.tagMap.TryGetValue(entry.Key, out NBTBase? other) || !entry.Value.Equals(other)) return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Хэш не зависит от порядка ключей
+        /// </summary>
+        public override int GetHashCode()
+        {
+            int hash = GetId();
+            foreach (KeyValuePair<string, NBTBase> entry in tagMap)
+            {
+                hash += System.HashCode.Combine(entry.Key, entry.Value);
+            }
+            return hash;
+        }
+
         #region Get
 
         /// <summary>
