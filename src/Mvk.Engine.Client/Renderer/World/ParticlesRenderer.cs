@@ -14,21 +14,12 @@ using Mvk.Rendering;
 namespace Mvk.Engine.Renderer.World
 {
     /// <summary>
-    /// Частицы на RHI. Перенос ParticlesRenderer оригинала: списки объёмных (до 1000) и плоских (до 4000)
-    /// частиц, их такт (физика и жизнь), три общие сетки (квад, спрайт, куб) и шейдеры EntityParticle2d/3d.
+    /// Частицы на RHI. Перенос ParticlesRenderer оригинала: три общие сетки (квад, спрайт, куб) и шейдеры
+    /// EntityParticle2d/3d. Списки частиц, их создание и такт живут в игре (GameBase.Particles, Engine): рендер только рисует.
     /// В оригинале юниформы каждой частицы искались по имени; здесь хэндлы получены один раз.
     /// </summary>
     public sealed class ParticlesRenderer : IDisposable
     {
-        /// <summary>
-        /// Максимальное количество частиц 3д
-        /// </summary>
-        private const int _MaxAmount3d = 1000;
-        /// <summary>
-        /// Максимальное количество частиц 2д
-        /// </summary>
-        private const int _MaxAmount2d = 4000;
-
         /// <summary>Сетка 2д-квада и куба: позиция (3 float) и признак (1 float), как MeshParticle оригинала</summary>
         private static readonly VertexBufferLayout _layout31 = new VertexBufferLayout(16,
             new VertexAttribute(0, VertexFormat.Float3, 0), new VertexAttribute(1, VertexFormat.Float1, 12));
@@ -39,8 +30,6 @@ namespace Mvk.Engine.Renderer.World
         private readonly GameBase _game;
         private readonly WorldRenderer _worldRenderer;
         private readonly RenderContext _context;
-        private readonly List<EntityFX> _list3d = new List<EntityFX>(_MaxAmount3d);
-        private readonly List<EntityFX> _list2d = new List<EntityFX>(_MaxAmount2d);
 
         private readonly IGpuBuffer _meshQuad, _meshSprite, _meshCube;
         private readonly int _countQuad, _countSprite, _countCube;
@@ -55,8 +44,6 @@ namespace Mvk.Engine.Renderer.World
         private CommandList? _commands;
         private IPipeline? _bound;
 
-        /// <summary>Фабрика рендеров сущностей (хост клиента), ею создаются частицы</summary>
-        public IEntityRenderFactory? RenderFactory { get; set; }
         /// <summary>Отрисовка интерфейса: текстура частиц (Particles.png)</summary>
         public RenderMain? Gui { get; set; }
 
@@ -171,25 +158,6 @@ namespace Mvk.Engine.Renderer.World
         }
 
         /// <summary>
-        /// Заспавнить частицу
-        /// </summary>
-        public void Spawn(ushort particleId, Vector3 pos, Vector3 motion, int parameter)
-        {
-            EntityFX entity = Ce.EntitiesFX.CreateEntityClient(particleId, _game.World, RenderFactory!, parameter);
-            entity.InitRun(pos, motion);
-            if (entity.IsCube)
-            {
-                while (_list3d.Count >= _MaxAmount3d) _list3d.RemoveAt(0);
-                _list3d.Add(entity);
-            }
-            else
-            {
-                while (_list2d.Count >= _MaxAmount2d) _list2d.RemoveAt(0);
-                _list2d.Add(entity);
-            }
-        }
-
-        /// <summary>
         /// Метод для прорисовки кадра
         /// </summary>
         public void Draw(CommandList commands, float timeIndex)
@@ -202,10 +170,11 @@ namespace Mvk.Engine.Renderer.World
             commands.SetTexture(0, lightMap);
             _Bind(_pipeCube);
             commands.SetUniformMatrix4(_u3View, _game.View.MatrixView);
-            int count = _list3d.Count;
+            IReadOnlyList<EntityFX> list = _game.Particles.List3d;
+            int count = list.Count;
             for (int i = 0; i < count; i++)
             {
-                _list3d[i].Render.Draw(timeIndex, _game.DeltaTimeFrame);
+                list[i].Render.Draw(timeIndex, _game.DeltaTimeFrame);
             }
 
             // Текстура частиц и BindUniformParticle2d оригинала
@@ -218,10 +187,11 @@ namespace Mvk.Engine.Renderer.World
             _rotate.RotateY(-_game.Player.RotationFrameYaw);
             _rotate.RotateX(pitch);
             _bound = null;
-            count = _list2d.Count;
+            list = _game.Particles.List2d;
+            count = list.Count;
             for (int i = 0; i < count; i++)
             {
-                _list2d[i].Render.Draw(timeIndex, _game.DeltaTimeFrame);
+                list[i].Render.Draw(timeIndex, _game.DeltaTimeFrame);
             }
         }
 
@@ -283,41 +253,6 @@ namespace Mvk.Engine.Renderer.World
             commands.DrawIndexed(countIndices);
         }
 
-        /// <summary>
-        /// Игровой такт: физика частиц и их жизнь
-        /// </summary>
-        public void OnTick(float deltaTime)
-        {
-            _Update(_list3d, deltaTime);
-            _Update(_list2d, deltaTime);
-        }
-
-        private void _Update(List<EntityFX> list, float deltaTime)
-        {
-            int count = list.Count - 1;
-            for (int i = count; i >= 0; i--)
-            {
-                if (list[i].IsDead)
-                {
-                    list.RemoveAt(i);
-                }
-                else
-                {
-                    list[i].UpdateClient(_game.World, deltaTime);
-                    list[i].Update();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Очистить частицы
-        /// </summary>
-        public void Clear()
-        {
-            _list3d.Clear();
-            _list2d.Clear();
-        }
-
         public void Dispose()
         {
             _pipeQuad.Dispose();
@@ -328,9 +263,8 @@ namespace Mvk.Engine.Renderer.World
             _meshQuad.Dispose();
             _meshSprite.Dispose();
             _meshCube.Dispose();
-            Clear();
         }
 
-        public override string ToString() => "Fx2d:" + _list2d.Count + " Fx3d:" + _list3d.Count;
+        public override string ToString() => _game.Particles.ToString();
     }
 }

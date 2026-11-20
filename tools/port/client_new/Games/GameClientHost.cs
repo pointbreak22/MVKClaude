@@ -107,7 +107,6 @@ namespace Mvk.Engine.Games
             {
                 // Предметы и сущности в GUI, линии курсора рисуются через RenderMain (в оригинале общий RenderMain окна)
                 WorldRender = new WorldRenderer(Game, Render, _shaderBlocksLow, _shaderEntityLow);
-                WorldRender.Particles.RenderFactory = this;
                 Render.ShsEntity = WorldRender.Entities.ShsEntity;
             }
             return WorldRender;
@@ -221,10 +220,13 @@ namespace Mvk.Engine.Games
             render.WorldRenderInitSetting();
         }
         /// <summary>
-        /// Заспавнить частицу (WorldClient.SpawnParticle оригинала: Game.WorldRender.Particles.Spawn)
+        /// Заспавнить частицу (WorldClient.SpawnParticle оригинала: Game.WorldRender.Particles.Spawn).
+        /// Частицы живут в игре (Game.Particles), создаются, только когда есть рендер мира, как в оригинале
         /// </summary>
         public override void SpawnParticle(ushort particleId, Vector3 pos, Vector3 motion, int parameter)
-            => WorldRender?.Particles.Spawn(particleId, pos, motion, parameter);
+        {
+            if (WorldRender != null) Game.Particles.Spawn(particleId, Game.World, this, pos, motion, parameter);
+        }
 
         /// <summary>
         /// Игрок возродился в мире (WorldRender.RespawnInWorld)

@@ -142,7 +142,7 @@ namespace Mvk.Engine.Renderer.World
         /// </summary>
         public void RespawnInWorld()
         {
-            Particles.Clear();
+            _game.Particles.Clear();
             _cursorRender.SetHeightChunks(_game.World.ChunkPr.Settings.NumberBlocks);
         }
 
@@ -297,9 +297,6 @@ namespace Mvk.Engine.Renderer.World
             {
                 LightMap.Update(_game.World.Settings);
             }
-
-            // Физика частичек, и их жизнь
-            Particles.OnTick(deltaTime);
 
             // Считаем вектор, матрицы и прочее из календаря
             if (_game.World?.Settings != null)

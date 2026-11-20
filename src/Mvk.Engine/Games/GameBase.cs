@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Mvk.Engine.Entity.Particle;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -58,6 +59,10 @@ namespace Mvk.Engine.Games
         /// Клиентский объект мира
         /// </summary>
         public WorldClient World { get; private set; }
+        /// <summary>
+        /// Частицы клиента: создание, физика и жизнь (рендер частиц только рисует их)
+        /// </summary>
+        public readonly ParticleList Particles = new ParticleList();
         /// <summary>
         /// Список игроков во всех мирах, для чата 
         /// </summary>
@@ -388,6 +393,8 @@ namespace Mvk.Engine.Games
                 }
                 //Filer.EndStartSection("WorldRender.Update", 10);
                
+                // Физика частиц и их жизнь (в оригинале в такте рендера мира, перед ним только карта света)
+                Particles.Update(World, deltaTime);
                 // Обновить рендоровский мир
                 Host.OnTick(deltaTime);
                 
