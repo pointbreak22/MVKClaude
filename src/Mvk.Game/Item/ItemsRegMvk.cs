@@ -95,6 +95,10 @@ namespace Mvk.Game.Item
         /// Каменный кусочек
         /// </summary>
         public static ItemBase PieceStone { get; private set; }
+        /// <summary>
+        /// Динамит: бросается с замахом и взрывается при попадании
+        /// </summary>
+        public static ItemDynamite Dynamite { get; private set; }
 
         #endregion
 
@@ -299,6 +303,7 @@ namespace Mvk.Game.Item
             ItemsReg.RegisterItemClass("DryGrass", DryGrass = new ItemBase());
             ItemsReg.RegisterItemClass("PieceDirt", PieceDirt = new ItemSpawn());
             ItemsReg.RegisterItemClass("PieceStone", PieceStone = new ItemPiece());
+            ItemsReg.RegisterItemClass("Dynamite", Dynamite = new ItemDynamite());
 
             // Tools
             ItemsReg.RegisterItemClass("StickTechnical", StickTechnical = new ItemStickTechnical(), _Tools);

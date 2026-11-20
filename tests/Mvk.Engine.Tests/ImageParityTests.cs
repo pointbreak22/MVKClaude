@@ -24,11 +24,17 @@ namespace Mvk.Engine.Tests
             Assert.Equal(expected, actual);
         }
 
+        /// <summary>
+        /// Все картинки оригинала на месте и сверены; свои ассеты порта (assets/port-assets.txt) не сверяются
+        /// </summary>
         [Fact]
         public void AllCovered()
         {
+            string assets = _AssetsDir();
+            HashSet<string> own = File.ReadAllLines(Path.Combine(assets, "port-assets.txt"))
+                .Where(l => l.Length > 0 && !l.StartsWith('#')).ToHashSet(StringComparer.Ordinal);
             Assert.Equal(_LoadGolden().Keys.OrderBy(k => k, StringComparer.Ordinal),
-                ImageGolden.Compute(_AssetsDir()).Select(p => p.Key));
+                ImageGolden.Compute(assets).Select(p => p.Key).Where(k => !own.Contains(k)));
         }
 
         /// <summary>

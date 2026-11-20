@@ -1,0 +1,8 @@
+{
+    Parent: "_Base",
+    MaxStackSize: 16,
+    Width: 0.5,
+    Height: 0.25,
+    Sprite: "Items/Dynamite",
+    SpriteGui: "Items/Dynamite",
+}

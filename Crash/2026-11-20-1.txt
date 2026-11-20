@@ -1,0 +1,18 @@
+[13:46:35] [ERROR] WindowMain
+Mvk.Game: Object reference not set to an instance of an object.
+------
+   at Mvk.Game.Entity.Damage.DamageLiving._OnAttack(Byte source, Single damage, EntityLiving entityAttack) in E:\Projects\Games\MvkClaude\src\Mvk.Game\Entity\Damage\DamageLiving.cs:line 91
+   at Mvk.Engine.Entity.DamageBase.OnAttack(Byte source, Single hitY, Single damage, EntityLiving entityAttack) in E:\Projects\Games\MvkClaude\src\Mvk.Engine\Entity\DamageBase.cs:line 59
+   at Mvk.Game.Entity.Damage.DamageLiving.OnAttack(Byte source, Single hitY, Single damage, EntityLiving entityAttack) in E:\Projects\Games\MvkClaude\src\Mvk.Game\Entity\Damage\DamageLiving.cs:line 78
+   at Mvk.Game.World.ExplosionMvk._HurtEntities(WorldServer world, Vector3 pos, Single strength, Single radius, EntityLiving source) in E:\Projects\Games\MvkClaude\src\Mvk.Game\World\ExplosionMvk.cs:line 87
+   at Mvk.Game.World.ExplosionMvk.Explode(WorldServer world, Vector3 pos, Single strength, Single radius, EntityLiving source) in E:\Projects\Games\MvkClaude\src\Mvk.Game\World\ExplosionMvk.cs:line 76
+   at Mvk.Game.Entity.List.EntityDynamiteMvk._OnImpact(EntityLiving entity, Vector3 pos, Single hitY, EntityLiving thrower) in E:\Projects\Games\MvkClaude\src\Mvk.Game\Entity\List\EntityDynamiteMvk.cs:line 30
+   at Mvk.Engine.Entity.List.EntityProjectile._Impact(EntityLiving entity, Vector3 pos, Single hitY) in E:\Projects\Games\MvkClaude\src\Mvk.Engine\Entity\List\EntityProjectile.cs:line 142
+   at Mvk.Engine.Entity.List.EntityProjectile._CheckImpact() in E:\Projects\Games\MvkClaude\src\Mvk.Engine\Entity\List\EntityProjectile.cs:line 123
+   at Mvk.Engine.Entity.List.EntityProjectile.Update() in E:\Projects\Games\MvkClaude\src\Mvk.Engine\Entity\List\EntityProjectile.cs:line 92
+   at Mvk.Engine.World.WorldServer._UpdateEntity(EntityBase entity) in E:\Projects\Games\MvkClaude\src\Mvk.Engine\World\WorldServer.cs:line 424
+   at Mvk.Engine.World.WorldBase._UpdateEntities() in E:\Projects\Games\MvkClaude\src\Mvk.Engine\World\WorldBase.cs:line 351
+   at Mvk.Engine.World.WorldServer.Update() in E:\Projects\Games\MvkClaude\src\Mvk.Engine\World\WorldServer.cs:line 174
+   at Mvk.Engine.World.AllWorlds.Update() in E:\Projects\Games\MvkClaude\src\Mvk.Engine\World\AllWorlds.cs:line 61
+   at Mvk.Engine.Games.GameServer._OnTick() in E:\Projects\Games\MvkClaude\src\Mvk.Engine\Games\GameServer.cs:line 578
+   at Mvk.Engine.Games.GameServer._Loop() in E:\Projects\Games\MvkClaude\src\Mvk.Engine\Games\GameServer.cs:line 485

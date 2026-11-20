@@ -23,7 +23,7 @@ namespace Mvk.Game.Entity.Damage
         /// <summary>
         /// Мир сервера где находится сущность
         /// </summary>
-        protected readonly WorldServer _worldServer;
+        protected WorldServer _worldServer => _entity.GetWorldServer();
 
         /// <summary>
         /// Оставшееся время эта сущность должна вести себя как «мертвая», то есть иметь в мире труп.
@@ -33,7 +33,6 @@ namespace Mvk.Game.Entity.Damage
         public DamageLiving(EntityLiving entity)
         {
             _entity = entity;
-            _worldServer = entity.GetWorldServer();
         }
 
         /// <summary>

@@ -47,12 +47,13 @@ namespace Mvk.Engine.Entity.List
 
         /// <summary>
         /// Бросить стак предмета снарядом от игрока (сервер). Сила 1 — обычный дальний бросок предмета.
+        /// alias — сущность снаряда в реестре (наследник EntityProjectile, например динамит)
         /// </summary>
-        public static EntityProjectile? Throw(PlayerServer player, ItemStack stack, float power)
+        public static EntityProjectile? Throw(PlayerServer player, ItemStack stack, float power, string alias = Alias)
         {
             WorldServer worldServer = player.GetWorldServer();
             if (worldServer == null) return null;
-            int index = _IndexEntity();
+            int index = _IndexEntity(alias);
             if (index < 0) return null;
             if (Ce.Entities.CreateEntityServer((ushort)index, worldServer) is not EntityProjectile projectile) return null;
             projectile.SetEntityItemStack(stack);
@@ -67,14 +68,14 @@ namespace Mvk.Engine.Entity.List
         }
 
         /// <summary>
-        /// Индекс сущности снаряда в активных реестрах, -1 если мод её не зарегистрировал
+        /// Индекс сущности в активных реестрах, -1 если мод её не зарегистрировал
         /// </summary>
-        private static int _IndexEntity()
+        private static int _IndexEntity(string alias)
         {
             string[] aliases = Ce.Entities.EntitiesAlias;
             for (int i = 0; i < aliases.Length; i++)
             {
-                if (aliases[i] == Alias) return i;
+                if (aliases[i] == alias) return i;
             }
             return -1;
         }

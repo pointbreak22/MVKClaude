@@ -33,6 +33,8 @@ namespace Mvk.Game.Entity
             EntitiesReg.RegisterEntityClass("Item", typeof(EntityItemMvk), true);
             // Снаряд: брошенный предмет, попадание считает сервер
             EntitiesReg.RegisterEntityClass(EntityProjectile.Alias, typeof(EntityProjectileMvk), true);
+            // Динамит: снаряд, который взрывается при попадании
+            EntitiesReg.RegisterEntityClass(EntityDynamiteMvk.AliasDynamite, typeof(EntityDynamiteMvk), true);
             EntitiesReg.RegisterEntityClass("Chicken", typeof(EntityChicken));
 
             //ModelEntitiesReg.RegisterModelEntityClass("Chick");

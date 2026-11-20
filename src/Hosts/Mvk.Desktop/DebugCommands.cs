@@ -60,7 +60,8 @@ namespace Mvk.Desktop
     }
 
     /// <summary>
-    /// /throw псевдоним [сила]: бросить предмет снарядом от игрока (проверка EntityProjectile)
+    /// /throw псевдоним [сила] [aim|-] [сущность]: бросить предмет снарядом от игрока (проверка EntityProjectile),
+    /// aim — прямо в ближайшего моба, сущность — снаряд в реестре (например Dynamite)
     /// </summary>
     internal sealed class CommandThrow : CommandBase
     {
@@ -77,7 +78,8 @@ namespace Mvk.Desktop
             {
                 if (Ce.Items.ItemAlias[i] == p[0])
                 {
-                    EntityProjectile? projectile = EntityProjectile.Throw(player, new ItemStack(Ce.Items.ItemObjects[i], 1), power);
+                    EntityProjectile? projectile = EntityProjectile.Throw(player, new ItemStack(Ce.Items.ItemObjects[i], 1), power,
+                        p.Length > 3 ? p[3] : EntityProjectile.Alias);
                     if (projectile != null && p.Length > 2 && p[2] == "aim") _Aim(player, projectile, power);
                     return "";
                 }

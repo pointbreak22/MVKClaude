@@ -1,0 +1,2 @@
+# Свои ассеты порта (не из оригинала Vge/Mvk2): заглушки новых предметов. ImageParityTests их не сверяет.
+Mvk2Textures/Items/Dynamite.png

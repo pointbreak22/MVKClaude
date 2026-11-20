@@ -74,6 +74,7 @@ namespace Mvk.Game.Item
             tabTools.Add(new ItemStack(ItemsRegMvk.AxeRed));
             tabTools.Add(new ItemStack(ItemsRegMvk.ShovelRed));
             tabTools.Add(new ItemStack(ItemsRegMvk.PickaxeRed));
+            tabTools.Add(new ItemStack(ItemsRegMvk.Dynamite));
 
 
             // Раздел одежда

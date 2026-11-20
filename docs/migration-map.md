@@ -38,3 +38,4 @@
 | Старый Mvk | Порт | Статус |
 |---|---|---|
 | `MvkServer/Entity/List/EntityThrowable.cs`, `EntityExplosives.cs` (бросок, полёт, попадание лучом) | `Mvk.Engine/Entity/List/EntityProjectile.cs` (из `tools/port/new`), `Mvk.Game/Entity/List/EntityProjectileMvk.cs` (из `tools/port/game_new`), сущность `Projectile` | ✅ попадание считает сервер |
+| `MvkServer/Item/List/ItemUniExplosives.cs`, `EntityExplosives.cs`, `World/Explosion.cs` (взрыв лучами) | `Mvk.Game/Item/List/ItemDynamite.cs`, `Entity/List/EntityDynamiteMvk.cs`, `World/ExplosionMvk.cs` (из `tools/port/game_new`), ассеты-заглушки `assets/port-assets.txt` | ✅ взрыв считает сервер |
