@@ -76,7 +76,7 @@ def shoot(name, look, commands, moment=("--calm",), shot_after="12"):
         w, h = open(orig_png + ".size").read().split()
     # Мир порта тоже с нуля: слот 0 лежит в Games/1 рядом с рабочей папкой
     shutil.rmtree(os.path.join(ROOT, "Games", "1"), ignore_errors=True)
-    _run(PORT, PORT_ARGS + ["--screenshot", port_png, "--shot-after", shot_after, *moment, "--look", look, "--size", f"{w}x{h}"] + cmd_args,
+    _run(PORT, PORT_ARGS + ["--no-kit", "--screenshot", port_png, "--shot-after", shot_after, *moment, "--look", look, "--size", f"{w}x{h}"] + cmd_args,
          ROOT, os.path.join(OUT, name + "-port.txt"))
     return orig_png, port_png
 

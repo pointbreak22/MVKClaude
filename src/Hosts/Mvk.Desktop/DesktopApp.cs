@@ -86,8 +86,26 @@ namespace Mvk.Desktop
             App.Begin();
         }
 
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Не выдавать стартовый набор предметов (ключ --no-kit: сверка с оригиналом)
+        /// </summary>
+        public static bool NoKit;
+        /// <summary>
+        /// Игра, которой набор уже запрошен
+        /// </summary>
+        private GameBase? _kitGame;
+
         /// <summary>Такты по реальному времени</summary>
-        public void Update() => App.Update();
+        public void Update()
+        {
+            App.Update();
+            // [ПОВЕДЕНИЕ] Стартовый набор при входе в мир (сервер выдаёт, только если инвентарь пуст)
+            if (!NoKit && App.GameHost?.Started == true && App.Game != null && App.Game != _kitGame)
+            {
+                _kitGame = App.Game;
+                SendCommand("/kit");
+            }
+        }
 
         /// <summary>Нарисовать кадр</summary>
         public void Render(int width, int height) => App.Draw(_commands, width, height);
@@ -331,7 +349,7 @@ namespace Mvk.Desktop
             => _debugCommands = debugCommands;
 
         public override GameModServer CreateGameModServer()
-            => _debugCommands ? new GameModServerDebug() : base.CreateGameModServer();
+            => _debugCommands ? new GameModServerDebug() : new GameModServerKit();
 
         protected override void OnTick()
         {

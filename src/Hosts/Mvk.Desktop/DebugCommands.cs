@@ -21,7 +21,19 @@ namespace Mvk.Desktop
     /// Серверный мод Малювек с отладочными командами хоста. Включается только ключом --cmd
     /// (снимки и проверка рендера без человека), в обычной игре команд нет.
     /// </summary>
-    internal sealed class GameModServerDebug : GameModServerMvk
+    /// <summary>
+    /// [ПОВЕДЕНИЕ] Мод сервера хоста ПК: стартовый набор предметов (/kit)
+    /// </summary>
+    internal class GameModServerKit : GameModServerMvk
+    {
+        public override void InitCommand(ManagerCommand managerCommand)
+        {
+            base.InitCommand(managerCommand);
+            managerCommand.Registration(new CommandKit(Server));
+        }
+    }
+
+    internal sealed class GameModServerDebug : GameModServerKit
     {
         public override void InitCommand(ManagerCommand managerCommand)
         {
@@ -392,6 +404,57 @@ namespace Mvk.Desktop
                 }
             }
             return "";
+        }
+    }
+
+    /// <summary>
+    /// [ПОВЕДЕНИЕ] /kit: стартовый набор для проверки (оба режима), один раз: если меча из набора ещё нет. Одежда
+    /// и левая рука нового игрока не меняются (карманы и рюкзак от одежды); предметы раскладываются по карманам
+    /// и рюкзаку: оружие, инструменты, щит, лук со стрелами, мушкет и двустволка с боеприпасами, факелы, динамит,
+    /// огниво, крюк с верёвками, вёдра, блоки, паутина, железная броня (надеть из инвентаря)
+    /// </summary>
+    internal sealed class CommandKit : CommandBase
+    {
+        public CommandKit(GameServer server) : base(server) => Name = "kit";
+
+        /// <summary>
+        /// Предметы по порядку раскладки (первые — в карманы): псевдоним и количество (0 — полный стак)
+        /// </summary>
+        private static readonly (string Alias, int Amount)[] _items =
+        {
+            ("SwordIron", 1), ("PickaxeIron", 1), ("Shield", 1), ("Torch", 0), ("Cobblestone", 0), ("Bow", 1),
+            ("Arrow", 0), ("Musket", 1), ("DoubleBarrel", 1), ("Bullet", 0), ("Powder", 0), ("Shell", 0),
+            ("Dynamite", 0), ("Flint", 1), ("Hook", 1), ("Rope", 0), ("AxeIron", 1), ("ShovelIron", 1),
+            ("HoeIron", 1), ("Bucket", 1), ("BucketWater", 1), ("Cobweb", 0), ("Glass", 0), ("PieceStone", 0),
+            ("HelmetIron", 1), ("ChestplateIron", 1), ("LeggingsIron", 1), ("BootsIron", 1)
+        };
+
+        public override string UseCommand(CommandSender sender)
+        {
+            PlayerServer player = sender.GetPlayer();
+            if (player == null || player.Inventory is not InventoryPlayerMvk inventory) return "";
+            ItemBase? sword = _Item("SwordIron");
+            int all = InventoryPlayerMvk.PocketCount + InventoryPlayerMvk.ClothCount + InventoryPlayerMvk.BackpackCount;
+            for (int i = 0; i < all; i++)
+            {
+                if (inventory.GetStackInSlot(i)?.Item == sword) return "";
+            }
+            foreach ((string alias, int amount) in _items)
+            {
+                ItemBase? item = _Item(alias);
+                if (item == null) continue;
+                inventory.AddItemStackToInventory(new ItemStack(item, (byte)(amount > 0 ? amount : item.MaxStackSize)));
+            }
+            return ChatStyle.Green + "Стартовый набор выдан";
+        }
+
+        private static ItemBase? _Item(string alias)
+        {
+            for (int i = 0; i < Ce.Items.ItemAlias.Length; i++)
+            {
+                if (Ce.Items.ItemAlias[i] == alias) return Ce.Items.ItemObjects[i];
+            }
+            return null;
         }
     }
 }
