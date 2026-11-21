@@ -24,3 +24,4 @@ Bullet:Bullet
 Powder:Gunpowder
 Shell:Shell
 Cobweb:Cobweb
+Hook:Grappling hook

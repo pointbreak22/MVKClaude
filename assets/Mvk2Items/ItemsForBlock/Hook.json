@@ -1,0 +1,12 @@
+{
+    ThrowMin: 0.5,
+    ThrowMax: 1.4,
+    ThrowCharge: 20,
+    ThrowEntity: "HookThrown",
+    Parent: "_Base",
+    MaxStackSize: 4,
+    Width: 0.5,
+    Height: 0.125,
+    Sprite: "Items/ItemsForBlock/Hook",
+    SpriteGui: "Items/ItemsForBlock/Hook",
+}

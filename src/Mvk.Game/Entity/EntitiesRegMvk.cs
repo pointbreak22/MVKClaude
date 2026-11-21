@@ -38,6 +38,7 @@ namespace Mvk.Game.Entity
             EntitiesReg.RegisterEntityClass(EntityArrowMvk.AliasArrow, typeof(EntityArrowMvk), true);
             EntitiesReg.RegisterEntityClass(EntityBulletMvk.AliasBullet, typeof(EntityBulletMvk), true);
             EntitiesReg.RegisterEntityClass(EntityTorchMvk.AliasTorch, typeof(EntityTorchMvk), true);
+            EntitiesReg.RegisterEntityClass(EntityHookMvk.AliasHook, typeof(EntityHookMvk), true);
             EntitiesReg.RegisterEntityClass("Chicken", typeof(EntityChicken));
 
             //ModelEntitiesReg.RegisterModelEntityClass("Chick");

@@ -22,3 +22,4 @@ Mvk2Sounds/Explode.wav
 # в Mvk2Entities/Layers/Base.json слои ArmorHelmet, ArmorChest, ArmorLegs, ArmorBoots
 Mvk2Textures/Blocks/Cobweb.png
 Mvk2Textures/Items/ItemsForBlock/Cobweb.png
+Mvk2Textures/Items/ItemsForBlock/Hook.png
