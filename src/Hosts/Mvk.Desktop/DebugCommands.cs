@@ -158,6 +158,9 @@ namespace Mvk.Desktop
             ItemStack? left = player.Inventory.GetCurrentLeftItem();
             int drops = 0;
             for (int i = 0; i < world.LoadedEntityList.Count; i++) if (world.LoadedEntityList.GetAt(i) is EntityItem) drops++;
+            int bullets = 0;
+            for (int i = 0; i < 55; i++) if (player.Inventory.GetStackInSlot(i)?.Item.Alias == "Bullet") bullets += player.Inventory.GetStackInSlot(i).Amount;
+            System.Console.WriteLine($"bullets {bullets} met {held?.Met ?? 0}");
             System.Console.WriteLine($"hands right {held?.Item.Alias ?? "-"} x{held?.Amount ?? 0} left {left?.Item.Alias ?? "-"} x{left?.Amount ?? 0} износ {left?.ItemDamaged ?? 0} drops {drops} s0 {player.Inventory.GetStackInSlot(0)?.Item.Alias} s1 {player.Inventory.GetStackInSlot(1)?.Item.Alias} x{player.Inventory.GetStackInSlot(1)?.Amount ?? 0} s2 {player.Inventory.GetStackInSlot(2)?.Item.Alias}");
             for (int i = 0; i < world.LoadedEntityList.Count; i++)
             {
@@ -443,7 +446,9 @@ namespace Mvk.Desktop
             {
                 ItemBase? item = _Item(alias);
                 if (item == null) continue;
-                inventory.AddItemStackToInventory(new ItemStack(item, (byte)(amount > 0 ? amount : item.MaxStackSize)));
+                // Оружие заряжено
+                byte met = item is Mvk.Game.Item.List.ItemGun gun ? (byte)gun.Barrels : (byte)0;
+                inventory.AddItemStackToInventory(new ItemStack(item, (byte)(amount > 0 ? amount : item.MaxStackSize), 0, met));
             }
             return ChatStyle.Green + "Стартовый набор выдан";
         }

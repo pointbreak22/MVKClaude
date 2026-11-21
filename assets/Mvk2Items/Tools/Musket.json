@@ -1,5 +1,6 @@
 {
     MaxStackSize: 1,
+    Action: "ShotRight",
     Hold: "HoldAimRight",
     MaxDamage: 250,
     SlotClothIndex: 1,

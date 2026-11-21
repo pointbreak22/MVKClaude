@@ -173,6 +173,25 @@
             }
         },
         {
+            Code: "ShotRight",
+            Animation: "ShotRight",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmRight: 90,
+                ForearmRight: 90
+            }
+        },
+        {
+            Code: "ShotTwo",
+            Animation: "ShotTwo",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmRight: 90,
+                ArmLeft: 90,
+                Chest: 90
+            }
+        },
+        {
             Code: "HoldAimRight",
             Animation: "HoldAimRight",
             AnimationSpeed: 1.0,

@@ -158,13 +158,15 @@ namespace Mvk.Game.Entity.Player
         private int _reloadTicks;
 
         /// <summary>
-        /// [ПОВЕДЕНИЕ] Автоперезарядка одноручного оружия (мушкет), пока другая рука держит закрытый щит и кнопка
-        /// оружия не зажата: начало и конец перезарядки шлются как при удержании, время и патроны проверяет сервер
+        /// [ПОВЕДЕНИЕ] Автоперезарядка оружия после выстрела: пока оружие не заряжено полностью, кнопка оружия не зажата
+        /// и в инвентаре есть пули и заряд, начало и конец перезарядки шлются как при удержании; время и патроны проверяет
+        /// сервер. Двуручное (двустволка) при закрытом щите другой руки не перезаряжается
         /// </summary>
         private void _AutoReload(HandManagerMvk hand, HandManagerMvk other)
         {
             ItemStack? stack = _ItemOf(hand);
-            if (!other.Guarding || hand.HandDown || stack?.Item is not ItemGun gun || gun.Two || stack.Met >= gun.Barrels)
+            if (hand.HandDown || stack?.Item is not ItemGun gun || stack.Met >= gun.Barrels
+                || (gun.Two && other.Guarding) || !_HasAmmo(gun))
             {
                 hand._reloadTicks = 0;
                 return;
@@ -178,6 +180,24 @@ namespace Mvk.Game.Entity.Player
                 _game.TrancivePacket(new PacketC05UseItem(100).Hand(hand._left));
                 hand._reloadTicks = 0;
             }
+        }
+
+        /// <summary>
+        /// Есть ли в инвентаре пуля и заряд калибра оружия (клиент, чтобы не слать перезарядку впустую)
+        /// </summary>
+        private bool _HasAmmo(ItemGun gun)
+        {
+            bool bullet = false, charge = false;
+            for (int i = 0; i < Inventory.InventoryPlayerMvk.PocketCount + Inventory.InventoryPlayerMvk.ClothCount
+                + Inventory.InventoryPlayerMvk.BackpackCount; i++)
+            {
+                if (_player.Inventory.GetStackInSlot(i)?.Item is ItemAmmoPart part)
+                {
+                    if (part.Fits("Bullet", gun.Caliber)) bullet = true;
+                    if (part.Fits(gun.Charge, gun.Caliber)) charge = true;
+                }
+            }
+            return bullet && charge;
         }
 
         /// <summary>
