@@ -26,6 +26,8 @@ from PIL import Image
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 ORIG = os.path.join(ROOT, "tools", "OrigShot", "bin", "Release", "net10.0", "OrigShot.exe")
 PORT = os.path.join(ROOT, "logs", "portbin", "Mvk2.exe")
+# Рабочая папка порта: свой мир Games/1 рядом с собранным портом, а не в корне репозитория (там мир игрока)
+PORT_DIR = os.path.dirname(PORT)
 OUT = os.path.join(ROOT, "logs", "shots")
 # Дополнительные ключи порта, например MVK_PORT_ARGS="--backend vulkan" (этап 10)
 PORT_ARGS = os.environ.get("MVK_PORT_ARGS", "").split()
@@ -67,17 +69,17 @@ def shoot(name, look, commands, moment=("--calm",), shot_after="12"):
     if BASE_GL:
         # Эталон — порт на OpenGL (сравнение бэкендов, этап 10)
         w, h = "1264", "681"
-        shutil.rmtree(os.path.join(ROOT, "Games", "1"), ignore_errors=True)
+        shutil.rmtree(os.path.join(PORT_DIR, "Games", "1"), ignore_errors=True)
         _run(PORT, ["--screenshot", orig_png, "--shot-after", shot_after, *moment, "--look", look,
-                    "--size", f"{w}x{h}"] + cmd_args, ROOT, os.path.join(OUT, name + "-orig.txt"))
+                    "--size", f"{w}x{h}"] + cmd_args, PORT_DIR, os.path.join(OUT, name + "-orig.txt"))
     else:
         _run(ORIG, ["--screenshot", orig_png, "--shot-after", shot_after, *moment, "--look", look] + cmd_args,
              os.path.dirname(ORIG), os.path.join(OUT, name + "-orig.txt"))
         w, h = open(orig_png + ".size").read().split()
-    # Мир порта тоже с нуля: слот 0 лежит в Games/1 рядом с рабочей папкой
-    shutil.rmtree(os.path.join(ROOT, "Games", "1"), ignore_errors=True)
+    # Мир порта тоже с нуля: слот 0 лежит в Games/1 рабочей папки порта
+    shutil.rmtree(os.path.join(PORT_DIR, "Games", "1"), ignore_errors=True)
     _run(PORT, PORT_ARGS + ["--no-kit", "--screenshot", port_png, "--shot-after", shot_after, *moment, "--look", look, "--size", f"{w}x{h}"] + cmd_args,
-         ROOT, os.path.join(OUT, name + "-port.txt"))
+         PORT_DIR, os.path.join(OUT, name + "-port.txt"))
     return orig_png, port_png
 
 

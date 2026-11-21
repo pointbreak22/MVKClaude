@@ -122,6 +122,13 @@ namespace Mvk.Engine.Entity.Player
         public bool CanDestroyedBlock(BlockBase block)
             => CreativeMode || block.Material.RequiresNoTool;
 
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Можно ли бить блок рукой или любым предметом (медленно): ломается рукой, или имеет твёрдость
+        /// и не жидкость (коренная порода без твёрдости не ломается)
+        /// </summary>
+        public bool CanHitBlock(BlockBase block)
+            => CanDestroyedBlock(block) || (block.Hardness > 0 && !block.Material.Liquid);
+
         #endregion
 
         #region Sound

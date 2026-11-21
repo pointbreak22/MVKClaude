@@ -17,6 +17,8 @@ import sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 ORIG = os.path.join(ROOT, "tools", "OrigShot", "bin", "Release", "net10.0", "OrigShot.exe")
 PORT = os.path.join(ROOT, "logs", "portbin", "Mvk2.exe")
+# Рабочая папка порта: свой мир Games/1 рядом с собранным портом, а не в корне репозитория (там мир игрока)
+PORT_DIR = os.path.dirname(PORT)
 OUT = os.path.join(ROOT, "logs", "shots")
 
 # Сценарий: имя, взгляд (градусы), нажатия по тактам, [команды чата до начала], [последнее состояние сущностей
@@ -59,10 +61,10 @@ def run(name, look, script, commands=(), strict_end=True):
     for c in commands:
         common += ["--cmd", c]
     _run(ORIG, common + ["--trace", orig], os.path.dirname(ORIG), os.path.join(OUT, f"mech-{name}-orig.txt"))
-    shutil.rmtree(os.path.join(ROOT, "Games", "1"), ignore_errors=True)
+    shutil.rmtree(os.path.join(PORT_DIR, "Games", "1"), ignore_errors=True)
     # [ПОВЕДЕНИЕ] В порте присесть — Alt (Menu), в оригинале Shift: та же сцена, своя клавиша
     port_common = [x.replace("ShiftKey", "Menu") if x == script else x for x in common]
-    _run(PORT, port_common + ["--no-kit", "--trace", port], ROOT, os.path.join(OUT, f"mech-{name}-port.txt"))
+    _run(PORT, port_common + ["--no-kit", "--trace", port], PORT_DIR, os.path.join(OUT, f"mech-{name}-port.txt"))
     a = open(orig, encoding="utf-8").read().splitlines() if os.path.exists(orig) else []
     b = open(port, encoding="utf-8").read().splitlines() if os.path.exists(port) else []
     if not a or not b:

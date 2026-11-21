@@ -25,7 +25,7 @@ namespace Mvk.Game.Item.List.Tool
         /// Ускорение добычи блока (сервер): свои материалы и блоки, которые ломаются рукой
         /// </summary>
         public override float DigAcceleration(BlockBase block, PlayerBase player)
-            => player.CanDestroyedBlock(block) || block.Material.IndexMaterial == (int)EnumMaterial.Wood || block.Material.IndexMaterial == (int)EnumMaterial.Door || block.Material.IndexMaterial == (int)EnumMaterial.Branch ? Acceleration : 0;
+            => player.CanDestroyedBlock(block) || block.Material.IndexMaterial == (int)EnumMaterial.Wood || block.Material.IndexMaterial == (int)EnumMaterial.Door || block.Material.IndexMaterial == (int)EnumMaterial.Branch ? Acceleration : (player.CanHitBlock(block) ? 1 : 0);
 
         public override ResultHandAction OnAction(bool begin, ItemStack stack, PlayerClientOwner player)
         {

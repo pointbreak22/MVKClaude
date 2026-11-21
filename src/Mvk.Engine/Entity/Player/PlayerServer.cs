@@ -756,7 +756,7 @@ namespace Mvk.Engine.Entity.Player
             }
             ItemStack stack = Inventory.GetCurrentItem();
             float acceleration = stack != null ? stack.Item.DigAcceleration(block, this)
-                : (CanDestroyedBlock(block) ? 1 : 0);
+                : (CanHitBlock(block) ? 1 : 0);
             if (acceleration <= 0) return;
             float need = (int)(block.Hardness * acceleration);
             float strength = stack != null ? stack.Item.DigStrength(block, this) : 1;

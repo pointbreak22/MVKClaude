@@ -27,7 +27,7 @@ namespace Mvk.Game.Item.List.Tool
         /// Ускорение добычи блока (сервер): только блоки, которые ломаются рукой
         /// </summary>
         public override float DigAcceleration(BlockBase block, PlayerBase player)
-            => player.CanDestroyedBlock(block) ? Acceleration : 0;
+            => player.CanDestroyedBlock(block) ? Acceleration : (player.CanHitBlock(block) ? 1 : 0);
 
         /// <summary>
         /// [ПОВЕДЕНИЕ] Сила удара по блоку: паутину меч рубит с DigBonus

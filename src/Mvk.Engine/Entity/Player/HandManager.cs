@@ -571,7 +571,8 @@ namespace Mvk.Engine.Entity.Player
                 }
                 else if (moving.IsBlock())
                 {
-                    if (_player.CanDestroyedBlock(moving.Block.GetBlock()))
+                    if (_player.CanDestroyedBlock(moving.Block.GetBlock())
+                        || (_TwoHands() && _player.CanHitBlock(moving.Block.GetBlock())))
                     {
                         // Разрушение блока без предмета
                         _BlockDigging(moving.BlockPosition);

@@ -259,7 +259,7 @@ namespace Mvk.Engine.Item
         /// которые ломаются рукой
         /// </summary>
         public virtual float DigAcceleration(BlockBase block, PlayerBase player)
-            => player.CanDestroyedBlock(block) ? 1 : 0;
+            => player.CanHitBlock(block) ? 1 : 0;
 
         /// <summary>
         /// [ПОВЕДЕНИЕ] Сила одного удара по блоку (сервер): рука и чужой материал — 1, инструмент по своему — больше
@@ -343,7 +343,8 @@ namespace Mvk.Engine.Item
                 // Урон для сущности
                 return new ResultHandAction(ResultHandAction.ActionType.AttackEntity);
             }
-            if (moving.IsBlock() && player.CanDestroyedBlock(moving.Block.GetBlock()))
+            if (moving.IsBlock() && (player.CanDestroyedBlock(moving.Block.GetBlock())
+                || (player.IsTwoHands() && player.CanHitBlock(moving.Block.GetBlock()))))
             {
                 // Можно разрушить блок без предмета
                 return new ResultHandAction(8, 1);

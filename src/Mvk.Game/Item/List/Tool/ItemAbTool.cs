@@ -26,9 +26,9 @@ namespace Mvk.Game.Item.List.Tool
         /// </summary>
         public float Acceleration { get; protected set; }
         /// <summary>
-        /// [ПОВЕДЕНИЕ] Сила удара по своему материалу (json DigBonus)
+        /// [ПОВЕДЕНИЕ] Сила удара по своему материалу (json DigBonus, по умолчанию ×5 к руке)
         /// </summary>
-        public float DigBonus { get; protected set; } = 3;
+        public float DigBonus { get; protected set; } = 5;
         /// <summary>
         /// [ПОВЕДЕНИЕ] Крит удара по сущности в прыжке или на бегу (json Crit)
         /// </summary>
