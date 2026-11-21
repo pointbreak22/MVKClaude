@@ -745,7 +745,9 @@ namespace Mvk.Engine.Entity.Render
                             {
                                 // Предмет в руках
 
-                                _entityLayerRender.AddRangeBuffer(itemStack.Item.Buffer.GetBufferHold()
+                                // [ПОВЕДЕНИЕ] В левой руке (1) предмет зеркален правой
+                                _entityLayerRender.AddRangeBuffer((i == 1 ? itemStack.Item.Buffer.GetBufferHold().MirrorX()
+                                    : itemStack.Item.Buffer.GetBufferHold())
                                     .CreateBufferMeshItem(_positionItems[i].Index, _positionItems[i].X, _positionItems[i].Y, _positionItems[i].Z));
 
                                 // [ПОВЕДЕНИЕ] Предмет левой руки виден и при двуручном в правой (придерживается)

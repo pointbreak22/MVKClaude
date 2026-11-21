@@ -27,3 +27,4 @@ Mvk2Textures/Blocks/Fire.png
 Mvk2Textures/Items/ItemsForBlock/Flint.png
 Mvk2Textures/Items/Tools/Knife.png
 Mvk2Textures/Items/Tools/Spear.png
+Mvk2Textures/Items/Tools/PortPalette.png

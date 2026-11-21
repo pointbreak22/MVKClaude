@@ -4,6 +4,8 @@
     MaxDamage: 100,
     Width: 0.5,
     Height: 0.125,
-    Sprite: "Items/ItemsForBlock/Flint",
+    Shape: "Tools/PortFlint",
+    View: { Rotate:[0, 45, -90], Offset:[-3, 1, 3] },
+    ViewHold: { Offset:[0, 8, 0], Scale: 1.5 },
     SpriteGui: "Items/ItemsForBlock/Flint",
 }

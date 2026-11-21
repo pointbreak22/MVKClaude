@@ -1,0 +1,73 @@
+{
+    Texture: {
+        T0: "Items/Tools/PortPalette"
+    },
+    Elements: [
+        {   From: [-1.5, -12, -2],
+            To: [1.5, 4, 2],
+            Faces: [
+                { Texture:"T0", Side:"North", Uv:[1, 1, 3, 3]},
+                { Texture:"T0", Side:"East", Uv:[1, 1, 3, 3]},
+                { Texture:"T0", Side:"South", Uv:[1, 1, 3, 3]},
+                { Texture:"T0", Side:"West", Uv:[1, 1, 3, 3]},
+                { Texture:"T0", Side:"Up", Uv:[1, 1, 3, 3]},
+                { Texture:"T0", Side:"Down", Uv:[1, 1, 3, 3]}
+            ]
+        },
+        {   From: [-2, 4, -2],
+            To: [2, 9, 2],
+            Faces: [
+                { Texture:"T0", Side:"North", Uv:[13, 1, 15, 3]},
+                { Texture:"T0", Side:"East", Uv:[13, 1, 15, 3]},
+                { Texture:"T0", Side:"South", Uv:[13, 1, 15, 3]},
+                { Texture:"T0", Side:"West", Uv:[13, 1, 15, 3]},
+                { Texture:"T0", Side:"Up", Uv:[13, 1, 15, 3]},
+                { Texture:"T0", Side:"Down", Uv:[13, 1, 15, 3]}
+            ]
+        },
+        {   From: [-1, 9, -0.1],
+            To: [1, 36, 1.9],
+            Faces: [
+                { Texture:"T0", Side:"North", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"East", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"South", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"West", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"Up", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"Down", Uv:[1, 5, 3, 7]}
+            ]
+        },
+        {   From: [-1, 9, -2.1],
+            To: [1, 36, -0.1],
+            Faces: [
+                { Texture:"T0", Side:"North", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"East", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"South", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"West", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"Up", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"Down", Uv:[1, 5, 3, 7]}
+            ]
+        },
+        {   From: [-1.5, 10, -2.6],
+            To: [1.5, 20, 2.6],
+            Faces: [
+                { Texture:"T0", Side:"North", Uv:[1, 1, 3, 3]},
+                { Texture:"T0", Side:"East", Uv:[1, 1, 3, 3]},
+                { Texture:"T0", Side:"South", Uv:[1, 1, 3, 3]},
+                { Texture:"T0", Side:"West", Uv:[1, 1, 3, 3]},
+                { Texture:"T0", Side:"Up", Uv:[1, 1, 3, 3]},
+                { Texture:"T0", Side:"Down", Uv:[1, 1, 3, 3]}
+            ]
+        },
+        {   From: [-0.3, 2, -3],
+            To: [0.3, 4, -2],
+            Faces: [
+                { Texture:"T0", Side:"North", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"East", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"South", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"West", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"Up", Uv:[1, 5, 3, 7]},
+                { Texture:"T0", Side:"Down", Uv:[1, 5, 3, 7]}
+            ]
+        }
+    ]
+}

@@ -129,6 +129,30 @@ namespace Mvk.Engine.Entity.Render
         }
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Зеркальная по X копия сетки (предмет в левой руке): позиция и нормаль по X с обратным знаком,
+        /// вершины квада 1 и 3 меняются местами (обход граней сохраняется)
+        /// </summary>
+        public VertexEntityBuffer MirrorX()
+        {
+            float[] bufferFloat = new float[BufferFloat.Length];
+            int[] bufferInt = new int[BufferInt.Length];
+            int quads = BufferFloat.Length / 32;
+            for (int q = 0; q < quads; q++)
+            {
+                for (int v = 0; v < 4; v++)
+                {
+                    int from = v == 1 ? 3 : v == 3 ? 1 : v;
+                    int src = (q * 4 + from) * 8, dst = (q * 4 + v) * 8;
+                    Array.Copy(BufferFloat, src, bufferFloat, dst, 8);
+                    bufferFloat[dst] = -bufferFloat[dst];
+                    bufferFloat[dst + 3] = -bufferFloat[dst + 3];
+                    Array.Copy(BufferInt, (q * 4 + from) * SizeInt, bufferInt, (q * 4 + v) * SizeInt, SizeInt);
+                }
+            }
+            return new VertexEntityBuffer(bufferFloat, bufferInt);
+        }
+
+        /// <summary>
         /// Создать буфер для предмета с масштабом
         /// </summary>
         public VertexEntityBuffer CreateBufferMeshItem(int indexBone, float x, float y, float z, float scale = 1)

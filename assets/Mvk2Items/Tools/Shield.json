@@ -7,6 +7,8 @@
     Protection: 0.75,
     Width: 0.75,
     Height: 0.125,
-    Sprite: "Items/Tools/Shield",
+    Shape: "Tools/PortShield",
+    View: { Rotate:[0, 45, -90], Offset:[-3, 1, 3] },
+    ViewHold: { Rotate:[0, 180, 90], Offset:[0, 4, 0] },
     SpriteGui: "Items/Tools/Shield"
 }

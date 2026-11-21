@@ -1,5 +1,6 @@
 """[ПОВЕДЕНИЕ] Шов клиента, этап 8: позы рук и предметы в двух руках (docs/controls-survival-spec.md, п. 8 пользователя).
 
+- Предмет в левой руке зеркален правой (VertexEntityBuffer.MirrorX).
 - Предмет левой руки виден и при двуручном в правой: двуручный придерживается второй рукой, щит на предплечье.
 - Поза руки по флагу сущности (EntityLiving.IsHandPose, задаёт сервер): блок щитом — HoldGuardLeft/HoldGuardRight
   у руки со щитом, натяжение лука — HoldBowRight/HoldBowLeft по руке с двуручным предметом. Флаг рассылается
@@ -68,5 +69,12 @@ t = rep(t, """        private readonly TriggerAnimation _trigger = new TriggerAn
         /// Поза руки при последней сборке поз держания
         /// </summary>
         private bool _handPosePrev;""", rel, 1)
+save(rel, t, C)
+t = load(rel, C)
+t = rep(t, """                                _entityLayerRender.AddRangeBuffer(itemStack.Item.Buffer.GetBufferHold()
+                                    .CreateBufferMeshItem(""", """                                // [ПОВЕДЕНИЕ] В левой руке (1) предмет зеркален правой
+                                _entityLayerRender.AddRangeBuffer((i == 1 ? itemStack.Item.Buffer.GetBufferHold().MirrorX()
+                                    : itemStack.Item.Buffer.GetBufferHold())
+                                    .CreateBufferMeshItem(""", rel, 1)
 save(rel, t, C)
 print("client hands ok")

@@ -1,0 +1,62 @@
+{
+    Texture: {
+        T0: "Items/Tools/PortPalette"
+    },
+    Elements: [
+        {   From: [-1.5, -1, -1.5],
+            To: [1.5, 0, 1.5],
+            Faces: [
+                { Texture:"T0", Side:"North", Uv:[9, 5, 11, 7]},
+                { Texture:"T0", Side:"East", Uv:[9, 5, 11, 7]},
+                { Texture:"T0", Side:"South", Uv:[9, 5, 11, 7]},
+                { Texture:"T0", Side:"West", Uv:[9, 5, 11, 7]},
+                { Texture:"T0", Side:"Up", Uv:[9, 5, 11, 7]},
+                { Texture:"T0", Side:"Down", Uv:[9, 5, 11, 7]}
+            ]
+        },
+        {   From: [-1, 0, -1],
+            To: [1, 6, 1],
+            Faces: [
+                { Texture:"T0", Side:"North", Uv:[13, 9, 15, 11]},
+                { Texture:"T0", Side:"East", Uv:[13, 9, 15, 11]},
+                { Texture:"T0", Side:"South", Uv:[13, 9, 15, 11]},
+                { Texture:"T0", Side:"West", Uv:[13, 9, 15, 11]},
+                { Texture:"T0", Side:"Up", Uv:[13, 9, 15, 11]},
+                { Texture:"T0", Side:"Down", Uv:[13, 9, 15, 11]}
+            ]
+        },
+        {   From: [-4, 6, -1.5],
+            To: [4, 7.5, 1.5],
+            Faces: [
+                { Texture:"T0", Side:"North", Uv:[9, 5, 11, 7]},
+                { Texture:"T0", Side:"East", Uv:[9, 5, 11, 7]},
+                { Texture:"T0", Side:"South", Uv:[9, 5, 11, 7]},
+                { Texture:"T0", Side:"West", Uv:[9, 5, 11, 7]},
+                { Texture:"T0", Side:"Up", Uv:[9, 5, 11, 7]},
+                { Texture:"T0", Side:"Down", Uv:[9, 5, 11, 7]}
+            ]
+        },
+        {   From: [-0.6, 7.5, -2],
+            To: [0.6, 26, 2],
+            Faces: [
+                { Texture:"T0", Side:"North", Uv:[9, 1, 11, 3]},
+                { Texture:"T0", Side:"East", Uv:[9, 1, 11, 3]},
+                { Texture:"T0", Side:"South", Uv:[9, 1, 11, 3]},
+                { Texture:"T0", Side:"West", Uv:[9, 1, 11, 3]},
+                { Texture:"T0", Side:"Up", Uv:[9, 1, 11, 3]},
+                { Texture:"T0", Side:"Down", Uv:[9, 1, 11, 3]}
+            ]
+        },
+        {   From: [-0.6, 26, -1],
+            To: [0.6, 28, 1],
+            Faces: [
+                { Texture:"T0", Side:"North", Uv:[13, 1, 15, 3]},
+                { Texture:"T0", Side:"East", Uv:[13, 1, 15, 3]},
+                { Texture:"T0", Side:"South", Uv:[13, 1, 15, 3]},
+                { Texture:"T0", Side:"West", Uv:[13, 1, 15, 3]},
+                { Texture:"T0", Side:"Up", Uv:[13, 1, 15, 3]},
+                { Texture:"T0", Side:"Down", Uv:[13, 1, 15, 3]}
+            ]
+        }
+    ]
+}
