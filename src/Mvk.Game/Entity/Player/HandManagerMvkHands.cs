@@ -90,6 +90,14 @@ namespace Mvk.Game.Entity.Player
         protected override void _GuardPress()
         {
             MovingObjectPosition moving = _player.MovingObject;
+            // [ПОВЕДЕНИЕ] Щит на предплечье, кисть свободна: нажатие по двери или кнопке открывает её
+            if (!_player.IsKeyShift() && moving.IsBlock() && moving.Block.GetBlock().OnBlockActivated(
+                _player, moving.BlockPosition, moving.Side, moving.Facing))
+            {
+                _game.TrancivePacket(new PacketC08PlayerBlockPlacement(moving.BlockPosition,
+                    moving.Side, moving.Facing, false, false));
+                return;
+            }
             if (!_Momentum() || !moving.IsEntity()) return;
             Vector3 vec = (moving.Entity!.GetPositionVec() - _player.GetPositionVec()).Normalize();
             _game.TrancivePacket(new PacketC03UseEntity(moving.Entity.Id, moving.RayHit.Y,
@@ -137,11 +145,11 @@ namespace Mvk.Game.Entity.Player
         }
 
         /// <summary>
-        /// [ПОВЕДЕНИЕ] Клик рукой активирует дверь и кнопку любым предметом, кроме оружия и инструментов
+        /// [ПОВЕДЕНИЕ] Клик рукой активирует дверь и кнопку любым предметом, кроме стреляющего оружия (инструменты
+        /// тоже открывают; удержание — добыча). Рука со щитом открывает нажатием (_GuardPress)
         /// </summary>
         protected override bool _CanActivate(ItemStack? stack)
-            => stack == null || !(stack.Item is ItemAbTool || stack.Item is ItemGun || stack.Item is ItemBow
-                || stack.Item is ItemShield);
+            => stack == null || !(stack.Item is ItemGun || stack.Item is ItemBow);
 
         /// <summary>
         /// Конец такта левой руки: блок держится, если щит одной руки зажат и другая рука не действует, или «крест»
