@@ -18,6 +18,6 @@
     Height: 0.125,
     Shape: "Tools/PortMusket",
     View: { Rotate:[0, 45, -90], Offset:[-3, 1, 3] },
-    ViewHold: { Rotate:[-90, 0, 0], Offset:[0, 4, 0] },
+    ViewHold: { Rotate:[-90, 0, 0], Offset:[0, -4, -10] },
     SpriteGui: "Items/Tools/Musket"
 }

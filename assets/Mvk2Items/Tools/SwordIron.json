@@ -9,7 +9,7 @@
     Level: 2,
     Width: 0.75,
     Height: 0.125,
-    Action: "AttackRight",
+    Action: "AttackSword",
     Shape: "Tools/PortSwordIron",
     View: { Rotate:[0, 45, -90], Offset:[-3, 1, 3] },
     ViewHold: { Offset:[0, 4, 0] },

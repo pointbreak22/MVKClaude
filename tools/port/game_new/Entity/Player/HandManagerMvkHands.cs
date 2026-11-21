@@ -142,13 +142,15 @@ namespace Mvk.Game.Entity.Player
         }
 
         /// <summary>
-        /// [ПОВЕДЕНИЕ] Анимация действия левой руки (две руки): зеркальные удар и взмах; двуручные анимации общие
+        /// [ПОВЕДЕНИЕ] Анимация действия левой руки (две руки): зеркальный клип (…Right → …Left, иначе имя + Left,
+        /// см. tools/Assets/humanoid_clips.py); клипы без зеркала общие
         /// </summary>
         protected override string _AnimationCode(string code)
             => !_left || !_player.IsTwoHands() ? code : code switch
             {
                 "AttackRight" => "AttackLeft",
-                "ActionAxe" => "ActionAxeLeft",
+                "ShotRight" => "ShotLeft",
+                "ActionAxe" or "ShotTwo" or "ActionShovel" or "ActionBlock" or "AttackSword" => code + "Left",
                 _ => code
             };
 

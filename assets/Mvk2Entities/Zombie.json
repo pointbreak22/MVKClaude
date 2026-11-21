@@ -315,5 +315,72 @@
             }
         },
 
+        {
+            Code: "AttackSword",
+            Animation: "AttackSword",
+            AnimationSpeed: 1.5,
+            ElementWeight: {
+                ArmRight: 80,
+                ForearmRight: 80,
+                HandRight: 80
+            }
+        },
+        {
+            Code: "ShotLeft",
+            Animation: "ShotLeft",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmLeft: 90,
+                ForearmLeft: 90
+            }
+        },
+        {
+            Code: "ShotTwoLeft",
+            Animation: "ShotTwoLeft",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmLeft: 90,
+                ArmRight: 90,
+                Chest: 90
+            }
+        },
+        {
+            Code: "ActionShovelLeft",
+            Animation: "ActionShovelLeft",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmLeft: 90,
+                ForearmLeft: 90,
+                HandLeft: 90,
+                HoldItemTwo: 90,
+                ArmRight: 90,
+                ForearmRight: 90,
+                HandRight: 90,
+                Chest: 50
+            }
+        },
+        {
+            Code: "ActionBlockLeft",
+            Animation: "ActionBlockLeft",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmRight: 90,
+                ForearmRight: 90,
+                HoldItemTwo: 90,
+                ArmLeft: 90,
+                ForearmLeft: 90,
+                Chest: 50
+            }
+        },
+        {
+            Code: "AttackSwordLeft",
+            Animation: "AttackSwordLeft",
+            AnimationSpeed: 1.5,
+            ElementWeight: {
+                ArmLeft: 80,
+                ForearmLeft: 80,
+                HandLeft: 80
+            }
+        },
     ]
 }

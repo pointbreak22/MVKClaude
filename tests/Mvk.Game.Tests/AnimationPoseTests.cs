@@ -21,7 +21,7 @@ namespace Mvk.Game.Tests
 
         /// <summary>Клипы порта (своих анимаций в оригинале нет)</summary>
         private static readonly string[] _PortEntities = { "Zombie", "Bandit" };
-        private static readonly string[] _PortClips = { "AttackLeft", "ActionAxeLeft", "HoldGuardLeft", "HoldGuardRight", "HoldBowRight", "HoldBowLeft", "HoldAimRight", "HoldAimTwo", "ShotRight", "ShotTwo", "HoldPistolRight", "HoldPistolLeft" };
+        private static readonly string[] _PortClips = { "AttackLeft", "ActionAxeLeft", "HoldGuardLeft", "HoldGuardRight", "HoldBowRight", "HoldBowLeft", "HoldAimRight", "HoldAimTwo", "ShotRight", "ShotTwo", "HoldPistolRight", "HoldPistolLeft", "AttackSword", "ShotLeft", "ShotTwoLeft", "ActionShovelLeft", "ActionBlockLeft", "AttackSwordLeft" };
 
         [Fact]
         public void PosesSameAsOriginal()
