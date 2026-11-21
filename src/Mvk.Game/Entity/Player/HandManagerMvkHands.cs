@@ -153,55 +153,6 @@ namespace Mvk.Game.Entity.Player
             };
 
         /// <summary>
-        /// Тактов автоперезарядки руки (0 — не идёт)
-        /// </summary>
-        private int _reloadTicks;
-
-        /// <summary>
-        /// [ПОВЕДЕНИЕ] Автоперезарядка оружия после выстрела: пока оружие не заряжено полностью, кнопка оружия не зажата
-        /// и в инвентаре есть пули и заряд, начало и конец перезарядки шлются как при удержании; время и патроны проверяет
-        /// сервер. Двуручное (двустволка) при закрытом щите другой руки не перезаряжается
-        /// </summary>
-        private void _AutoReload(HandManagerMvk hand, HandManagerMvk other)
-        {
-            ItemStack? stack = _ItemOf(hand);
-            if (hand.HandDown || stack?.Item is not ItemGun gun || stack.Met >= gun.Barrels
-                || (gun.Two && other.Guarding) || !_HasAmmo(gun))
-            {
-                hand._reloadTicks = 0;
-                return;
-            }
-            if (hand._reloadTicks == 0)
-            {
-                _game.TrancivePacket(new PacketC05UseItem(0).Hand(hand._left));
-            }
-            // По одному стволу: щелчок на каждый заряженный ствол
-            if (++hand._reloadTicks > gun.ReloadTicks + 1)
-            {
-                _game.TrancivePacket(new PacketC05UseItem(100).Hand(hand._left));
-                hand._reloadTicks = 0;
-            }
-        }
-
-        /// <summary>
-        /// Есть ли в инвентаре пуля и заряд калибра оружия (клиент, чтобы не слать перезарядку впустую)
-        /// </summary>
-        private bool _HasAmmo(ItemGun gun)
-        {
-            bool bullet = false, charge = false;
-            for (int i = 0; i < Inventory.InventoryPlayerMvk.PocketCount + Inventory.InventoryPlayerMvk.ClothCount
-                + Inventory.InventoryPlayerMvk.BackpackCount; i++)
-            {
-                if (_player.Inventory.GetStackInSlot(i)?.Item is ItemAmmoPart part)
-                {
-                    if (part.Fits("Bullet", gun.Caliber)) bullet = true;
-                    if (part.Fits(gun.Charge, gun.Caliber)) charge = true;
-                }
-            }
-            return bullet && charge;
-        }
-
-        /// <summary>
         /// [ПОВЕДЕНИЕ] Клик рукой активирует дверь и кнопку любым предметом, кроме стреляющего оружия (инструменты
         /// тоже открывают; удержание — добыча). Рука со щитом открывает нажатием (_GuardPress)
         /// </summary>
@@ -216,8 +167,6 @@ namespace Mvk.Game.Entity.Player
             if (!HandDown) _thrusted = false;
             if (Other != null && !Other.HandDown) Other._thrusted = false;
             if (!_left || Other == null) return;
-            _AutoReload(this, Other);
-            _AutoReload(Other, this);
             bool cross = _Cross();
             // [ПОВЕДЕНИЕ] Добивающий удар: «крест» разомкнут отпусканием обеих кнопок (в пределах 4 тактов) — удар обоими мечами
             if (_crossPrev && !cross) _crossEndTicks = 4;

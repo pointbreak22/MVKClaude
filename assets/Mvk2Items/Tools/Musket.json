@@ -8,7 +8,7 @@
     Caliber: "12",
     Damage: 6.0,
     BlockStrength: 1.0,
-    ReloadTicks: 40,
+    ReloadTicks: 13,
     Charge: "Powder",
     Speed: 4.0,
     Recoil: 0.25,

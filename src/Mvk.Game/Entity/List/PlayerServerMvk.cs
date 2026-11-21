@@ -26,6 +26,20 @@ namespace Mvk.Game.Entity.List
         /// </summary>
         public InventoryPlayerMvk InvPlayer { get; private set; }
 
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Перезарядка оружия по тактам сервера
+        /// </summary>
+        public readonly Item.GunReload Guns = new Item.GunReload();
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Такт игрока: после основного — перезарядка оружия
+        /// </summary>
+        public override void Update()
+        {
+            base.Update();
+            Guns.Update(this);
+        }
+
         public PlayerServerMvk(string login, string token, SocketSide socket, GameServer server) 
             : base(login, token, socket, server)
         {

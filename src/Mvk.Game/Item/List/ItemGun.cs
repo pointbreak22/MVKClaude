@@ -1,13 +1,14 @@
 #nullable enable
 using System;
-using System.Runtime.CompilerServices;
 using Mvk.Core.Json;
 using Mvk.Core.Maths;
 using Mvk.Engine.Audio;
+using Mvk.Engine.Entity.Inventory;
 using Mvk.Engine.Entity.List;
 using Mvk.Engine.Entity.Player;
 using Mvk.Engine.Item;
 using Mvk.Engine.World;
+using Mvk.Game.Entity.Inventory;
 using Mvk.Game.Entity.List;
 using Mvk.Game.Entity.Particle;
 
@@ -16,8 +17,8 @@ namespace Mvk.Game.Item.List
     /// <summary>
     /// Огнестрельное оружие (мушкет, двустволка) по json: стволы (Barrels), калибр (Caliber), урон пули (Damage),
     /// такты перезарядки одного ствола (ReloadTicks), заряд (Charge: Powder или Shell), сила пули (Speed), отдача (Recoil).
-    /// Заряженные стволы хранятся в стаке (Met). Первое действие — выстрел, удержание второго — перезарядка всех пустых
-    /// стволов. Клиент только сообщает намерение; заряд, время перезарядки по тактам сервера, расход пули и заряда
+    /// Заряженные стволы хранятся в стаке (Met). Клик — выстрел; [ПОВЕДЕНИЕ] перезарядка автоматическая по стволу
+    /// за ReloadTicks (GunReload), идёт у оружия в любом слоте кармана и в левой руке. Клиент только сообщает намерение; заряд, время перезарядки по тактам сервера, расход пули и заряда
     /// из инвентаря, выстрел (быстрый снаряд-пуля с серверным попаданием), отдача, дым, звук и износ — сервер.
     /// Одноручное или двуручное — признак Two в json. [ПОВЕДЕНИЕ] Одноручное (мушкет) стреляет при закрытом щите
     /// (щит раскрывается на выстрел) и перезаряжается под ним; двуручное (двустволка) при закрытом щите только
@@ -53,11 +54,6 @@ namespace Mvk.Game.Item.List
         /// </summary>
         public int ShotPause { get; private set; } = 8;
 
-        /// <summary>
-        /// Такт сервера начала перезарядки у игрока (сервер)
-        /// </summary>
-        private readonly ConditionalWeakTable<PlayerServer, StrongBox<uint>> _reloadStart = new();
-
         protected override void _ReadStateFromJson(JsonCompound state)
         {
             base._ReadStateFromJson(state);
@@ -82,7 +78,9 @@ namespace Mvk.Game.Item.List
         public override ResultHandAction OnAction(bool begin, ItemStack stack, PlayerClientOwner player)
         {
             // Выстрел по нажатию, без автоогня; пустое оружие не стреляет
-            if (!begin || stack.Met == 0) return new ResultHandAction(ResultHandAction.ActionType.None);
+            // [ПОВЕДЕНИЕ] Во время перезарядки оружие не стреляет
+            if (!begin || stack.Met == 0 || IsReloading(stack, player.Inventory))
+                return new ResultHandAction(ResultHandAction.ActionType.None);
             return new ResultHandAction(ResultHandAction.ActionType.UseItem, ShotPause);
         }
 
@@ -90,6 +88,8 @@ namespace Mvk.Game.Item.List
         {
             if (player is not PlayerServerMvk mvk || stack.Met == 0 || _GuardBlocks(player)) return;
             int slot = mvk.InvPlayer.GetCurrentIndex();
+            // [ПОВЕДЕНИЕ] Перезарядка и пауза после выстрела по тактам сервера (GunReload)
+            if (!mvk.Guns.CanShoot(slot, stack, mvk.InvPlayer)) return;
             WorldServer world = player.GetWorldServer();
             // Пуля: снаряд с серверным попаданием; залп — пуля из каждого заряженного ствола
             int shots = Volley ? stack.Met : 1;
@@ -105,6 +105,7 @@ namespace Mvk.Game.Item.List
                 }
             }
             mvk.InvPlayer.SetInventorySlotContents(slot, new ItemStack(this, 1, stack.ItemDamaged, (byte)(stack.Met - shots)));
+            mvk.Guns.Shot(slot, mvk.InvPlayer.GetStackInSlot(slot), ShotPause);
             ItemWear.DamageHeld(player, shots);
 
             // Отдача, дым у ствола, звук
@@ -124,55 +125,53 @@ namespace Mvk.Game.Item.List
 
         #region Перезарядка
 
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Удержание оружия ничего не делает: перезарядка автоматическая (GunReload, сервер)
+        /// </summary>
         public override ResultHandSecond OnSecond(bool begin, ItemStack stack, PlayerClientOwner player, int counter)
+            => new ResultHandSecond(ResultHandSecond.ActionType.None);
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Оружие перезаряжается: не все стволы заряжены и в инвентаре есть пуля и заряд калибра.
+        /// Пока идёт перезарядка, оружие не стреляет (одинаково решают клиент и сервер по данным стака и инвентаря)
+        /// </summary>
+        public bool IsReloading(ItemStack stack, InventoryBase inventory)
+            => stack.Met < Barrels && HasAmmo(inventory);
+
+        /// <summary>
+        /// Есть ли в инвентаре пуля и заряд калибра оружия
+        /// </summary>
+        public bool HasAmmo(InventoryBase inventory)
         {
-            if (stack.Met >= Barrels) return new ResultHandSecond(ResultHandSecond.ActionType.None);
-            // 0 — начало перезарядки, 1 — продолжение (серверу только для отсчёта времени)
-            return new ResultHandSecond(10, begin ? 0 : 1);
+            bool bullet = false, charge = false;
+            for (int i = 0; i < InventoryPlayerMvk.PocketCount + InventoryPlayerMvk.ClothCount
+                + InventoryPlayerMvk.BackpackCount; i++)
+            {
+                ItemStack? stack = inventory.GetStackInSlot(i);
+                if (stack != null && stack.Amount > 0 && stack.Item is ItemAmmoPart part)
+                {
+                    if (part.Fits("Bullet", Caliber)) bullet = true;
+                    if (part.Fits(Charge, Caliber)) charge = true;
+                }
+            }
+            return bullet && charge;
         }
 
-        public override int OnSecondEnd(ItemStack stack, PlayerClientOwner player, bool abort, int counter)
-            => abort ? 255 : 100;
-
-        public override void OnUseSecond(ItemStack stack, PlayerServer player, int number)
+        /// <summary>
+        /// Зарядить один ствол оружия в слоте (сервер, GunReload): расход пули и заряда, щелчок
+        /// </summary>
+        public bool LoadBarrel(PlayerServerMvk player, int slot)
         {
-            if (player is not PlayerServerMvk mvk) return;
-            if (_GuardBlocks(player))
-            {
-                _reloadStart.Remove(player);
-                return;
-            }
-            uint tick = player.GetWorldServer().Server.TickCounterGlobal;
-            if (number == 0)
-            {
-                _reloadStart.AddOrUpdate(player, new StrongBox<uint>(tick));
-                return;
-            }
-            if (number != 100 || !_reloadStart.TryGetValue(player, out StrongBox<uint>? start)) return;
-            _reloadStart.Remove(player);
-            int empty = Barrels - stack.Met;
-            // Время по тактам сервера: каждый пустой ствол — ReloadTicks
-            int loadable = Math.Min(empty, (int)((tick - start.Value) / (uint)Math.Max(1, ReloadTicks)));
-            int loaded = 0;
-            for (int i = 0; i < loadable; i++)
-            {
-                if (!player.CreativeMode)
-                {
-                    int bulletSlot = ItemAmmo.Find(mvk, item => item is ItemAmmoPart part && part.Fits("Bullet", Caliber));
-                    int chargeSlot = ItemAmmo.Find(mvk, item => item is ItemAmmoPart part && part.Fits(Charge, Caliber));
-                    if (bulletSlot < 0 || chargeSlot < 0) break;
-                    ItemAmmo.ConsumeOne(mvk, bulletSlot);
-                    ItemAmmo.ConsumeOne(mvk, chargeSlot);
-                }
-                loaded++;
-            }
-            if (loaded == 0) return;
-            int slot = mvk.InvPlayer.GetCurrentIndex();
-            ItemStack current = mvk.InvPlayer.GetStackInSlot(slot);
-            if (current?.Item != this) return;
-            mvk.InvPlayer.SetInventorySlotContents(slot, new ItemStack(this, 1, current.ItemDamaged, (byte)(current.Met + loaded)));
-            WorldServer world = player.GetWorldServer();
-            world.PlaySoundDistance(AudioIndexs.GetKey("Click"), player.GetPositionCenterVec(), .6f, .7f);
+            int bulletSlot = ItemAmmo.Find(player, item => item is ItemAmmoPart part && part.Fits("Bullet", Caliber));
+            int chargeSlot = ItemAmmo.Find(player, item => item is ItemAmmoPart part && part.Fits(Charge, Caliber));
+            if (bulletSlot < 0 || chargeSlot < 0) return false;
+            ItemAmmo.ConsumeOne(player, bulletSlot);
+            ItemAmmo.ConsumeOne(player, chargeSlot);
+            ItemStack current = player.InvPlayer.GetStackInSlot(slot);
+            if (current?.Item != this) return false;
+            player.InvPlayer.SetInventorySlotContents(slot, new ItemStack(this, 1, current.ItemDamaged, (byte)(current.Met + 1)));
+            player.GetWorldServer().PlaySoundDistance(AudioIndexs.GetKey("Click"), player.GetPositionCenterVec(), .6f, .7f);
+            return true;
         }
 
         #endregion

@@ -14,7 +14,7 @@
     BlockStrength: 2.0,
     CloseRange: 4.0,
     CloseMultiplier: 2.0,
-    ReloadTicks: 40,
+    ReloadTicks: 13,
     Charge: "Shell",
     Speed: 4.0,
     Recoil: 0.45,

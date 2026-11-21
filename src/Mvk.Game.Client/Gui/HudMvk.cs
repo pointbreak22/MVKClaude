@@ -36,6 +36,10 @@ namespace Mvk.Game.Client.Gui
         /// </summary>
         private readonly RenderSlots _renderSlots;
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Откат оружия над слотами
+        /// </summary>
+        private readonly HudGunCooldown _gunCooldown;
+        /// <summary>
         /// Список буфера для построения сеток
         /// </summary>
         private readonly ListFlout _listBuffer = new ListFlout();
@@ -57,6 +61,7 @@ namespace Mvk.Game.Client.Gui
             _limitPocket = InventoryPlayerMvk.PocketCount;
 
             _inventoryPlayer = _game.Player.Inventory as InventoryPlayerMvk;
+            _gunCooldown = new HudGunCooldown(_game, _inventoryPlayer, new MeshGuiColor(renderMvk));
 
             // Изменён лимит карманов
             _inventoryPlayer.LimitPocketChanged += (sender, e) => _RenderInventoryBg();
@@ -203,6 +208,15 @@ namespace Mvk.Game.Client.Gui
 
             _renderSlots.Draw(0, 0);
 
+            // [ПОВЕДЕНИЕ] Откат оружия: тёмный сектор над значком
+            if (_gunCooldown.Build(timeIndex, x, y, size, x - 56 * _game.View.Si, 16 * _game.View.Si, _limitPocket))
+            {
+                _renderMvk.ShaderBindGuiColor();
+                _renderMvk.FontMain.BindTexture();
+                _gunCooldown.Draw();
+                _renderMvk.BindTextureHud();
+            }
+
             // Выбранный
             int index = _game.Player.Inventory.GetCurrentIndex();
             _renderMvk.ShaderBindGuiColor(index * size, 0);
@@ -230,6 +244,7 @@ namespace Mvk.Game.Client.Gui
             base.Dispose();
             _meshInventoryBg?.Dispose();
             _meshInventorySelect?.Dispose();
+            _gunCooldown?.Dispose();
             _renderSlots.Dispose();
         }
     }
