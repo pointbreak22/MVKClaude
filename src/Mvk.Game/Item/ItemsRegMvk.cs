@@ -82,6 +82,10 @@ namespace Mvk.Game.Item
         /// </summary>
         public static ItemAbTool Knife { get; private set; }
         /// <summary>
+        /// Копьё
+        /// </summary>
+        public static ItemAbTool Spear { get; private set; }
+        /// <summary>
         /// Ведро
         /// </summary>
         public static ItemBucket Bucket { get; private set; }
@@ -375,6 +379,7 @@ namespace Mvk.Game.Item
             ItemsReg.RegisterItemClass("Hook", Hook = new ItemBase(), _ItemsForBlock);
             ItemsReg.RegisterItemClass("Flint", Flint = new ItemFlint(), _ItemsForBlock);
             ItemsReg.RegisterItemClass("Knife", Knife = new ItemKnife(), _Tools);
+            ItemsReg.RegisterItemClass("Spear", Spear = new ItemKnife(), _Tools);
             ItemsReg.RegisterItemClass("Bucket", Bucket = new ItemBucket(), _ItemsForBlock);
             ItemsReg.RegisterItemClass("BucketWater", BucketWater = new ItemLiquid(BlocksRegMvk.Water, false), _ItemsForBlock);
             ItemsReg.RegisterItemClass("BucketLava", BucketLava = new ItemLiquid(BlocksRegMvk.Lava, false, .25f), _ItemsForBlock);

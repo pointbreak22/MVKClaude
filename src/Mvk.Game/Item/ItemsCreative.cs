@@ -80,6 +80,7 @@ namespace Mvk.Game.Item
             tabTools.Add(new ItemStack(ItemsRegMvk.PickaxeRed));
             tabTools.Add(new ItemStack(ItemsRegMvk.SwordIron));
             tabTools.Add(new ItemStack(ItemsRegMvk.Knife));
+            tabTools.Add(new ItemStack(ItemsRegMvk.Spear));
             tabTools.Add(new ItemStack(ItemsRegMvk.HoeIron));
             tabTools.Add(new ItemStack(ItemsRegMvk.Shield));
             tabTools.Add(new ItemStack(ItemsRegMvk.Bow));

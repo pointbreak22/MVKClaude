@@ -410,7 +410,7 @@ namespace Mvk.Desktop
     /// <summary>
     /// [ПОВЕДЕНИЕ] /kit: стартовый набор для проверки (оба режима), один раз: если меча из набора ещё нет. Одежда
     /// и левая рука нового игрока не меняются (карманы и рюкзак от одежды); предметы раскладываются по карманам
-    /// и рюкзаку: оружие, инструменты, щит, нож, лук со стрелами, мушкет и двустволка с боеприпасами, факелы, динамит,
+    /// и рюкзаку: оружие, инструменты, щит, нож, копьё, лук со стрелами, мушкет и двустволка с боеприпасами, факелы, динамит,
     /// огниво, крюк с верёвками, вёдра, блоки, паутина, железная броня (надеть из инвентаря)
     /// </summary>
     internal sealed class CommandKit : CommandBase
@@ -422,7 +422,7 @@ namespace Mvk.Desktop
         /// </summary>
         private static readonly (string Alias, int Amount)[] _items =
         {
-            ("SwordIron", 1), ("PickaxeIron", 1), ("Shield", 1), ("Knife", 1), ("Torch", 0), ("Cobblestone", 0), ("Bow", 1),
+            ("SwordIron", 1), ("PickaxeIron", 1), ("Shield", 1), ("Knife", 1), ("Spear", 1), ("Torch", 0), ("Cobblestone", 0), ("Bow", 1),
             ("Arrow", 0), ("Musket", 1), ("DoubleBarrel", 1), ("Bullet", 0), ("Powder", 0), ("Shell", 0),
             ("Dynamite", 0), ("Flint", 1), ("Hook", 1), ("Rope", 0), ("AxeIron", 1), ("ShovelIron", 1),
             ("HoeIron", 1), ("Bucket", 1), ("BucketWater", 1), ("Cobweb", 0), ("Glass", 0), ("PieceStone", 0),

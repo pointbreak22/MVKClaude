@@ -1,0 +1,19 @@
+{
+    MaxStackSize: 1,
+    MaxDamage: 300,
+    SlotClothIndex: 1,
+    Damage: 7.0,
+    AttackPause: 12,
+    Pause: 10,
+    Acceleration: 1.5,
+    Level: 2,
+    ThrowMin: 0.8,
+    ThrowMax: 2.0,
+    ThrowCharge: 20,
+    ThrowWear: 3,
+    Width: 1.0,
+    Height: 0.125,
+    Action: "AttackRight",
+    Sprite: "Items/Tools/Spear",
+    SpriteGui: "Items/Tools/Spear"
+}
