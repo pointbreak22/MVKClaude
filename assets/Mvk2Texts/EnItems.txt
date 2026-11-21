@@ -26,3 +26,4 @@ Shell:Shell
 Cobweb:Cobweb
 Hook:Grappling hook
 Flint:Flint and steel
+Knife:Knife

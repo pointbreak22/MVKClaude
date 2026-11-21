@@ -1,0 +1,19 @@
+{
+    MaxStackSize: 1,
+    MaxDamage: 250,
+    SlotClothIndex: 1,
+    Damage: 4.0,
+    AttackPause: 6,
+    Pause: 10,
+    Acceleration: 1.5,
+    Level: 2,
+    ThrowMin: 0.6,
+    ThrowMax: 1.6,
+    ThrowCharge: 20,
+    ThrowWear: 5,
+    Width: 0.5,
+    Height: 0.125,
+    Action: "AttackRight",
+    Sprite: "Items/Tools/Knife",
+    SpriteGui: "Items/Tools/Knife"
+}
