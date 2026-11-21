@@ -94,8 +94,22 @@ namespace Mvk.Game.Entity
                 hostile.PosZ = z + .5f;
                 hostile.Hunt = player;
                 world.SpawnEntityInWorld(hostile);
+                // Подсказка в чате: кто, с какой стороны и как далеко
+                player.SendMessage(Mvk.Engine.Realms.ChatStyle.Red + "Появился враг: "
+                    + (hostile is EntityZombieMvk ? "зомби" : "разбойник") + ", " + _Side(x + .5f - player.PosX, z + .5f - player.PosZ)
+                    + ", " + (int)distance + " блоков");
                 return;
             }
+        }
+
+        /// <summary>
+        /// Сторона света по смещению (север — −Z)
+        /// </summary>
+        private static string _Side(float dx, float dz)
+        {
+            string ns = dz < -Math.Abs(dx) * .4f ? "север" : dz > Math.Abs(dx) * .4f ? "юг" : "";
+            string ew = dx > Math.Abs(dz) * .4f ? "восток" : dx < -Math.Abs(dz) * .4f ? "запад" : "";
+            return ns != "" && ew != "" ? ns + "о-" + ew : ns + ew;
         }
 
         /// <summary>
