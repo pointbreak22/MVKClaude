@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using Mvk.Core.Maths;
 using Mvk.Engine.Entity;
 using Mvk.Engine.Entity.Player;
@@ -33,6 +34,10 @@ namespace Mvk.Game.Entity.List
         /// </summary>
         public float CloseMultiplier = 1;
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Сила отталкивания цели пулей (json Knockback оружия; удар щитом с разгона — 4 таких)
+        /// </summary>
+        public float Knockback;
+        /// <summary>
         /// Точка выстрела
         /// </summary>
         public Vector3 Origin;
@@ -44,13 +49,31 @@ namespace Mvk.Game.Entity.List
                 ? CloseMultiplier : 1;
             if (entity != null)
             {
-                entity.Damage?.OnAttack((byte)EnumDamageSource.Piece, hitY, BulletDamage * multiplier, thrower!);
+                if (entity.Damage?.OnAttack((byte)EnumDamageSource.Piece, hitY, BulletDamage * multiplier, thrower!) == true)
+                {
+                    _Push(entity);
+                }
             }
             else
             {
                 _HitBlock(pos, BlockStrength * multiplier, thrower);
             }
             SetDead();
+        }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Отталкивание цели по направлению полёта пули с небольшим подбросом; лёгкая цель (по объёму
+        /// хитбокса) отлетает дальше, тяжёлая — ближе; игрок в творческом не отталкивается
+        /// </summary>
+        private void _Push(EntityLiving entity)
+        {
+            if (Knockback <= 0 || (entity is PlayerBase player && (player.CreativeMode || player.IsSpectator()))) return;
+            float mx = Physics.MotionX, mz = Physics.MotionZ;
+            float length = Mth.Sqrt(mx * mx + mz * mz);
+            if (length < .001f) return;
+            float mass = Math.Clamp(entity.Size.GetWidth() * entity.Size.GetHeight() * .5f, .5f, 3f);
+            float force = Knockback / mass;
+            entity.SetPhysicsImpulse(mx / length * .9f * force, .25f * force, mz / length * .9f * force);
         }
 
         /// <summary>

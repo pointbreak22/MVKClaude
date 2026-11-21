@@ -12,6 +12,7 @@
     ReloadTicks: 13,
     Charge: "Powder",
     Speed: 4.0,
+    Knockback: 0.625,
     Recoil: 0.25,
     Width: 0.35,
     Height: 0.125,

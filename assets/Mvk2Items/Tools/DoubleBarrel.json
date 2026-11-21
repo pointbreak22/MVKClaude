@@ -17,6 +17,7 @@
     ReloadTicks: 13,
     Charge: "Shell",
     Speed: 4.0,
+    Knockback: 0.625,
     Recoil: 0.45,
     Width: 1.05,
     Height: 0.1875,

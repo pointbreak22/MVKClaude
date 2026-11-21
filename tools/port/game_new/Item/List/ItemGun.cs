@@ -103,6 +103,7 @@ namespace Mvk.Game.Item.List
                     shot.BlockStrength = BlockStrength;
                     shot.CloseRange = CloseRange;
                     shot.CloseMultiplier = CloseMultiplier;
+                    shot.Knockback = Knockback;
                     shot.Origin = new Vector3(player.PosX, player.PosY + player.GetEyeHeight(), player.PosZ);
                 }
             }
