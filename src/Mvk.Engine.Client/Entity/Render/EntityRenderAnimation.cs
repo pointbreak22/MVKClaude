@@ -710,8 +710,9 @@ namespace Mvk.Engine.Entity.Render
                 if (itemLeft != null &&
                     Mth.Min(entityLiving.Inventory.OutsideCount, _resourcesEntity.CountPositionItem) > 0)
                 {
-                    // Левая рука, только держим предмет
-                    holdLeft = HoldLeft;
+                    // Левая рука, только держим предмет; [ПОВЕДЕНИЕ] поза держания предмета для правой руки (…Right)
+                    // в левой — её зеркальный клип (…Left), например пистолет
+                    holdLeft = itemLeft.Item.Hold.EndsWith("Right") ? itemLeft.Item.Hold[..^5] + "Left" : HoldLeft;
                 }
                 _handPosePrev = entityLiving.IsHandPose();
                 if (_handPosePrev)

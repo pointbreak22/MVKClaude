@@ -81,7 +81,9 @@ namespace Mvk.Game.Item.List
             // [ПОВЕДЕНИЕ] Во время перезарядки оружие не стреляет
             if (!begin || stack.Met == 0 || IsReloading(stack, player.Inventory))
                 return new ResultHandAction(ResultHandAction.ActionType.None);
-            return new ResultHandAction(ResultHandAction.ActionType.UseItem, ShotPause);
+            // [ПОВЕДЕНИЕ] Пауза после выстрела — у самого оружия (GunReload); рука после выстрела ждёт 2 такта, другое
+            // оружие в этой руке стреляет сразу
+            return new ResultHandAction(ResultHandAction.ActionType.UseItem, 2);
         }
 
         public override void OnUseAction(ItemStack stack, PlayerServer player)

@@ -160,7 +160,7 @@ namespace Mvk.Desktop
             for (int i = 0; i < world.LoadedEntityList.Count; i++) if (world.LoadedEntityList.GetAt(i) is EntityItem) drops++;
             int bullets = 0;
             for (int i = 0; i < 55; i++) if (player.Inventory.GetStackInSlot(i)?.Item.Alias == "Bullet") bullets += player.Inventory.GetStackInSlot(i).Amount;
-            System.Console.WriteLine($"bullets {bullets} met {held?.Met ?? 0}");
+            System.Console.WriteLine($"bullets {bullets} met {held?.Met ?? 0} s0met {player.Inventory.GetStackInSlot(0)?.Met ?? 0} s1met {player.Inventory.GetStackInSlot(1)?.Met ?? 0}");
             System.Console.WriteLine($"hands right {held?.Item.Alias ?? "-"} x{held?.Amount ?? 0} left {left?.Item.Alias ?? "-"} x{left?.Amount ?? 0} износ {left?.ItemDamaged ?? 0} drops {drops} s0 {player.Inventory.GetStackInSlot(0)?.Item.Alias} s1 {player.Inventory.GetStackInSlot(1)?.Item.Alias} x{player.Inventory.GetStackInSlot(1)?.Amount ?? 0} s2 {player.Inventory.GetStackInSlot(2)?.Item.Alias}");
             for (int i = 0; i < world.LoadedEntityList.Count; i++)
             {
