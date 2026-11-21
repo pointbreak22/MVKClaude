@@ -97,6 +97,9 @@ namespace Mvk.Desktop
                 // Сверка с оригиналом: без стартового набора и без спавна врагов
                 else if (args[i] == "--no-kit") { DesktopApp.NoKit = true; Mvk.Game.Entity.EnemySpawner.Enabled = false; }
                 else if (args[i] == "--no-spawn") Mvk.Game.Entity.EnemySpawner.Enabled = false;
+                // Облёт камеры третьего лица вокруг игрока, градусы (снимки предметов в руках сбоку)
+                else if (args[i] == "--orbit" && i + 1 < args.Length)
+                    Mvk.Engine.Entity.Player.PlayerClientOwner.DebugOrbitYaw = float.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture) * System.MathF.PI / 180f;
                 else if (args[i] == "--backend" && i + 1 < args.Length) GraphicsHost.Vulkan = args[++i] == "vulkan";
                 else if (args[i] == "--gen" && i + 1 < args.Length)
                 {

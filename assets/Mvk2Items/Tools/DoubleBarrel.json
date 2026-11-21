@@ -22,6 +22,6 @@
     Height: 0.1875,
     Shape: "Tools/PortDoubleBarrel",
     View: { Rotate:[0, 45, -90], Offset:[-3, 1, 3] },
-    ViewHold: { Rotate:[-90, 0, 0], Offset:[0, -4, -16] },
+    ViewHold: { Rotate:[-70, 0, 0], Offset:[0, 1.5, -15] },
     SpriteGui: "Items/Tools/DoubleBarrel"
 }

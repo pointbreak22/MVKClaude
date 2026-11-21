@@ -440,6 +440,11 @@ namespace Mvk.Engine.Entity.Player
         /// <summary>
         /// Обновить матрицу камеры
         /// </summary>
+        /// <summary>
+        /// Отладка: поворот камеры третьего лица вокруг игрока, радианы (0 — как в игре)
+        /// </summary>
+        public static float DebugOrbitYaw;
+
         private void _UpdateMatrixCamera()
         {
             Vector3 front = Glm.Ray(RotationFrameYaw, RotationFramePitch);
@@ -447,6 +452,11 @@ namespace Mvk.Engine.Entity.Player
             Vector3 pos = new Vector3(0, _eyeFrame, 0);
             _rayLook = front;
 
+            // Отладочный облёт камеры третьего лица вокруг игрока (--orbit)
+            if (DebugOrbitYaw != 0 && ViewCamera != EnumViewCamera.Eye)
+            {
+                front = Glm.Ray(RotationFrameYaw + DebugOrbitYaw, RotationFramePitch);
+            }
             if (ViewCamera == EnumViewCamera.Back)
             {
                 // вид сзади
