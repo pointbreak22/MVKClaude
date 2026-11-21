@@ -70,7 +70,7 @@ assets/                   ресурсы из res/Assets (копируются �
   `--calm` снимок при ветре около нуля, `--phase N` при фазе ветра N;
   `--script "0:W+;60:W-;80:end" --trace след.csv` сценарий механики по тактам;
   `--bench --novsync` замер загрузки и кадра (`py tools/Bench/bench.py`), `--mesh-workers N`; `--gen parallel` и `--gen-threads N` включаемый режим генерации Parallel нового мира;
-  `--backend vulkan|opengl` бэкенд графики (по умолчанию OpenGL);
+  `--backend vulkan|opengl` бэкенд графики (по умолчанию OpenGL); `--no-kit` без стартового набора и спавна врагов (сверка), `--no-spawn` без спавна врагов;
   `--test-scene` тестовая сцена RHI этапа 4)
 - Сервер: `dotnet run --project src/Hosts/Mvk.Server`
 

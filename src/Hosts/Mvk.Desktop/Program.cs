@@ -94,7 +94,9 @@ namespace Mvk.Desktop
                     }
                 }
                 else if (args[i] == "--novsync") _noVSync = true;
-                else if (args[i] == "--no-kit") DesktopApp.NoKit = true;
+                // Сверка с оригиналом: без стартового набора и без спавна врагов
+                else if (args[i] == "--no-kit") { DesktopApp.NoKit = true; Mvk.Game.Entity.EnemySpawner.Enabled = false; }
+                else if (args[i] == "--no-spawn") Mvk.Game.Entity.EnemySpawner.Enabled = false;
                 else if (args[i] == "--backend" && i + 1 < args.Length) GraphicsHost.Vulkan = args[++i] == "vulkan";
                 else if (args[i] == "--gen" && i + 1 < args.Length)
                 {

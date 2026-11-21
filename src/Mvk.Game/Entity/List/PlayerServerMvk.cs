@@ -39,7 +39,13 @@ namespace Mvk.Game.Entity.List
             base.Update();
             Guns.Update(this);
             Vitals.Update(this);
+            Spawner.Update(this);
         }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Периодический спавн врагов вокруг игрока
+        /// </summary>
+        public readonly EnemySpawner Spawner = new EnemySpawner();
 
         /// <summary>
         /// [ПОВЕДЕНИЕ] Здоровье и выносливость

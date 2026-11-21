@@ -39,6 +39,7 @@ namespace Mvk.Desktop
         {
             base.InitCommand(managerCommand);
             managerCommand.Registration(new CommandSummon(Server));
+            managerCommand.Registration(new CommandSpawning(Server));
             managerCommand.Registration(new CommandThrow(Server));
             managerCommand.Registration(new CommandHealth(Server));
             managerCommand.Registration(new CommandWear(Server));
@@ -49,6 +50,21 @@ namespace Mvk.Desktop
             managerCommand.Registration(new CommandBlock(Server));
             managerCommand.Registration(new CommandUse(Server));
             managerCommand.Registration(new CommandPut(Server));
+        }
+    }
+
+    /// <summary>
+    /// /spawning on|off — включить или выключить периодический спавн врагов (EnemySpawner)
+    /// </summary>
+    internal sealed class CommandSpawning : CommandBase
+    {
+        public CommandSpawning(GameServer server) : base(server) => Name = "spawning";
+
+        public override string UseCommand(CommandSender sender)
+        {
+            string[] p = sender.GetCommandParams();
+            if (p.Length > 0) Mvk.Game.Entity.EnemySpawner.Enabled = p[0] != "off";
+            return "spawning: " + (Mvk.Game.Entity.EnemySpawner.Enabled ? "on" : "off");
         }
     }
 

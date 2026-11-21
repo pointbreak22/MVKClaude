@@ -34,6 +34,11 @@ namespace Mvk.Game.Entity.List
         public override bool HealthBarAlways => true;
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Игрок, за которым моб пришёл (EnemySpawner): цель на любом расстоянии до 160 блоков
+        /// </summary>
+        public EntityLiving? Hunt;
+
+        /// <summary>
         /// Размер как у игрока
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -77,6 +82,8 @@ namespace Mvk.Game.Entity.List
         /// </summary>
         public EntityLiving? FindTarget()
         {
+            // Пришедший за игроком (периодический спавн) идёт к нему издалека
+            if (Hunt != null && _IsTarget(Hunt) && Distance(Hunt) < 160) return Hunt;
             if (GetAITarget() is EntityLiving attacker && _IsTarget(attacker)
                 && Distance(attacker) < SightRange * 1.5f) return attacker;
             if (Tracker?.ClosestPlayer is PlayerServer player && _IsTarget(player)

@@ -9,7 +9,13 @@ t = load(rel, GAME)
 t = rep(t, """            Guns.Update(this);
         }""", """            Guns.Update(this);
             Vitals.Update(this);
+            Spawner.Update(this);
         }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Периодический спавн врагов вокруг игрока
+        /// </summary>
+        public readonly EnemySpawner Spawner = new EnemySpawner();
 
         /// <summary>
         /// [ПОВЕДЕНИЕ] Здоровье и выносливость

@@ -32,3 +32,4 @@ Mvk2Textures/Items/Tools/PortPalette.png
 # свои сущности Mvk2Entities/Zombie.json и Mvk2Entities/Bandit.json (враждебные мобы)
 # Не PNG: свои модели предметов Mvk2Items/Shapes/Tools/Port*.json (генерирует tools/Assets/item_models.py), в том числе PortArrow
 # Не PNG: свои настройки Mvk2Entities/Vitals.json (здоровье и выносливость игрока)
+# Не PNG: свои настройки Mvk2Entities/Spawn.json (периодический спавн врагов)
