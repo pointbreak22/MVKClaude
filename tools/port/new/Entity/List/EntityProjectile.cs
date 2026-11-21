@@ -46,7 +46,7 @@ namespace Mvk.Engine.Entity.List
         private int _flightTicks;
 
         /// <summary>
-        /// Бросить стак предмета снарядом от игрока (сервер). Сила 1 — обычный дальний бросок предмета.
+        /// Бросить стак предмета снарядом от игрока (сервер). Сила 1 — обычный дальний бросок предмета (1.4 блока за такт).
         /// alias — сущность снаряда в реестре (наследник EntityProjectile, например динамит)
         /// </summary>
         public static EntityProjectile? Throw(PlayerServer player, ItemStack stack, float power, string alias = Alias)
@@ -60,10 +60,21 @@ namespace Mvk.Engine.Entity.List
             projectile.ThrowerId = player.Id;
             projectile.Power = power;
             projectile.IsFlying = true;
-            worldServer.EntityDropsEntityInWorld(player, projectile, true, true);
-            projectile.Physics.MotionX *= power;
-            projectile.Physics.MotionY *= power;
-            projectile.Physics.MotionZ *= power;
+            // [ПОВЕДЕНИЕ] Вылет из прицела: от глаз, чуть вперёд и в сторону бросающей руки, точно по взгляду
+            // (поворот и наклон), без случайного разброса
+            float yaw = player.RotationYaw, pitch = player.RotationPitch;
+            float cosPitch = Glm.Cos(pitch);
+            float dx = Glm.Sin(yaw) * cosPitch, dy = Glm.Sin(pitch), dz = -Glm.Cos(yaw) * cosPitch;
+            float side = player.Inventory.HandLeft ? -.2f : .2f;
+            projectile.PosX = player.PosX + dx * .4f + Glm.Cos(yaw) * side;
+            projectile.PosY = player.PosY + player.GetEyeHeight() - .1f + dy * .4f;
+            projectile.PosZ = player.PosZ + dz * .4f + Glm.Sin(yaw) * side;
+            float speed = 1.4f * power;
+            projectile.Physics.MotionX = dx * speed;
+            projectile.Physics.MotionY = dy * speed;
+            projectile.Physics.MotionZ = dz * speed;
+            projectile.BeforeDrop();
+            worldServer.SpawnEntityInWorld(projectile);
             return projectile;
         }
 
