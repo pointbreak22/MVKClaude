@@ -7,6 +7,7 @@
     Pause: 10,
     Acceleration: 1.5,
     Level: 2,
+    ThrustSpeed: 5.0,
     ThrowMin: 0.8,
     ThrowMax: 2.0,
     ThrowCharge: 20,

@@ -36,6 +36,20 @@ namespace Mvk.Engine.Network.Packets.Client
         }
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Колющий выпад (урон от скорости игрока)
+        /// </summary>
+        public bool Thrust { get; private set; }
+
+        /// <summary>
+        /// Пометить удар как колющий выпад
+        /// </summary>
+        public PacketC03UseEntity AsThrust()
+        {
+            Thrust = true;
+            return this;
+        }
+
+        /// <summary>
         /// Взаимодействие сущности, Атаки!
         /// </summary>
         /// <param name="hitY">Высота удара, 0 до высоты size.Y</param>
@@ -89,7 +103,8 @@ namespace Mvk.Engine.Network.Packets.Client
             Index = stream.Int();
             byte action = stream.Byte();
             Left = (action & 0x80) != 0;
-            Action = (EnumAction)(action & 0x7F);
+            Thrust = (action & 0x40) != 0;
+            Action = (EnumAction)(action & 0x3F);
             X = stream.Float();
             Y = stream.Float();
             Z = stream.Float();
@@ -102,7 +117,7 @@ namespace Mvk.Engine.Network.Packets.Client
         public void WritePacket(WritePacket stream)
         {
             stream.Int(Index);
-            stream.Byte((byte)((byte)Action | (Left ? 0x80 : 0)));
+            stream.Byte((byte)((byte)Action | (Left ? 0x80 : 0) | (Thrust ? 0x40 : 0)));
             stream.Float(X);
             stream.Float(Y);
             stream.Float(Z);

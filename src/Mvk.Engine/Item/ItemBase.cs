@@ -125,6 +125,11 @@ namespace Mvk.Engine.Item
         public int HandLight { get; protected set; } = 0;
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Колющий выпад: урон × (1 + скорость игрока × ThrustSpeed) (json ThrustSpeed, 0 — нет выпада)
+        /// </summary>
+        public float ThrustSpeed { get; protected set; } = 0;
+
+        /// <summary>
         /// [ПОВЕДЕНИЕ] Поджечь предмет (сервер) предметом другой руки lighter; true — подожжён
         /// </summary>
         public virtual bool OnIgnite(ItemStack stack, PlayerServer player, ItemStack lighter, bool left) => false;
@@ -463,6 +468,7 @@ namespace Mvk.Engine.Item
                         else if (json.IsKey("Knockback")) Knockback = json.GetFloat();
                         else if (json.IsKey("ThrowMin")) ThrowMin = json.GetFloat();
                         else if (json.IsKey("HandLight")) HandLight = json.GetInt();
+                        else if (json.IsKey("ThrustSpeed")) ThrustSpeed = json.GetFloat();
                         else if (json.IsKey("ThrowMax")) ThrowMax = json.GetFloat();
                         else if (json.IsKey("ThrowCharge")) ThrowCharge = Math.Max(1, json.GetInt());
                         else if (json.IsKey("ThrowEntity")) ThrowEntity = json.GetString();

@@ -1,5 +1,6 @@
-"""[ПОВЕДЕНИЕ] Метательное оружие (просьба пользователя 21.11): нож и копьё (game_new ItemKnife): клик бьёт, удержание
-и отпускание — бросок по общей схеме броска (json). Регистрируются последними, в творческой вкладке инструментов.
+"""[ПОВЕДЕНИЕ] Метательное оружие (просьба пользователя 21.11): нож и копьё (game_new ItemKnife). Нож: клик бьёт,
+удержание и отпускание — бросок (json). Копьё: клик бьёт, удержание — колющий выпад (урон от скорости, json ThrustSpeed),
+присед + удержание и отпускание — бросок. Регистрируются последними, в творческой вкладке инструментов.
 Значки свои (assets/port-assets.txt)."""
 import os
 from portlib import load, save, rep, ROOT
@@ -28,5 +29,12 @@ t = load(rel, GAME)
 tabs = "".join(f"""
             tabTools.Add(new ItemStack(ItemsRegMvk.{name}));""" for name, ru in WEAPONS)
 t = rep(t, """            tabTools.Add(new ItemStack(ItemsRegMvk.SwordIron));""", """            tabTools.Add(new ItemStack(ItemsRegMvk.SwordIron));""" + tabs, rel, 1)
+save(rel, t, GAME)
+
+# Копьё: бросок только с приседом (Alt), без приседа удержание — колющий выпад (HandManagerMvkHands._Thrust)
+rel = r"Entity\Player\HandManagerMvk.cs"
+t = load(rel, GAME)
+t = rep(t, """            if (item != null && item.Throwable) return HandUse.Throw;""",
+        """            if (item != null && item.Throwable) return item.ThrustSpeed <= 0 || _player.IsSneaking() ? HandUse.Throw : HandUse.Action;""", rel, 1)
 save(rel, t, GAME)
 print("game knife ok", [n for n, r in WEAPONS])

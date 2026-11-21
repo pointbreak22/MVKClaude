@@ -48,7 +48,32 @@ namespace Mvk.Game.Entity.Player
         /// <summary>
         /// При «кресте» мечи не бьют, а держат блок
         /// </summary>
-        protected override bool _HoldOverride() => _Cross() || _GunGuarded() || _HeavyWaits();
+        protected override bool _HoldOverride() => _Cross() || _GunGuarded() || _HeavyWaits() || _Thrust();
+
+        /// <summary>
+        /// Выпад этого нажатия уже сделан
+        /// </summary>
+        private bool _thrusted;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Копьё (ThrustSpeed в json) без приседа: удержание — один колющий выпад за нажатие, урон от скорости
+        /// игрока считает сервер (PacketC03UseEntity.Thrust)
+        /// </summary>
+        private bool _Thrust()
+        {
+            if (_Use != HandUse.Action || !(_player.Inventory.GetCurrentItem()?.Item.ThrustSpeed > 0)) return false;
+            if (_thrusted) return true;
+            _thrusted = true;
+            MovingObjectPosition moving = _player.MovingObject;
+            _player.Render.SetAnimationCodeAdd(_AnimationCode("AttackRight"));
+            if (moving.IsEntity() && moving.Entity is Mvk.Engine.Entity.EntityLiving)
+            {
+                Vector3 vec = (moving.Entity!.GetPositionVec() - _player.GetPositionVec()).Normalize();
+                _game.TrancivePacket(new PacketC03UseEntity(moving.Entity.Id, moving.RayHit.Y,
+                    vec.X * .9f, vec.Y * .18f, vec.Z * .9f).Hand(_left).AsThrust());
+            }
+            return true;
+        }
 
         /// <summary>
         /// [ПОВЕДЕНИЕ] Вторая рука занята, пока другая действует тяжёлым двуручным (придерживает его)
@@ -167,6 +192,8 @@ namespace Mvk.Game.Entity.Player
         /// </summary>
         protected override void _AfterHandTick()
         {
+            if (!HandDown) _thrusted = false;
+            if (Other != null && !Other.HandDown) Other._thrusted = false;
             if (!_left || Other == null) return;
             _AutoReload(this, Other);
             _AutoReload(Other, this);

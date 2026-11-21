@@ -500,6 +500,11 @@ namespace Mvk.Engine.Entity.Player
             || (_server.TickCounterGlobal - _speedTick <= 3 && _speed > .3f);
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Скорость игрока за последние 3 такта (блоков за такт), 0 — стоит
+        /// </summary>
+        public float MoveSpeed() => _server.TickCounterGlobal - _speedTick <= 3 ? _speed : 0;
+
+        /// <summary>
         /// Такт сервера последнего удара по сущности правой и левой рукой
         /// </summary>
         private readonly uint[] _attackTick = new uint[] { uint.MaxValue - 100, uint.MaxValue - 100 };
@@ -534,6 +539,11 @@ namespace Mvk.Engine.Entity.Player
                     {
                         ItemStack stack = Inventory.GetCurrentItem();
                         float damage = stack != null ? stack.Item.GetDamageToAttack() : 1;
+                        // [ПОВЕДЕНИЕ] Колющий выпад: урон от скорости игрока
+                        if (packet.Thrust && stack != null && stack.Item.ThrustSpeed > 0)
+                        {
+                            damage *= 1 + MoveSpeed() * stack.Item.ThrustSpeed;
+                        }
                         if (PresenceBlocks.IsInLiquid) damage *= .75f;
                         // [ПОВЕДЕНИЕ] Крит в прыжке или на бегу (в оригинале в воздухе ×1.1)
                         else if (IsMomentum()) damage *= stack != null ? stack.Item.CritMultiplier : 1.5f;
