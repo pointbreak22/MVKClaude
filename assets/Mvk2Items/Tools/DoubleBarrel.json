@@ -1,5 +1,6 @@
 {
     MaxStackSize: 1,
+    Hold: "HoldAimTwo",
     MaxDamage: 400,
     SlotClothIndex: 1,
     Two: true,

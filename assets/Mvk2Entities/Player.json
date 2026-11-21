@@ -173,6 +173,26 @@
             }
         },
         {
+            Code: "HoldAimRight",
+            Animation: "HoldAimRight",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmRight: 70,
+                ForearmRight: 70
+            }
+        },
+        {
+            Code: "HoldAimTwo",
+            Animation: "HoldAimTwo",
+            AnimationSpeed: 1.0,
+            ElementWeight: {
+                ArmRight: 70,
+                ForearmRight: 70,
+                ArmLeft: 70,
+                ForearmLeft: 70
+            }
+        },
+        {
             Code: "HoldGuardLeft",
             Animation: "HoldGuardLeft",
             AnimationSpeed: 1.0,
