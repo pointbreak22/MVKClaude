@@ -15,4 +15,15 @@ t = load(rel, GAME)
 t = rep(t, "        public float DigBonus { get; protected set; } = 3;", "        public float DigBonus { get; protected set; } = 5;", rel, 1)
 t = t.replace("Сила удара по своему материалу (json DigBonus)", "Сила удара по своему материалу (json DigBonus, по умолчанию ×5 к руке)")
 save(rel, t, GAME)
+
+# [ПОВЕДЕНИЕ] Пока рука держит натяжение, перезарядку или замах, анимация удара не играет (hands_click_release.py)
+rel = r"Entity\Player\HandManagerMvk.cs"
+t = load(rel, GAME)
+t = rep(t, """        protected override bool _ActionAnimationRight(ItemStack itemStack, 
+            MovingObjectPosition moving)
+        {""", """        protected override bool _ActionAnimationRight(ItemStack itemStack, 
+            MovingObjectPosition moving)
+        {
+            if (_HoldingCharge) return false;""", rel, 1)
+save(rel, t, GAME)
 print("game dig ok")

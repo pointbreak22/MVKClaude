@@ -233,6 +233,9 @@ namespace Mvk.Game.Entity.Player
             bool press = (Guarding && !_guardPrev) || (Other.Guarding && !Other._guardPrev);
             _guardPrev = Guarding;
             Other._guardPrev = Other.Guarding;
+            // [ПОВЕДЕНИЕ] Поза руки своего игрока (блок щитом, натяжение лука) — сразу на клиенте, не дожидаясь сервера
+            bool pose = want || (_HoldingCharge && _ItemOf(this)?.Item is ItemBow) || (Other._HoldingCharge && _ItemOf(Other)?.Item is ItemBow);
+            if (_player.IsHandPose() != pose) _player.SetHandPose(pose);
             if (want != _playerMvk.BlockingSent || (want && press))
             {
                 _playerMvk.BlockingSent = want;

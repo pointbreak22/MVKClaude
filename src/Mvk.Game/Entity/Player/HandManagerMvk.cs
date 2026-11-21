@@ -105,6 +105,7 @@ namespace Mvk.Game.Entity.Player
         protected override bool _ActionAnimationRight(ItemStack itemStack, 
             MovingObjectPosition moving)
         {
+            if (_HoldingCharge) return false;
             if (itemStack == null)
             {
                // return false;

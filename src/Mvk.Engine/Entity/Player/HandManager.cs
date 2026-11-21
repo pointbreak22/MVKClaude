@@ -160,6 +160,16 @@ namespace Mvk.Engine.Entity.Player
         private HandUse _use;
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Клик выполнится при отпускании (предметы с удержанием-действием)
+        /// </summary>
+        private bool _clickOnRelease;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Рука держит натяжение, перезарядку или замах (анимацию удара не играть)
+        /// </summary>
+        protected bool _HoldingCharge => _holding && (_use == HandUse.Charge || _use == HandUse.Throw);
+
+        /// <summary>
         /// Кнопка руки нажата или отпущена (выживание)
         /// </summary>
         public void SetHand(bool down) => _hand = down;
@@ -282,6 +292,11 @@ namespace Mvk.Engine.Entity.Player
                         _GuardPress();
                         _HoldBegin();
                     }
+                    else if (_use == HandUse.Charge || _use == HandUse.Throw)
+                    {
+                        // Клик при отпускании: удержание не должно бить
+                        _clickOnRelease = true;
+                    }
                     else
                     {
                         _clickPending = true;
@@ -293,6 +308,7 @@ namespace Mvk.Engine.Entity.Player
                 }
                 else if (++_handTicks >= HoldTicks && !_clickPending)
                 {
+                    _clickOnRelease = false;
                     _holding = true;
                     _HoldBegin();
                 }
@@ -300,6 +316,8 @@ namespace Mvk.Engine.Entity.Player
             else if (_handPrev)
             {
                 if (_holding) _HoldEnd();
+                else if (_clickOnRelease) _clickPending = true;
+                _clickOnRelease = false;
                 _holding = false;
                 _ActionEnd();
             }
@@ -366,7 +384,6 @@ namespace Mvk.Engine.Entity.Player
             {
                 _flagAbort = false;
                 _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.ThrowBegin, 0, _left));
-                _player.Render.SetAnimationCodeAdd(_AnimationCode("ActionAxe"));
             }
             else
             {
