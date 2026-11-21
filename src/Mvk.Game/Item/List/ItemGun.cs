@@ -44,6 +44,14 @@ namespace Mvk.Game.Item.List
         /// [ПОВЕДЕНИЕ] Множитель урона ближнего выстрела (json CloseMultiplier)
         /// </summary>
         public float CloseMultiplier { get; private set; } = 1;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Залп: выстрел всеми заряженными стволами сразу (json Volley, двустволка)
+        /// </summary>
+        public bool Volley { get; private set; }
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Пауза после выстрела, тактов (json ShotPause)
+        /// </summary>
+        public int ShotPause { get; private set; } = 8;
 
         /// <summary>
         /// Такт сервера начала перезарядки у игрока (сервер)
@@ -63,6 +71,8 @@ namespace Mvk.Game.Item.List
             if (state.IsKey("BlockStrength")) BlockStrength = state.GetFloat("BlockStrength");
             if (state.IsKey("CloseRange")) CloseRange = state.GetFloat("CloseRange");
             if (state.IsKey("CloseMultiplier")) CloseMultiplier = state.GetFloat("CloseMultiplier");
+            if (state.IsKey("Volley")) Volley = state.GetBool("Volley");
+            if (state.IsKey("ShotPause")) ShotPause = state.GetInt("ShotPause");
         }
 
         public override string GetToolTip(ItemStack stack) => base.GetToolTip(stack) + " [" + stack.Met + "/" + Barrels + "]";
@@ -73,7 +83,7 @@ namespace Mvk.Game.Item.List
         {
             // Выстрел по нажатию, без автоогня; пустое оружие не стреляет
             if (!begin || stack.Met == 0) return new ResultHandAction(ResultHandAction.ActionType.None);
-            return new ResultHandAction(ResultHandAction.ActionType.UseItem, 8);
+            return new ResultHandAction(ResultHandAction.ActionType.UseItem, ShotPause);
         }
 
         public override void OnUseAction(ItemStack stack, PlayerServer player)
@@ -81,21 +91,25 @@ namespace Mvk.Game.Item.List
             if (player is not PlayerServerMvk mvk || stack.Met == 0 || _GuardBlocks(player)) return;
             int slot = mvk.InvPlayer.GetCurrentIndex();
             WorldServer world = player.GetWorldServer();
-            // Пуля: снаряд с серверным попаданием
-            if (EntityProjectile.Throw(player, new ItemStack(ItemsRegMvk.Bullet, 1), Speed, EntityBulletMvk.AliasBullet) is EntityBulletMvk shot)
+            // Пуля: снаряд с серверным попаданием; залп — пуля из каждого заряженного ствола
+            int shots = Volley ? stack.Met : 1;
+            for (int n = 0; n < shots; n++)
             {
-                shot.BulletDamage = BulletDamage;
-                shot.BlockStrength = BlockStrength;
-                shot.CloseRange = CloseRange;
-                shot.CloseMultiplier = CloseMultiplier;
-                shot.Origin = new Vector3(player.PosX, player.PosY + player.GetEyeHeight(), player.PosZ);
+                if (EntityProjectile.Throw(player, new ItemStack(ItemsRegMvk.Bullet, 1), Speed, EntityBulletMvk.AliasBullet) is EntityBulletMvk shot)
+                {
+                    shot.BulletDamage = BulletDamage;
+                    shot.BlockStrength = BlockStrength;
+                    shot.CloseRange = CloseRange;
+                    shot.CloseMultiplier = CloseMultiplier;
+                    shot.Origin = new Vector3(player.PosX, player.PosY + player.GetEyeHeight(), player.PosZ);
+                }
             }
-            mvk.InvPlayer.SetInventorySlotContents(slot, new ItemStack(this, 1, stack.ItemDamaged, (byte)(stack.Met - 1)));
-            ItemWear.DamageHeld(player, 1);
+            mvk.InvPlayer.SetInventorySlotContents(slot, new ItemStack(this, 1, stack.ItemDamaged, (byte)(stack.Met - shots)));
+            ItemWear.DamageHeld(player, shots);
 
             // Отдача, дым у ствола, звук
             float sin = MathF.Sin(player.RotationYaw), cos = MathF.Cos(player.RotationYaw);
-            player.SetPhysicsImpulse(-sin * Recoil, 0, cos * Recoil);
+            player.SetPhysicsImpulse(-sin * Recoil * shots, 0, cos * Recoil * shots);
             Vector3 muzzle = new Vector3(player.PosX + sin * .8f, player.PosY + player.GetEyeHeight() - .2f, player.PosZ - cos * .8f);
             world.SpawnParticle(EntitiesFXRegMvk.SmokeId, 8, muzzle, new Vector3(.3f), 0, 0);
             world.PlaySoundDistance(AudioIndexs.GetKey("Shot"), muzzle, 1, .9f + world.Rnd.NextFloat() * .2f);

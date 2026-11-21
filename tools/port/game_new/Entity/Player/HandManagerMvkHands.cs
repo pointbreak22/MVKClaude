@@ -175,7 +175,8 @@ namespace Mvk.Game.Entity.Player
             {
                 _game.TrancivePacket(new PacketC05UseItem(0).Hand(hand._left));
             }
-            if (++hand._reloadTicks > gun.ReloadTicks * (gun.Barrels - stack.Met) + 1)
+            // По одному стволу: щелчок на каждый заряженный ствол
+            if (++hand._reloadTicks > gun.ReloadTicks + 1)
             {
                 _game.TrancivePacket(new PacketC05UseItem(100).Hand(hand._left));
                 hand._reloadTicks = 0;
