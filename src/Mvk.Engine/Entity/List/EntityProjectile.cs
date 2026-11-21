@@ -69,7 +69,8 @@ namespace Mvk.Engine.Entity.List
             projectile.PosX = player.PosX + dx * .4f + Glm.Cos(yaw) * side;
             projectile.PosY = player.PosY + player.GetEyeHeight() - .1f + dy * .4f;
             projectile.PosZ = player.PosZ + dz * .4f + Glm.Sin(yaw) * side;
-            float speed = 1.4f * power;
+            float speed = 1.4f * power * stack.Item.FlightSpeed;
+            projectile.Physics.SetGravity(stack.Item.FlightGravity);
             projectile.Physics.MotionX = dx * speed;
             projectile.Physics.MotionY = dy * speed;
             projectile.Physics.MotionZ = dz * speed;
@@ -98,7 +99,8 @@ namespace Mvk.Engine.Entity.List
             projectile.PosX = thrower.PosX + dx * .5f;
             projectile.PosY = thrower.PosY + thrower.SizeLiving.GetEye() - .1f + dy * .5f;
             projectile.PosZ = thrower.PosZ + dz * .5f;
-            float speed = 1.4f * power;
+            float speed = 1.4f * power * stack.Item.FlightSpeed;
+            projectile.Physics.SetGravity(stack.Item.FlightGravity);
             projectile.Physics.MotionX = dx * speed;
             projectile.Physics.MotionY = dy * speed;
             projectile.Physics.MotionZ = dz * speed;
@@ -178,6 +180,8 @@ namespace Mvk.Engine.Entity.List
         private void _Impact(EntityLiving? entity, Vector3 pos, float hitY)
         {
             IsFlying = false;
+            // Дальше обычный предмет: обычная гравитация
+            Physics.SetGravity(1);
             EntityLiving? thrower = _worldServer.LoadedEntityList.Get(ThrowerId) as EntityLiving;
             _OnImpact(entity, pos, hitY, thrower);
             if (!IsDead && entity != null)

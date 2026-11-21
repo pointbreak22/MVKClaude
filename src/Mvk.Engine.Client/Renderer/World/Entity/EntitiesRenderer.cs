@@ -371,6 +371,20 @@ namespace Mvk.Engine.Renderer.World.Entity
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EntityRender GetItemRender(int indexEntity) => _itemRender[indexEntity];
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Сетки предметов в полёте (модель в руке), создаются по первому запросу
+        /// </summary>
+        private EntityRender?[] _itemFlightRender = new EntityRender?[0];
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Сетка предмета в полёте: модель в руке (+Y по длине предмета)
+        /// </summary>
+        public EntityRender GetItemFlightRender(int indexItem)
+        {
+            if (_itemFlightRender.Length != Ce.Items.Count) _itemFlightRender = new EntityRender?[Ce.Items.Count];
+            return _itemFlightRender[indexItem] ??= new EntityRender(this, Ce.Items.ItemObjects[indexItem].Buffer.GetBufferHold());
+        }
         /// <summary>
         /// Получить объект рендера предмета для Gui по индексу
         /// </summary>
@@ -422,6 +436,7 @@ namespace Mvk.Engine.Renderer.World.Entity
             _textureBig = null;
             for (int i = 0; i < _entityRender.Length; i++) _entityRender[i]?.Dispose();
             for (int i = 0; i < _itemRender.Length; i++) _itemRender[i].Dispose();
+            for (int i = 0; i < _itemFlightRender.Length; i++) _itemFlightRender[i]?.Dispose();
             for (int i = 0; i < _itemGuiRender.Length; i++) _itemGuiRender[i].Dispose();
             ShsEntity.Dispose();
             IsStarted = false;

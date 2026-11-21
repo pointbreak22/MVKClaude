@@ -111,6 +111,18 @@ namespace Mvk.Engine.Item
         /// </summary>
         public int ThrowCharge { get; protected set; } = 20;
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Множитель скорости снаряда (json FlightSpeed)
+        /// </summary>
+        public float FlightSpeed { get; protected set; } = 1;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Множитель гравитации снаряда (json FlightGravity)
+        /// </summary>
+        public float FlightGravity { get; protected set; } = 1;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] В полёте модель повёрнута по вектору скорости (json FlightAlign)
+        /// </summary>
+        public bool FlightAlign { get; protected set; }
+        /// <summary>
         /// [ПОВЕДЕНИЕ] Псевдоним снаряда (json ThrowEntity), пусто — простой снаряд-предмет
         /// </summary>
         public string ThrowEntity { get; protected set; } = "";
@@ -472,6 +484,9 @@ namespace Mvk.Engine.Item
                         else if (json.IsKey("ThrustSpeed")) ThrustSpeed = json.GetFloat();
                         else if (json.IsKey("ThrowMax")) ThrowMax = json.GetFloat();
                         else if (json.IsKey("ThrowCharge")) ThrowCharge = Math.Max(1, json.GetInt());
+                        else if (json.IsKey("FlightSpeed")) FlightSpeed = json.GetFloat();
+                        else if (json.IsKey("FlightGravity")) FlightGravity = json.GetFloat();
+                        else if (json.IsKey("FlightAlign")) FlightAlign = json.GetBool();
                         else if (json.IsKey("ThrowEntity")) ThrowEntity = json.GetString();
                     }
                 }
