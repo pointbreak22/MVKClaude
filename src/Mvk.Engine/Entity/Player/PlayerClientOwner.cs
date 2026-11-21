@@ -282,6 +282,16 @@ namespace Mvk.Engine.Entity.Player
         public bool IsTwoHands() => _handLeft != null && !CreativeMode && !IsSpectator();
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Кнопка левой руки зажата (колесо листает левую руку)
+        /// </summary>
+        public bool IsLeftHandDown() => _handLeft != null && _handLeft.HandDown;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Слот кармана, из которого левая рука последней взяла предмет колесом (-1 — нет), для HUD
+        /// </summary>
+        public int LeftScrollSlot => _leftScroll;
+
+        /// <summary>
         /// [ПОВЕДЕНИЕ] Левый Shift + колесо: взять в левую руку предмет следующего (или предыдущего) слота кармана,
         /// прежний предмет левой руки ложится на его место. Слот правой руки пропускается
         /// </summary>

@@ -208,11 +208,18 @@ namespace Mvk.Game.Client.Gui
             _renderMvk.ShaderBindGuiColor(index * size, 0);
             _renderMvk.BindTextureHud();
             _meshInventorySelect.Draw();
-            // [ПОВЕДЕНИЕ] Две руки: при зажатом Shift колесо листает левую руку, её слот подсвечен
-            if (_game.Key.KeyShift && _game.Player.IsTwoHands())
+            // [ПОВЕДЕНИЕ] Две руки: при зажатом Shift или кнопке левой руки колесо листает левую руку: подсвечены слот
+            // левой руки и слот кармана, откуда она взяла предмет
+            if ((_game.Key.KeyShift || _game.Player.IsLeftHandDown()) && _game.Player.IsTwoHands())
             {
                 _renderMvk.ShaderBindGuiColor(-57 * _game.View.Si, 0);
                 _meshInventorySelect.Draw();
+                int leftSlot = _game.Player.LeftScrollSlot;
+                if (leftSlot >= 0 && leftSlot < _limitPocket && leftSlot != index)
+                {
+                    _renderMvk.ShaderBindGuiColor(leftSlot * size, 0);
+                    _meshInventorySelect.Draw();
+                }
             }
             _renderMvk.ShaderBindGuiColor(0, 0);
             Render.DepthOn();
