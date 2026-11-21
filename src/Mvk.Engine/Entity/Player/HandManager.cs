@@ -339,8 +339,8 @@ namespace Mvk.Engine.Entity.Player
             }
             if (moving.IsEntity() && moving.Entity is not EntityLiving)
             {
-                // [ПОВЕДЕНИЕ] Поднять лежащий предмет этой рукой
-                _game.TrancivePacket(new PacketC03UseEntity(moving.Entity!.Id, PacketC03UseEntity.EnumAction.Interact).Hand(_left));
+                // [ПОВЕДЕНИЕ] Поднять лежащий предмет этой рукой; с левым Shift — в левую руку
+                _game.TrancivePacket(new PacketC03UseEntity(moving.Entity!.Id, PacketC03UseEntity.EnumAction.Interact).Hand(_left || _player.IsKeyShift()));
                 _pauseAction = 4;
                 return;
             }

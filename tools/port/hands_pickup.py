@@ -1,4 +1,4 @@
-"""[ПОВЕДЕНИЕ] Подбор в пустую руку. В выживании клик рукой по лежащему предмету поднимает его этой рукой.
+"""[ПОВЕДЕНИЕ] Подбор в пустую руку. В выживании клик рукой по лежащему предмету поднимает его этой рукой, с Shift — в левую руку.
 Подбор в пустую руку (пользователь: «по умолчанию подбор на правую руку»): поднятый предмет ложится
 в правую руку, если она пуста и в карманах нет стака такого предмета (иначе — как в оригинале, в карманы и рюкзак)."""
 from portlib import load, save, rep
@@ -49,8 +49,8 @@ t = rep(t, """                _pauseAction = 8;
             }
             if (moving.IsEntity() && moving.Entity is not EntityLiving)
             {
-                // [ПОВЕДЕНИЕ] Поднять лежащий предмет этой рукой
-                _game.TrancivePacket(new PacketC03UseEntity(moving.Entity!.Id, PacketC03UseEntity.EnumAction.Interact).Hand(_left));
+                // [ПОВЕДЕНИЕ] Поднять лежащий предмет этой рукой; с левым Shift — в левую руку
+                _game.TrancivePacket(new PacketC03UseEntity(moving.Entity!.Id, PacketC03UseEntity.EnumAction.Interact).Hand(_left || _player.IsKeyShift()));
                 _pauseAction = 4;
                 return;
             }
