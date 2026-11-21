@@ -309,9 +309,14 @@ namespace Mvk.Engine.Entity
         /// <summary>
         /// Инициализация
         /// </summary>
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Число полей метаданных (у игрока ещё выносливость)
+        /// </summary>
+        protected virtual int _MetaDataCount() => 2;
+
         protected override void _InitMetaData()
         {
-            MetaData = new DataWatcher(2);
+            MetaData = new DataWatcher(_MetaDataCount());
             // флаги 0-горит; 1-крадется; 2-едет на чем-то; 3-бегает; 4-ест; 5-невидимый
             MetaData.Set(0, (byte)0);
             MetaData.Set(1, _GetHelathMax()); // здоровье

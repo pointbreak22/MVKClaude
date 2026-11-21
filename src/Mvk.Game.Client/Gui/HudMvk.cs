@@ -40,6 +40,10 @@ namespace Mvk.Game.Client.Gui
         /// </summary>
         private readonly HudGunCooldown _gunCooldown;
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Полоски здоровья и выносливости
+        /// </summary>
+        private readonly HudVitals _vitals;
+        /// <summary>
         /// Список буфера для построения сеток
         /// </summary>
         private readonly ListFlout _listBuffer = new ListFlout();
@@ -62,6 +66,7 @@ namespace Mvk.Game.Client.Gui
 
             _inventoryPlayer = _game.Player.Inventory as InventoryPlayerMvk;
             _gunCooldown = new HudGunCooldown(_game, _inventoryPlayer, new MeshGuiColor(renderMvk));
+            _vitals = new HudVitals(_game, new MeshGuiColor(renderMvk));
 
             // Изменён лимит карманов
             _inventoryPlayer.LimitPocketChanged += (sender, e) => _RenderInventoryBg();
@@ -176,6 +181,13 @@ namespace Mvk.Game.Client.Gui
             _renderMvk.ShaderBindGuiColor();
             _renderMvk.BindTextureHud();
             _meshInventoryBg.Draw();
+            // [ПОВЕДЕНИЕ] Полоски здоровья и выносливости над слотами (выживание)
+            if (_vitals.Build(_game.DeltaTimeFrame))
+            {
+                _renderMvk.FontMain.BindTexture();
+                _vitals.Draw();
+                _renderMvk.BindTextureHud();
+            }
 
             // Заносим в шейдор
             Render.ShsEntity.BindUniformBeginGui();
@@ -245,6 +257,7 @@ namespace Mvk.Game.Client.Gui
             _meshInventoryBg?.Dispose();
             _meshInventorySelect?.Dispose();
             _gunCooldown?.Dispose();
+            _vitals?.Dispose();
             _renderSlots.Dispose();
         }
     }

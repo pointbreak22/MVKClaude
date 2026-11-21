@@ -1,4 +1,5 @@
-﻿#nullable enable
+﻿using System;
+#nullable enable
 using System.Runtime.CompilerServices;
 using Mvk.Engine.Entity.Sizes;
 using Mvk.Engine.World;
@@ -63,6 +64,29 @@ namespace Mvk.Engine.Entity.Player
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetSpectator(bool invisible) => SetFlag(5, invisible);
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Наибольшая выносливость
+        /// </summary>
+        public const float StaminaMax = 100;
+
+        protected override int _MetaDataCount() => 3;
+
+        protected override void _InitMetaData()
+        {
+            base._InitMetaData();
+            MetaData.Set(2, StaminaMax);
+        }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Выносливость 0..StaminaMax (поле метаданных 2)
+        /// </summary>
+        public float GetStamina() => MetaData.GetFloat(2);
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Задать выносливость (сервер)
+        /// </summary>
+        public void SetStamina(float stamina) => MetaData.UpdateObject(2, Math.Clamp(stamina, 0, StaminaMax));
 
         #endregion
 

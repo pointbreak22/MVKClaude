@@ -31,3 +31,4 @@ Mvk2Textures/Items/Tools/PortPalette.png
 # Не PNG: в Mvk2Entities/Models/Humanoid.bbmodel свои текстуры Zombie.png и Bandit.png (перекраска Robinson),
 # свои сущности Mvk2Entities/Zombie.json и Mvk2Entities/Bandit.json (враждебные мобы)
 # Не PNG: свои модели предметов Mvk2Items/Shapes/Tools/Port*.json (генерирует tools/Assets/item_models.py), в том числе PortArrow
+# Не PNG: свои настройки Mvk2Entities/Vitals.json (здоровье и выносливость игрока)

@@ -707,6 +707,8 @@ namespace Mvk.Engine.Entity.Player
             // Должны быть до base.Update()
             Eye.Update();
             Fov.Update();
+            // [ПОВЕДЕНИЕ] Без выносливости бег прекращается (в выживании)
+            if (IsSprinting() && !CreativeMode && GetStamina() <= 0) Movement.SetSprinting(false);
 
             // Обновить активное действие рук
             _handManager.Update();

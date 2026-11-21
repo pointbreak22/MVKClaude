@@ -1,0 +1,15 @@
+{
+    #Comment: "Здоровье и выносливость игрока в выживании (PlayerVitals), такты 20 в секунду",
+    HealthDelay: 100,
+    HealthInterval: 20,
+    HealthAmount: 1.0,
+    Sprint: 0.5,
+    Jump: 6.0,
+    Attack: 8.0,
+    Throw: 10.0,
+    Guard: 0.25,
+    Draw: 0.2,
+    StaminaDelay: 20,
+    StaminaRegen: 0.8,
+    WeakFactor: 0.5
+}

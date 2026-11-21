@@ -437,6 +437,8 @@ namespace Mvk.Engine.Entity.Player
                 SetSneaking(packet.IsSneaking);
                 if (packet.IsSneaking) Sitting(); else Standing();
             }
+            // [ПОВЕДЕНИЕ] Бег с клиента (выносливость, разгон)
+            if (IsSprinting() != packet.IsSprinting) SetSprinting(packet.IsSprinting);
             LevelMotionChange = 1;
         }
 
@@ -547,6 +549,8 @@ namespace Mvk.Engine.Entity.Player
                         if (PresenceBlocks.IsInLiquid) damage *= .75f;
                         // [ПОВЕДЕНИЕ] Крит в прыжке или на бегу (в оригинале в воздухе ×1.1)
                         else if (IsMomentum()) damage *= stack != null ? stack.Item.CritMultiplier : 1.5f;
+                        // [ПОВЕДЕНИЕ] Удар тратит выносливость, без неё слабее
+                        damage *= StaminaFactor(StaminaAction.Attack);
 
                         if (entity.Damage.OnAttack((byte)EnumDamageSource.Player, 
                             packet.HitY, damage, this))
@@ -562,6 +566,16 @@ namespace Mvk.Engine.Entity.Player
                 }
             }
         }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Действия, тратящие выносливость
+        /// </summary>
+        public enum StaminaAction { Attack, Throw }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Потратить выносливость на действие; множитель силы действия (1 — в полную силу)
+        /// </summary>
+        public virtual float StaminaFactor(StaminaAction action) => 1;
 
         /// <summary>
         /// Пакет взаимодействие с выбранным предметом в руке без RayCast блока
@@ -812,6 +826,8 @@ namespace Mvk.Engine.Entity.Player
                     if (stack == null || !stack.Item.Throwable) return;
                     float charge = Math.Min(1f, (tick - start) / (float)stack.Item.ThrowCharge);
                     float power = stack.Item.ThrowMin + (stack.Item.ThrowMax - stack.Item.ThrowMin) * charge;
+                    // [ПОВЕДЕНИЕ] Бросок тратит выносливость, без неё слабее
+                    power *= StaminaFactor(StaminaAction.Throw);
                     if (stack.Item.OnThrow(stack, this, power) && !CreativeMode) Inventory.DecrCurrentItem(1);
                 }
                 finally

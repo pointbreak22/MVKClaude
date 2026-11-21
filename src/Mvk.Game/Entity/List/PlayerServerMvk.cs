@@ -38,7 +38,18 @@ namespace Mvk.Game.Entity.List
         {
             base.Update();
             Guns.Update(this);
+            Vitals.Update(this);
         }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Здоровье и выносливость
+        /// </summary>
+        public readonly Player.PlayerVitals Vitals = new Player.PlayerVitals();
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Удар и бросок тратят выносливость, без неё слабее
+        /// </summary>
+        public override float StaminaFactor(StaminaAction action) => Vitals.Action(this, action);
 
         public PlayerServerMvk(string login, string token, SocketSide socket, GameServer server) 
             : base(login, token, socket, server)
