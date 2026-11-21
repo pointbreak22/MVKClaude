@@ -48,7 +48,7 @@ namespace Mvk.Game.Item
                     _stacks[slot] = stack;
                 }
                 if (_pause[slot] > 0) _pause[slot]--;
-                if (stack?.Item is not ItemGun gun || !gun.IsReloading(stack, inventory))
+                if (stack?.Item is not ItemGun gun || !gun.IsReloading(stack, inventory, player.CreativeMode))
                 {
                     _ticks[slot] = 0;
                     continue;
@@ -64,8 +64,8 @@ namespace Mvk.Game.Item
         /// Можно ли выстрелить оружием слота: не идёт перезарядка и пауза после выстрела
         /// (пауза с запасом в такт на задержку сети)
         /// </summary>
-        public bool CanShoot(int slot, ItemStack stack, InventoryPlayerMvk inventory)
-            => stack.Item is ItemGun gun && !gun.IsReloading(stack, inventory)
+        public bool CanShoot(int slot, ItemStack stack, InventoryPlayerMvk inventory, bool creative)
+            => stack.Item is ItemGun gun && !gun.IsReloading(stack, inventory, creative)
             && (slot >= SlotCount || _stacks[slot] != stack || _pause[slot] <= 1);
 
         /// <summary>

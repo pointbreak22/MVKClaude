@@ -79,7 +79,7 @@ namespace Mvk.Game.Item.List
         {
             // Выстрел по нажатию, без автоогня; пустое оружие не стреляет
             // [ПОВЕДЕНИЕ] Во время перезарядки оружие не стреляет
-            if (!begin || stack.Met == 0 || IsReloading(stack, player.Inventory))
+            if (!begin || stack.Met == 0 || IsReloading(stack, player.Inventory, player.CreativeMode))
                 return new ResultHandAction(ResultHandAction.ActionType.None);
             // [ПОВЕДЕНИЕ] Пауза после выстрела — у самого оружия (GunReload); рука после выстрела ждёт 2 такта, другое
             // оружие в этой руке стреляет сразу
@@ -91,7 +91,7 @@ namespace Mvk.Game.Item.List
             if (player is not PlayerServerMvk mvk || stack.Met == 0 || _GuardBlocks(player)) return;
             int slot = mvk.InvPlayer.GetCurrentIndex();
             // [ПОВЕДЕНИЕ] Перезарядка и пауза после выстрела по тактам сервера (GunReload)
-            if (!mvk.Guns.CanShoot(slot, stack, mvk.InvPlayer)) return;
+            if (!mvk.Guns.CanShoot(slot, stack, mvk.InvPlayer, mvk.CreativeMode)) return;
             WorldServer world = player.GetWorldServer();
             // Пуля: снаряд с серверным попаданием; залп — пуля из каждого заряженного ствола
             int shots = Volley ? stack.Met : 1;
@@ -136,10 +136,11 @@ namespace Mvk.Game.Item.List
 
         /// <summary>
         /// [ПОВЕДЕНИЕ] Оружие перезаряжается: не все стволы заряжены и в инвентаре есть пуля и заряд калибра.
-        /// Пока идёт перезарядка, оружие не стреляет (одинаково решают клиент и сервер по данным стака и инвентаря)
+        /// Пока идёт перезарядка, оружие не стреляет (одинаково решают клиент и сервер по данным стака и инвентаря).
+        /// В творческом режиме боеприпасы не нужны
         /// </summary>
-        public bool IsReloading(ItemStack stack, InventoryBase inventory)
-            => stack.Met < Barrels && HasAmmo(inventory);
+        public bool IsReloading(ItemStack stack, InventoryBase inventory, bool creative)
+            => stack.Met < Barrels && (creative || HasAmmo(inventory));
 
         /// <summary>
         /// Есть ли в инвентаре пуля и заряд калибра оружия
@@ -165,11 +166,14 @@ namespace Mvk.Game.Item.List
         /// </summary>
         public bool LoadBarrel(PlayerServerMvk player, int slot)
         {
-            int bulletSlot = ItemAmmo.Find(player, item => item is ItemAmmoPart part && part.Fits("Bullet", Caliber));
-            int chargeSlot = ItemAmmo.Find(player, item => item is ItemAmmoPart part && part.Fits(Charge, Caliber));
-            if (bulletSlot < 0 || chargeSlot < 0) return false;
-            ItemAmmo.ConsumeOne(player, bulletSlot);
-            ItemAmmo.ConsumeOne(player, chargeSlot);
+            if (!player.CreativeMode)
+            {
+                int bulletSlot = ItemAmmo.Find(player, item => item is ItemAmmoPart part && part.Fits("Bullet", Caliber));
+                int chargeSlot = ItemAmmo.Find(player, item => item is ItemAmmoPart part && part.Fits(Charge, Caliber));
+                if (bulletSlot < 0 || chargeSlot < 0) return false;
+                ItemAmmo.ConsumeOne(player, bulletSlot);
+                ItemAmmo.ConsumeOne(player, chargeSlot);
+            }
             ItemStack current = player.InvPlayer.GetStackInSlot(slot);
             if (current?.Item != this) return false;
             player.InvPlayer.SetInventorySlotContents(slot, new ItemStack(this, 1, current.ItemDamaged, (byte)(current.Met + 1)));

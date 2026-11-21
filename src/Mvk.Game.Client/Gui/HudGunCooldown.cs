@@ -87,7 +87,7 @@ namespace Mvk.Game.Client.Gui
                 _pause[slot] = Math.Max(0, _pause[slot] - passed);
                 if (stack?.Item is not ItemGun gun) continue;
                 float left = 0;
-                if (gun.IsReloading(stack, _inventory))
+                if (gun.IsReloading(stack, _inventory, _game.Player.CreativeMode))
                 {
                     if (!(gun.Two && blocking)) _ticks[slot] = Math.Min(_ticks[slot] + passed, gun.ReloadTicks);
                     left = 1f - Math.Clamp((_ticks[slot] + timeIndex) / gun.ReloadTicks, 0, 1);

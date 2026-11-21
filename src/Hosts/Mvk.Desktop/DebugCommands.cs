@@ -162,6 +162,7 @@ namespace Mvk.Desktop
             ItemStack held = player.Inventory.GetCurrentItem();
             if (held != null) System.Console.WriteLine($"held {held.Item.Alias} износ {held.ItemDamaged}/{held.Item.MaxDamage}");
             ItemStack? left = player.Inventory.GetCurrentLeftItem();
+            { var sb = new System.Text.StringBuilder("inv"); for (int i = 0; i < 55; i++) { var s = player.Inventory.GetStackInSlot(i); if (s != null) sb.Append($" {i}:{s.Item.Alias}x{s.Amount}m{s.Met}"); } System.Console.WriteLine(sb); }
             int drops = 0;
             for (int i = 0; i < world.LoadedEntityList.Count; i++) if (world.LoadedEntityList.GetAt(i) is EntityItem) drops++;
             int bullets = 0;
