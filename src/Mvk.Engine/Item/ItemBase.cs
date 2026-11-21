@@ -90,6 +90,11 @@ namespace Mvk.Engine.Item
         /// </summary>
         public bool Forearm { get; protected set; } = false;
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Тяжёлый двуручный (json Heavy): два в руках держать нельзя, при действии им вторая рука занята,
+        /// ход медленнее
+        /// </summary>
+        public bool Heavy { get; protected set; } = false;
+        /// <summary>
         /// [ПОВЕДЕНИЕ] Множитель отталкивания при ударе предметом (щит бьёт слабо, но отталкивает сильно)
         /// </summary>
         public float Knockback { get; protected set; } = 1;
@@ -454,6 +459,7 @@ namespace Mvk.Engine.Item
                         else if (json.IsKey(Cti.Action)) Action = json.GetString();
                         else if (json.IsKey(Cti.Two)) Two = json.GetBool();
                         else if (json.IsKey("Forearm")) Forearm = json.GetBool();
+                        else if (json.IsKey("Heavy")) Heavy = json.GetBool();
                         else if (json.IsKey("Knockback")) Knockback = json.GetFloat();
                         else if (json.IsKey("ThrowMin")) ThrowMin = json.GetFloat();
                         else if (json.IsKey("HandLight")) HandLight = json.GetInt();

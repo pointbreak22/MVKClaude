@@ -48,7 +48,17 @@ namespace Mvk.Game.Entity.Player
         /// <summary>
         /// При «кресте» мечи не бьют, а держат блок
         /// </summary>
-        protected override bool _HoldOverride() => _Cross() || _GunGuarded();
+        protected override bool _HoldOverride() => _Cross() || _GunGuarded() || _HeavyWaits();
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Вторая рука занята, пока другая действует тяжёлым двуручным (придерживает его)
+        /// </summary>
+        protected override bool _HandBusy() => Other != null && Other.Acting && _ItemOf(Other)?.Item.Heavy == true;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Тяжёлое двуручное не действует, пока другая рука занята своим действием (её нужно освободить)
+        /// </summary>
+        private bool _HeavyWaits() => Other != null && Other.Acting && _ItemOf(this)?.Item.Heavy == true;
 
         /// <summary>
         /// Двуручное оружие (двустволка) при закрытом щите другой руки не стреляет и не перезаряжается
@@ -56,7 +66,7 @@ namespace Mvk.Game.Entity.Player
         private bool _GunGuarded()
             => Other != null && Other.Guarding && _ItemOf(this)?.Item is ItemGun gun && gun.Two;
 
-        protected override bool _ClickOverride() => _GunGuarded() || _Ignite();
+        protected override bool _ClickOverride() => _GunGuarded() || _HeavyWaits() || _Ignite();
 
         /// <summary>
         /// [ПОВЕДЕНИЕ] Клик рукой с факелом, когда в другой руке динамит: поджечь его (вместо установки факела)

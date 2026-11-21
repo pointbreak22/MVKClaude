@@ -3,6 +3,7 @@
     MaxDamage: 400,
     SlotClothIndex: 1,
     Two: true,
+    Heavy: true,
     Barrels: 2,
     Caliber: "12",
     Damage: 12.0,

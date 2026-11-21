@@ -74,15 +74,15 @@ namespace Mvk.Engine.Entity.Inventory
         public virtual ItemStack GetCurrentRightItem() => GetCurrentItem();
 
         /// <summary>
-        /// [ПОВЕДЕНИЕ] Рука занята: в другой руке двуручный предмет (эта рука его придерживает), если в этой руке
-        /// не предмет на предплечье (щит)
+        /// [ПОВЕДЕНИЕ] Рука занята статически: никогда. Вторая рука занята только на время действия тяжёлым двуручным
+        /// другой руки, это решает клиент по анимации (HandManager._HandBusy у мода)
         /// </summary>
-        public bool HandBusy(bool left)
-        {
-            ItemStack self = left ? GetCurrentLeftItem() : GetCurrentRightItem();
-            ItemStack other = left ? GetCurrentRightItem() : GetCurrentLeftItem();
-            return other?.Item.Two == true && self?.Item.Forearm != true;
-        }
+        public bool HandBusy(bool left) => false;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] В руках тяжёлый предмет (ход медленнее)
+        /// </summary>
+        public bool IsHeavyLoad() => GetCurrentRightItem()?.Item.Heavy == true || GetCurrentLeftItem()?.Item.Heavy == true;
 
         /// <summary>
         /// Получить текущий стак левой руки

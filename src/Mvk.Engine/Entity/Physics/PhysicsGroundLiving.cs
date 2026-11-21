@@ -167,7 +167,7 @@ namespace Mvk.Engine.Entity.Physics
             }
 
             // Sprinting
-            bool isSprinting = Movement.Sprinting && Movement.Forward && !isSneakingPrev;
+            bool isSprinting = Movement.Sprinting && Movement.Forward && !isSneakingPrev && !_HeavyLoad();
             if (isSprintingPrev != isSprinting)
             {
                 _entityLiving.SetSprinting(isSprinting);
@@ -180,14 +180,22 @@ namespace Mvk.Engine.Entity.Physics
         /// Определяем и передаём скорость перемещения для живой сущности.
         /// Крадётся используем позже, в _LivingUpdateMotion
         /// </summary>
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] В руках тяжёлый предмет
+        /// </summary>
+        private bool _HeavyLoad() => _entityLiving.Inventory != null && _entityLiving.Inventory.IsHeavyLoad();
+
         protected override float _LivingUpdateSpeed()
         {
             float speed = Entity.Speed * Movement.MoveSpeed;
-            if (Movement.Sprinting)
+            bool heavy = _HeavyLoad();
+            if (Movement.Sprinting && !heavy)
             {
                 // Если ускорение
                 speed += speed * Cp.SprintSpeed;
             }
+            // [ПОВЕДЕНИЕ] Тяжёлое в руках: ход медленнее
+            if (heavy) speed *= .8f;
             if (Movement.Sneak)
             {
                 // Если крадёмся 
@@ -202,7 +210,7 @@ namespace Mvk.Engine.Entity.Physics
         protected override float _LivingUpdateSprinting()
         {
             float acceleration = Cp.AirborneAcceleration;
-            if (Movement.Sprinting)
+            if (Movement.Sprinting && !_HeavyLoad())
             {
                 // Если ускорение
                 acceleration += acceleration * Cp.SprintSpeed;

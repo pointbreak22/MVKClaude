@@ -123,7 +123,7 @@ namespace Mvk.Engine.Entity.Inventory
                     break;
                 case PacketC0CHandControl.EnumAction.LeftFromSlot:
                     if (packet.Slot < LimitPocket && packet.Slot != _currentIndex
-                        && !(_items[packet.Slot]?.Item.Two == true && _items[_currentIndex]?.Item.Two == true))
+                        && !(_items[packet.Slot]?.Item.Heavy == true && _items[_currentIndex]?.Item.Heavy == true))
                     {
                         _SwapSlots(packet.Slot, leftIndex);
                     }
@@ -148,7 +148,7 @@ namespace Mvk.Engine.Entity.Inventory
         }
 
         /// <summary>
-        /// [ПОВЕДЕНИЕ] Два двуручных предмета в руках держать нельзя: предмет левой руки уходит в инвентарь
+        /// [ПОВЕДЕНИЕ] Два тяжёлых предмета в руках держать нельзя: предмет левой руки уходит в инвентарь
         /// (что не влезло — выпадает)
         /// </summary>
         public void ServerCheckTwoHands()
@@ -156,7 +156,7 @@ namespace Mvk.Engine.Entity.Inventory
             int leftIndex = _pocketCount;
             if (_pocketCount == 0 || leftIndex >= _allCount) return;
             ItemStack left = _items[leftIndex];
-            if (left?.Item.Two != true || _items[_currentIndex]?.Item.Two != true) return;
+            if (left?.Item.Heavy != true || _items[_currentIndex]?.Item.Heavy != true) return;
             SetInventorySlotContents(leftIndex, null!);
             if (!AddItemStackToInventory(left) && left.Amount > 0) _playerServer?.DropItem(left, true, false);
         }
@@ -608,8 +608,7 @@ namespace Mvk.Engine.Entity.Inventory
                 // [ПОВЕДЕНИЕ] Левая рука: любой предмет, кроме второго двуручного
                 if (slotIn == _pocketCount && _pocketCount > 0)
                 {
-                    return stack == null || stack.Item.Forearm || stack.Item.Two != true
-                        || _items[_currentIndex]?.Item.Two != true;
+                    return stack == null || stack.Item.Heavy != true || _items[_currentIndex]?.Item.Heavy != true;
                 }
                 // Для одежды свои правила
                 byte key = GetSlotClothKey(slotIn);

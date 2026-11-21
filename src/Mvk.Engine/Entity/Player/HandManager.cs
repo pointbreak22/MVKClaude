@@ -253,7 +253,7 @@ namespace Mvk.Engine.Entity.Player
         /// <summary>
         /// Рука занята двуручным предметом другой руки (InventoryBase.HandBusy)
         /// </summary>
-        protected bool _HandBusy() => _player.Inventory.HandBusy(_left);
+        protected virtual bool _HandBusy() => _player.Inventory.HandBusy(_left);
 
         /// <summary>
         /// Такт руки: клик сразу при нажатии (если откат руки прошёл, иначе как только пройдёт),
