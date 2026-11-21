@@ -719,8 +719,9 @@ namespace Mvk.Engine.Entity.Render
                     // [ПОВЕДЕНИЕ] Поза руки: щит в блоке, иначе натяжение лука рукой с двуручным предметом
                     if (itemLeft?.Item.Forearm == true) holdLeft = "HoldGuardLeft";
                     else if (itemStack?.Item.Forearm == true) holdRight = "HoldGuardRight";
-                    else if (itemStack?.Item.Two == true) holdRight = "HoldBowRight";
-                    else if (itemLeft?.Item.Two == true) holdLeft = "HoldBowLeft";
+                    // Натяжение занимает обе руки: поза держания второй руки вытеснила бы клип натяжения
+                    else if (itemStack?.Item.Two == true) { holdRight = "HoldBowRight"; holdLeft = ""; }
+                    else if (itemLeft?.Item.Two == true) { holdLeft = "HoldBowLeft"; holdRight = ""; }
                 }
 
                 // Корректировка одевания слоёв
