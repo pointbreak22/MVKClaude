@@ -133,7 +133,7 @@ namespace Mvk.Engine.Entity.Inventory
                     int index = packet.Left ? leftIndex : _currentIndex;
                     ItemStack stack = _items[index];
                     if (stack == null) return;
-                    if (stack.Amount > 1)
+                    if (stack.Amount > 1 && packet.Slot == 0)
                     {
                         SetInventorySlotContents(index, stack.Copy().ReduceAmount(1));
                         stack = stack.Copy(1);

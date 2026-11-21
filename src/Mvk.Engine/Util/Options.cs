@@ -219,6 +219,10 @@ namespace Mvk.Engine.Util
         /// [ПОВЕДЕНИЕ] Выбросить предмет из правой руки, с Shift — из левой
         /// </summary>
         public static int ControlDropItem = (int)Keys.Q;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Отдать предмет игроку, на которого смотришь (с Shift — из левой руки)
+        /// </summary>
+        public static int ControlGiveItem = (int)Keys.G;
 
         #endregion
 

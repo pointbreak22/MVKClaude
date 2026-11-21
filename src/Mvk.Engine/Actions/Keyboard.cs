@@ -16,6 +16,10 @@ namespace Mvk.Engine.Actions
         /// Нажата клавиша Shift
         /// </summary>
         public bool KeyShift { get; private set; }
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Зажат Ctrl (модификатор: выбросить весь стак)
+        /// </summary>
+        public bool KeyCtrl { get; private set; }
 
         private readonly GameBase _game;
 
@@ -104,6 +108,7 @@ namespace Mvk.Engine.Actions
                 // Без сочетания с F3
                 if (keys == Keys.F3) _keyF3 = true;
                 else if (keys == Keys.ShiftKey) KeyShift = true;
+                else if (keys == Keys.ControlKey) KeyCtrl = true;
                 else if (keys == Keys.F8) Debug.IsDrawVoxelLine = !Debug.IsDrawVoxelLine;
             }
             _keyPrev = keys;
@@ -123,6 +128,7 @@ namespace Mvk.Engine.Actions
                 }
             }
             if (keys == Keys.ShiftKey) KeyShift = false;
+            if (keys == Keys.ControlKey) KeyCtrl = false;
         }
 
 

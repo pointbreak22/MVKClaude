@@ -264,6 +264,13 @@ namespace Mvk.Engine.Entity.Player
                     _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.Swap));
                 }
             }
+            else if (Options.ControlGiveItem == index)
+            {
+                if (down && IsTwoHands() && MovingObject.IsEntity() && MovingObject.Entity is PlayerBase target)
+                {
+                    _game.TrancivePacket(PacketC0CHandControl.Give(target.Id, IsKeyShift()));
+                }
+            }
             else if (Options.ControlDropItem == index)
             {
                 if (down && !IsSpectator() && !CreativeMode)
@@ -271,7 +278,8 @@ namespace Mvk.Engine.Entity.Player
                     bool left = IsKeyShift() && IsTwoHands();
                     if (left) _handLeft!.SetStop();
                     else _handManager.SetStop();
-                    _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.Drop, 0, left));
+                    _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.Drop,
+                        (byte)(_game.Key.KeyCtrl ? 1 : 0), left));
                 }
             }
         }

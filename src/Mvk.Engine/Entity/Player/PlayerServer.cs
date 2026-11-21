@@ -772,6 +772,11 @@ namespace Mvk.Engine.Entity.Player
         {
             int hand = packet.Left ? 1 : 0;
             uint tick = _server.TickCounterGlobal;
+            if (packet.Action == PacketC0CHandControl.EnumAction.Give)
+            {
+                _GiveItem(packet.Target, packet.Left);
+                return;
+            }
             if (packet.Action == PacketC0CHandControl.EnumAction.Ignite)
             {
                 if (IsSpectator() || Inventory.HandBusy(packet.Left)) return;
@@ -831,6 +836,30 @@ namespace Mvk.Engine.Entity.Player
             {
                 ItemStack stack = Inventory.GetCurrentItem();
                 stack?.Item.OnFuseEnd(stack, this);
+            }
+            finally
+            {
+                Inventory.HandLeft = false;
+            }
+        }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Отдать один предмет руки игроку рядом (до 4 блоков); не влезло — остаётся у себя
+        /// </summary>
+        private void _GiveItem(int target, bool left)
+        {
+            if (IsSpectator() || CreativeMode) return;
+            if (GetWorldServer().LoadedEntityList.Get(target) is not PlayerServer receiver || receiver == this
+                || receiver.IsDead) return;
+            float dx = receiver.PosX - PosX, dy = receiver.PosY - PosY, dz = receiver.PosZ - PosZ;
+            if (dx * dx + dy * dy + dz * dz > 16) return;
+            Inventory.HandLeft = left;
+            try
+            {
+                ItemStack stack = Inventory.GetCurrentItem();
+                if (stack == null) return;
+                ItemStack one = stack.Copy(1);
+                if (receiver.Inventory.AddItemStackToInventory(one)) Inventory.DecrCurrentItem(1);
             }
             finally
             {
