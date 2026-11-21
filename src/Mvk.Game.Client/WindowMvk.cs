@@ -119,6 +119,11 @@ namespace Mvk.Game.Client
                 // скрин креативного инвентаря
                 case Keys.C:
                     if (Game.Player.CreativeMode) LScreenMvk.CreativeInventory(); break;
+                // [ПОВЕДЕНИЕ] Смена режима выживание ↔ творческий командой серверу (как /gm в чате)
+                case Keys.F4:
+                    Game.TrancivePacket(new Mvk.Engine.Network.Packets.Client.PacketC14Message(
+                        Game.Player.CreativeMode ? "/gm s" : "/gm c", Game.Player.MovingObject));
+                    break;
                 // Скрин карты биомов (отладка)
                 case Keys.F6: DebugMvkClient.ScreenFileBiomeArea(Game); break;
             }
