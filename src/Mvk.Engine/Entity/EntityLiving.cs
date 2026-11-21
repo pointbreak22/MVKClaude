@@ -451,6 +451,16 @@ namespace Mvk.Engine.Entity
         public float GetHealth() => MetaData.GetFloat(1);
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Наибольшее здоровье сущности
+        /// </summary>
+        public float GetHealthMax() => _GetHelathMax();
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Полоска здоровья видна всегда (враждебные мобы), иначе только при неполном здоровье
+        /// </summary>
+        public virtual bool HealthBarAlways => false;
+
+        /// <summary>
         /// Задать уровень здоровья
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using Mvk.Core.Maths;
 using Mvk.Engine.Entity.Player;
@@ -69,6 +69,35 @@ namespace Mvk.Engine.Entity.List
             projectile.PosX = player.PosX + dx * .4f + Glm.Cos(yaw) * side;
             projectile.PosY = player.PosY + player.GetEyeHeight() - .1f + dy * .4f;
             projectile.PosZ = player.PosZ + dz * .4f + Glm.Sin(yaw) * side;
+            float speed = 1.4f * power;
+            projectile.Physics.MotionX = dx * speed;
+            projectile.Physics.MotionY = dy * speed;
+            projectile.Physics.MotionZ = dz * speed;
+            projectile.BeforeDrop();
+            worldServer.SpawnEntityInWorld(projectile);
+            return projectile;
+        }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Выстрел снарядом от глаз живой сущности (моба) в направлении yaw, pitch
+        /// </summary>
+        public static EntityProjectile? ThrowFrom(EntityLiving thrower, ItemStack stack, float power, string alias,
+            float yaw, float pitch)
+        {
+            WorldServer worldServer = thrower.GetWorldServer();
+            if (worldServer == null) return null;
+            int index = _IndexEntity(alias);
+            if (index < 0) return null;
+            if (Ce.Entities.CreateEntityServer((ushort)index, worldServer) is not EntityProjectile projectile) return null;
+            projectile.SetEntityItemStack(stack);
+            projectile.ThrowerId = thrower.Id;
+            projectile.Power = power;
+            projectile.IsFlying = true;
+            float cosPitch = Glm.Cos(pitch);
+            float dx = Glm.Sin(yaw) * cosPitch, dy = Glm.Sin(pitch), dz = -Glm.Cos(yaw) * cosPitch;
+            projectile.PosX = thrower.PosX + dx * .5f;
+            projectile.PosY = thrower.PosY + thrower.SizeLiving.GetEye() - .1f + dy * .5f;
+            projectile.PosZ = thrower.PosZ + dz * .5f;
             float speed = 1.4f * power;
             projectile.Physics.MotionX = dx * speed;
             projectile.Physics.MotionY = dy * speed;

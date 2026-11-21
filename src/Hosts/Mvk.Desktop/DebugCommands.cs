@@ -53,7 +53,7 @@ namespace Mvk.Desktop
     }
 
     /// <summary>
-    /// /summon [количество] [расстояние]: поставить кур перед игроком (по направлению взгляда)
+    /// /summon [количество] [расстояние] [Chicken|Zombie|Bandit]: поставить мобов перед игроком (по направлению взгляда)
     /// </summary>
     internal sealed class CommandSummon : CommandBase
     {
@@ -66,6 +66,12 @@ namespace Mvk.Desktop
             string[] p = sender.GetCommandParams();
             int count = p.Length > 0 ? int.Parse(p[0], CultureInfo.InvariantCulture) : 1;
             float distance = p.Length > 1 ? float.Parse(p[1], CultureInfo.InvariantCulture) : 4f;
+            ushort id = p.Length < 3 ? EntitiesRegMvk.ChickenId : p[2] switch
+            {
+                "Zombie" => EntitiesRegMvk.ZombieId,
+                "Bandit" => EntitiesRegMvk.BanditId,
+                _ => EntitiesRegMvk.ChickenId
+            };
             WorldServer world = player.GetWorldServer();
             float sin = System.MathF.Sin(player.RotationYaw);
             float cos = System.MathF.Cos(player.RotationYaw);
@@ -73,7 +79,7 @@ namespace Mvk.Desktop
             {
                 // Ряд поперёк взгляда, шаг 1.5 блока
                 float side = (i - (count - 1) / 2f) * 1.5f;
-                EntityBase entity = Ce.Entities.CreateEntityServer(EntitiesRegMvk.ChickenId, world);
+                EntityBase entity = Ce.Entities.CreateEntityServer(id, world);
                 entity.PosX = player.PosX + sin * distance + cos * side;
                 entity.PosZ = player.PosZ - cos * distance + sin * side;
                 entity.PosY = world.GetHeightMap((int)System.MathF.Floor(entity.PosX), (int)System.MathF.Floor(entity.PosZ));

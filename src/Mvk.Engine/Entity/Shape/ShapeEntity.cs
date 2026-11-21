@@ -30,8 +30,8 @@ namespace Mvk.Engine.Entity.Shape
         {
             _definition = new ModelEntityDefinition(alias);
             _definition.RunModelFromJson(jsonModel, false);
-            _nameTextures = _definition.GenNameTextures();
             Textures = _definition.GenTextures();
+            _nameTextures = _definition.GenNameTextures();
             DepthTextures = new int[Textures.Length];
 
             _bufferMesh = _definition.GenBufferMesh();

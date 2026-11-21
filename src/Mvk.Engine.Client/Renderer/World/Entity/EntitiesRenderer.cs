@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -39,6 +39,10 @@ namespace Mvk.Engine.Renderer.World.Entity
         /// Объект для отладки хитбокса сущности, создаётся при первом показе
         /// </summary>
         private HitboxEntityRender? _hitbox;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Полоски здоровья над мобами
+        /// </summary>
+        private HealthBarRender? _healthBars;
         /// <summary>
         /// Общие объекты рендера
         /// </summary>
@@ -261,6 +265,10 @@ namespace Mvk.Engine.Renderer.World.Entity
                 }
             }
 
+            // [ПОВЕДЕНИЕ] Полоски здоровья над мобами
+            _healthBars ??= new HealthBarRender(Render);
+            _healthBars.Draw(_game, _arrayChunkRender, timeIndex);
+
             if (IsHitBox)
             {
                 // Есть хит бокс сущности: пробегаемся заново по всем сущностям
@@ -407,6 +415,7 @@ namespace Mvk.Engine.Renderer.World.Entity
         public void Dispose()
         {
             _hitbox?.Dispose();
+            _healthBars?.Dispose();
             _textureSmall?.Dispose();
             _textureSmall = null;
             _textureBig?.Dispose();

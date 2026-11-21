@@ -13,6 +13,11 @@ namespace Mvk.Game.Entity
         /// Индекс курочки
         /// </summary>
         public static ushort ChickenId { get; private set; }
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Индексы враждебных мобов
+        /// </summary>
+        public static ushort ZombieId { get; private set; }
+        public static ushort BanditId { get; private set; }
 
         /// <summary>
         /// Инициализация Id
@@ -24,6 +29,8 @@ namespace Mvk.Game.Entity
             {
                 alias = Ce.Entities.EntitiesAlias[i];
                 if (alias == "Chicken") ChickenId = i;
+                else if (alias == EntityZombieMvk.AliasZombie) ZombieId = i;
+                else if (alias == EntityBanditMvk.AliasBandit) BanditId = i;
                 //else if (alias == "Droplet") DropletId = i;
             }
         }
@@ -40,6 +47,9 @@ namespace Mvk.Game.Entity
             EntitiesReg.RegisterEntityClass(EntityTorchMvk.AliasTorch, typeof(EntityTorchMvk), true);
             EntitiesReg.RegisterEntityClass(EntityHookMvk.AliasHook, typeof(EntityHookMvk), true);
             EntitiesReg.RegisterEntityClass("Chicken", typeof(EntityChicken));
+            // [ПОВЕДЕНИЕ] Враждебные мобы порта
+            EntitiesReg.RegisterEntityClass(EntityZombieMvk.AliasZombie, typeof(EntityZombieMvk));
+            EntitiesReg.RegisterEntityClass(EntityBanditMvk.AliasBandit, typeof(EntityBanditMvk));
 
             //ModelEntitiesReg.RegisterModelEntityClass("Chick");
             //EntitiesReg.RegisterEntityClass("Robinson", typeof(EntityThrowable));

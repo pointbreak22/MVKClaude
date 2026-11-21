@@ -28,3 +28,5 @@ Mvk2Textures/Items/ItemsForBlock/Flint.png
 Mvk2Textures/Items/Tools/Knife.png
 Mvk2Textures/Items/Tools/Spear.png
 Mvk2Textures/Items/Tools/PortPalette.png
+# Не PNG: в Mvk2Entities/Models/Humanoid.bbmodel свои текстуры Zombie.png и Bandit.png (перекраска Robinson),
+# свои сущности Mvk2Entities/Zombie.json и Mvk2Entities/Bandit.json (враждебные мобы)

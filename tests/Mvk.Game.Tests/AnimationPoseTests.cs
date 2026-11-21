@@ -20,6 +20,7 @@ namespace Mvk.Game.Tests
         private const ulong ExpectedHash = 7125550931140094123UL;
 
         /// <summary>Клипы порта (своих анимаций в оригинале нет)</summary>
+        private static readonly string[] _PortEntities = { "Zombie", "Bandit" };
         private static readonly string[] _PortClips = { "AttackLeft", "ActionAxeLeft", "HoldGuardLeft", "HoldGuardRight", "HoldBowRight", "HoldBowLeft", "HoldAimRight", "HoldAimTwo", "ShotRight", "ShotTwo", "HoldPistolRight", "HoldPistolLeft" };
 
         [Fact]
@@ -34,6 +35,8 @@ namespace Mvk.Game.Tests
             for (ushort id = 0; id < Ce.Entities.Count; id++)
             {
                 if (!(Ce.Entities.GetResourcesEntity(id) is ResourcesEntity resources)) continue;
+                // Сущности порта (враждебные мобы) в эталоне оригинала нет
+                if (Array.IndexOf(_PortEntities, Ce.Entities.EntitiesAlias[id]) >= 0) continue;
                 foreach (ModelAnimationClip model in resources.ModelAnimationClips)
                 {
                     // Клипы, добавленные портом (анимации левой руки), в эталоне оригинала нет
