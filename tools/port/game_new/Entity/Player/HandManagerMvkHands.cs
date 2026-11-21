@@ -69,11 +69,12 @@ namespace Mvk.Game.Entity.Player
         protected override bool _ClickOverride() => _GunGuarded() || _HeavyWaits() || _Ignite();
 
         /// <summary>
-        /// [ПОВЕДЕНИЕ] Клик рукой с факелом, когда в другой руке динамит: поджечь его (вместо установки факела)
+        /// [ПОВЕДЕНИЕ] Клик рукой с факелом или огнивом, когда в другой руке динамит: поджечь его (вместо установки факела)
         /// </summary>
         private bool _Ignite()
         {
-            if (Other == null || _ItemOf(this)?.Item != ItemsRegMvk.Torch || _ItemOf(Other)?.Item is not ItemDynamite) return false;
+            if (Other == null || (_ItemOf(this)?.Item != ItemsRegMvk.Torch && _ItemOf(this)?.Item != ItemsRegMvk.Flint)
+                || _ItemOf(Other)?.Item is not ItemDynamite) return false;
             _game.TrancivePacket(new PacketC0CHandControl(PacketC0CHandControl.EnumAction.Ignite, 0, Other._left));
             _player.Render.SetAnimationCodeAdd(_AnimationCode("ActionAxe"));
             return true;

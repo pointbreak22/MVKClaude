@@ -1,0 +1,9 @@
+{
+    Parent: "_Base",
+    MaxStackSize: 1,
+    MaxDamage: 100,
+    Width: 0.5,
+    Height: 0.125,
+    Sprite: "Items/ItemsForBlock/Flint",
+    SpriteGui: "Items/ItemsForBlock/Flint",
+}

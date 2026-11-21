@@ -23,3 +23,5 @@ Mvk2Sounds/Explode.wav
 Mvk2Textures/Blocks/Cobweb.png
 Mvk2Textures/Items/ItemsForBlock/Cobweb.png
 Mvk2Textures/Items/ItemsForBlock/Hook.png
+Mvk2Textures/Blocks/Fire.png
+Mvk2Textures/Items/ItemsForBlock/Flint.png

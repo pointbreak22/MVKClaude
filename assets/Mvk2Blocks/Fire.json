@@ -1,0 +1,30 @@
+{
+    АmbientOcclusion: false,
+    UseNeighborBrightness: true,
+    NoCollision: true,
+    LightOpacity: 0,
+    LightValue: 15,
+    Passable: true,
+    Translucent: true,
+    IsReplaceable: true,
+    ParticleColors: [ "f08020", "ffc040", "c83010" ],
+    ParticleCount: 6,
+    Variants: [
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" },
+        { Shape: "Fire" }
+    ]
+}

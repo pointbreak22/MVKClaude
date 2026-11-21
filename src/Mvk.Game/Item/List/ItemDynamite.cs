@@ -13,7 +13,7 @@ namespace Mvk.Game.Item.List
     /// <summary>
     /// Динамит: бросок с замахом (держать кнопку второго действия), взрыв при попадании (EntityDynamiteMvk).
     /// По идее ItemUniExplosives старого проекта автора Mvk. Бросок и взрыв считает сервер.
-    /// [ПОВЕДЕНИЕ] В выживании клик рукой с факелом, когда в другой руке динамит, поджигает его: фитиль FuseTicks
+    /// [ПОВЕДЕНИЕ] В выживании клик рукой с факелом или огнивом, когда в другой руке динамит, поджигает его: фитиль FuseTicks
     /// (3 с). Брошенный подожжённым взрывается, когда догорит фитиль; не успел бросить — взрыв в руке.
     /// </summary>
     public class ItemDynamite : ItemBase
@@ -25,7 +25,7 @@ namespace Mvk.Game.Item.List
 
         public override bool OnIgnite(ItemStack stack, PlayerServer player, ItemStack lighter, bool left)
         {
-            if (lighter.Item != ItemsRegMvk.Torch || player.FuseEnd != 0) return false;
+            if ((lighter.Item != ItemsRegMvk.Torch && lighter.Item != ItemsRegMvk.Flint) || player.FuseEnd != 0) return false;
             WorldServer world = player.GetWorldServer();
             player.FuseEnd = world.Server.TickCounterGlobal + FuseTicks;
             player.FuseLeft = left;

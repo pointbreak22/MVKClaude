@@ -74,6 +74,10 @@ namespace Mvk.Game.Item
         /// </summary>
         public static ItemBase Hook { get; private set; }
         /// <summary>
+        /// Огниво
+        /// </summary>
+        public static ItemBase Flint { get; private set; }
+        /// <summary>
         /// Ведро
         /// </summary>
         public static ItemBucket Bucket { get; private set; }
@@ -365,6 +369,7 @@ namespace Mvk.Game.Item
             ItemsReg.RegisterItemClass("Torch", Torch = new ItemBlock(BlocksRegMvk.Torch), _ItemsForBlock);
             ItemsReg.RegisterItemClass("Cobweb", Cobweb = new ItemBlock(BlocksRegMvk.Cobweb), _ItemsForBlock);
             ItemsReg.RegisterItemClass("Hook", Hook = new ItemBase(), _ItemsForBlock);
+            ItemsReg.RegisterItemClass("Flint", Flint = new ItemFlint(), _ItemsForBlock);
             ItemsReg.RegisterItemClass("Bucket", Bucket = new ItemBucket(), _ItemsForBlock);
             ItemsReg.RegisterItemClass("BucketWater", BucketWater = new ItemLiquid(BlocksRegMvk.Water, false), _ItemsForBlock);
             ItemsReg.RegisterItemClass("BucketLava", BucketLava = new ItemLiquid(BlocksRegMvk.Lava, false, .25f), _ItemsForBlock);

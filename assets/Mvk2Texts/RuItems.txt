@@ -26,3 +26,4 @@ Powder:Порох
 Shell:Гильза
 Cobweb:Паутина
 Hook:Крюк с верёвкой
+Flint:Огниво

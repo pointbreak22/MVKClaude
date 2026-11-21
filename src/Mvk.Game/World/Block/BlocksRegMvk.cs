@@ -264,6 +264,10 @@ namespace Mvk.Game.World.Block
         /// Паутина
         /// </summary>
         public static BlockBase Cobweb { get; private set; }
+        /// <summary>
+        /// Огонь
+        /// </summary>
+        public static BlockFireMvk Fire { get; private set; }
 
         #endregion
 
@@ -370,6 +374,7 @@ namespace Mvk.Game.World.Block
             BlocksReg.Table.Add("TorchLight", torchLight);
             Mvk.Engine.World.HandLight.Block = torchLight;
             Cobweb = BlocksReg.RegisterBlockClass("Cobweb", materials.Rope);
+            BlocksReg.RegisterBlockClass("Fire", Fire = new BlockFireMvk(materials.Plant));
             
 
             // Регистрация текстуры разрушения блока
