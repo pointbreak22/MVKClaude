@@ -1,0 +1,8 @@
+{
+    MaxStackSize: 1,
+    SlotClothIndex: [9, 1],
+    Sprite: "Items/Cloth/GlassesUser",
+    SpriteGui: "Items/Cloth/GlassesUser",
+    PutOnBody: "Face",
+    NameLayer: "GlassesUser"
+}

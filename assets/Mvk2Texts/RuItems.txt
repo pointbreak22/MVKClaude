@@ -33,3 +33,5 @@ HoodieUser:Худи с крипером
 PantsUser:Штаны из скина
 ShoesUser:Кеды из скина
 HoodUser:Капюшон
+MaskUser:Маска
+GlassesUser:Очки

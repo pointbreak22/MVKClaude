@@ -280,7 +280,8 @@ namespace Mvk.Game.Client.Gui.Screens
             _slot[_pocketCount + 3].SetPosition(x, y + 36);
             _slot[_pocketCount + 5].SetPosition(x, y + 72);
             _slot[_pocketCount + 7].SetPosition(x, y + 108);
-           // _slot[_pocketCount + 9].SetPosition(x, y + 144);
+            // [ПОВЕДЕНИЕ] Слот лица (маска, очки) под обувью
+            _slot[_pocketCount + 8].SetPosition(x, y + 144);
 
             x = PosX + 152;
             _slot[_pocketCount + 2].SetPosition(x, y);

@@ -263,6 +263,11 @@ namespace Mvk.Game.Item
         public static ItemCloth PantsUser { get; private set; }
         public static ItemCloth ShoesUser { get; private set; }
         public static ItemCloth HoodUser { get; private set; }
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Маска и очки из скина пользователя (слот лица)
+        /// </summary>
+        public static ItemCloth MaskUser { get; private set; }
+        public static ItemCloth GlassesUser { get; private set; }
         public static ItemCloth CamouflageJacket { get; private set; }
         /// <summary>
         /// Шлем железный: броня, снижает урон по своей части тела
@@ -450,6 +455,8 @@ namespace Mvk.Game.Item
             PantsUser = ItemsReg.RegisterItemClothClass("PantsUser");
             ShoesUser = ItemsReg.RegisterItemClothClass("ShoesUser");
             HoodUser = ItemsReg.RegisterItemClothClass("HoodUser");
+            MaskUser = ItemsReg.RegisterItemClothClass("MaskUser");
+            GlassesUser = ItemsReg.RegisterItemClothClass("GlassesUser");
 
             // Объект регистрации и данных креативного инвентаря
             Creative = new ItemsCreative();

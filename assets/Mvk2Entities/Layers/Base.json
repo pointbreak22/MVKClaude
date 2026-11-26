@@ -102,6 +102,18 @@
             Name: "HoodUser",
             Folder: ["L-HoodU"],
             Texture: "UserSkin"
+        },
+        {
+            Group: "Face",
+            Name: "MaskUser",
+            Folder: ["L-MaskU"],
+            Texture: "UserSkin"
+        },
+        {
+            Group: "Face",
+            Name: "GlassesUser",
+            Folder: ["L-GlassesU"],
+            Texture: "UserSkin"
         }
         
         

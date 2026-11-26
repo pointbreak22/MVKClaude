@@ -145,6 +145,37 @@ LAYER_PART = {
 OVERLAY = [((32, 0, 64, 16), (0, 0)), ((16, 32, 40, 48), (16, 16)), ((40, 32, 56, 48), (40, 16)),
            ((48, 48, 64, 64), (32, 48)), ((0, 32, 16, 48), (0, 16)), ((0, 48, 16, 64), (16, 48))]
 HOOD_FROM, HOOD_TO, HOOD_UV = [-7, 46.5, -6.5], [7, 60.5, 7.5], [48, 220]
+# Слот лица: маска — пластина на всё лицо, очки — полоса на уровне глаз (группа, от, до, смещение развёртки)
+FACE_CUBES = [("L-MaskU", [-7, 47, -7], [7, 60, -6], [0, 128]),
+              ("L-GlassesU", [-7, 53, -7.5], [7, 56, -6.5], [32, 128])]
+
+
+def ensure_group(d, name, f_, t_, uv, parent="_Hat"):
+    """Добавить группу слоя с одним кубом в группу parent (если её ещё нет)"""
+    def find(nodes, n_):
+        for n in nodes:
+            if isinstance(n, dict):
+                if n["name"] == n_:
+                    return n
+                r = find(n.get("children", []), n_)
+                if r:
+                    return r
+        return None
+    if find(d["outliner"], name):
+        return
+    hat = find(d["outliner"], parent)
+    lhat = find(d["outliner"], "L-Hat")
+    cube = copy.deepcopy([e for e in d["elements"] if e["uuid"] == lhat["children"][0]][0])
+    size = [t_[i] - f_[i] for i in range(3)]
+    f = box_faces(uv[0], uv[1], size[0], size[1], size[2])
+    cube.update({"from": f_, "to": t_, "rotation": [0, 0, 0], "origin": [0, 47, 0],
+                 "uv_offset": uv, "uuid": str(uuid.uuid4()), "box_uv": True, "visibility": True})
+    for face in cube["faces"]:
+        cube["faces"][face]["uv"] = [int(round(x)) for x in f[face]]
+    d["elements"].append(cube)
+    group = copy.deepcopy({k: v for k, v in lhat.items() if k != "children"})
+    group.update({"name": name, "uuid": str(uuid.uuid4()), "children": [cube["uuid"]], "visibility": True})
+    hat["children"].append(group)
 
 
 def ensure_hood(d):
@@ -182,6 +213,8 @@ def main():
         raise SystemExit("Нужен скин 64x64")
     W, H = d["resolution"]["width"], d["resolution"]["height"]
     ensure_hood(d)
+    for name, f_, t_, uv in FACE_CUBES:
+        ensure_group(d, name, f_, t_, uv)
     elements = {e["uuid"]: e for e in d["elements"]}
     cube_bone, cube_group = {}, {}
 
@@ -226,6 +259,15 @@ def main():
             continue
         hood = cube_group[uid] == "L-HoodU"
         paint(pl, W, H, (over if hood else full).load(), e, part, boxes, True)
+    # Слот лица: маска — лицо первого слоя (на скине пользователя это маска), очки — второй слой на уровне глаз;
+    # только передняя грань, остальные прозрачны
+    face_names = {n for n, _, _, _ in FACE_CUBES}
+    for uid, e in elements.items():
+        name = cube_group.get(uid, "")
+        if name not in face_names:
+            continue
+        front = {"north": e["faces"]["north"]}
+        paint(pl, W, H, (skin if name == "L-MaskU" else over).load(), {**e, "faces": front}, "head", boxes, True)
     put_texture(d, "LayerUserSkin.png", layer, "LayerBase.png")
     open(MODEL, "w", encoding="utf-8", newline="\n").write(json.dumps(d, ensure_ascii=False, separators=(",", ":")))
     print("skin ok", [t["name"] for t in d["textures"]])

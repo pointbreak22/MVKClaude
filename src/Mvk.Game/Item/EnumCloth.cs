@@ -40,6 +40,10 @@
         /// <summary>
         /// Обувь
         /// </summary>
-        Shoes = 8
+        Shoes = 8,
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Лицо (маска, очки)
+        /// </summary>
+        Face = 9
     }
 }

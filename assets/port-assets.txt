@@ -40,3 +40,6 @@ Mvk2Textures/Items/Cloth/PantsUser.png
 Mvk2Textures/Items/Cloth/ShoesUser.png
 Mvk2Textures/Items/Cloth/HoodUser.png
 # Не PNG: слой LayerUserSkin.png и куб капюшона L-HoodU в Humanoid.bbmodel, слои HoodieUser/PantsUser/ShoesUser/HoodUser в Mvk2Entities/Layers/Base.json, предметы Mvk2Items/Cloth/*User.json
+Mvk2Textures/Items/Cloth/MaskUser.png
+Mvk2Textures/Items/Cloth/GlassesUser.png
+# Не PNG: кубы L-MaskU и L-GlassesU в Humanoid.bbmodel, слои MaskUser/GlassesUser (группа Face) в Layers/Base.json, предметы Mvk2Items/Cloth/MaskUser.json, GlassesUser.json

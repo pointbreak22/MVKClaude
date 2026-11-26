@@ -18,7 +18,7 @@ namespace Mvk.Game.Entity.Inventory
         /// <summary>
         /// Количество ячеек одежды, первый слот это предмет левой руки 
         /// </summary>
-        public const byte ClothCount = 8;
+        public const byte ClothCount = 9;
         /// <summary>
         /// Количество ячеек рюкзака
         /// </summary>
@@ -59,6 +59,33 @@ namespace Mvk.Game.Entity.Inventory
         /// Получить текущий стак левой руки
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Сохранение с признаком слота лица
+        /// </summary>
+        public override void WriteToNBT(Mvk.Core.Nbt.TagCompound nbt)
+        {
+            base.WriteToNBT(nbt);
+            nbt.SetBool("InvFace", true);
+        }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Старое сохранение (до слота лица): ячейки рюкзака сдвигаются на одну
+        /// </summary>
+        public override void ReadFromNBT(Mvk.Core.Nbt.TagCompound nbt)
+        {
+            if (nbt.HasKey("InvFace"))
+            {
+                base.ReadFromNBT(nbt);
+                return;
+            }
+            _Clear();
+            int oldBackpack = PocketCount + ClothCount - 1;
+            foreach (Slot slot in Mvk.Engine.Nbt.NBTTools.ItemStacksReadFromNBT(nbt, "Inventory"))
+            {
+                SetStackInSlot(slot.SlotId >= oldBackpack ? slot.SlotId + 1 : slot.SlotId, slot.Stack);
+            }
+        }
+
         public override ItemStack GetCurrentLeftItem() 
             => GetStackInSlot(PocketCount);
 
