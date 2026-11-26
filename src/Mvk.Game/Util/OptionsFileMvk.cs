@@ -78,6 +78,7 @@ namespace Mvk.Game.Util
             file.WriteLine("\r\n# Game");
             file.WriteLine("OverviewChunk: " + Options.OverviewChunk.ToString());
             file.WriteLine("BlockPlacementPreview: " + (Options.BlockPlacementPreview ? "1" : "0"));
+            file.WriteLine("PlayerSkin: " + (Options.PlayerSkin ? "1" : "0"));
         }
     }
 }

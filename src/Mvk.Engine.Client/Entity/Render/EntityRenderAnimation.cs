@@ -81,6 +81,19 @@ namespace Mvk.Engine.Entity.Render
         private bool _handPosePrev;
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Текстура сущности: свой игрок со скином пользователя (Options.PlayerSkin), иначе из json
+        /// </summary>
+        private int _DepthTexture()
+        {
+            if (Options.PlayerSkin && Entity.Id == _entities.Player.Id)
+            {
+                int depth = _resourcesEntity.GetDepthTextureByName("UserSkin");
+                if (depth >= 0) return depth;
+            }
+            return _resourcesEntity.GetDepthTextureAndSmall();
+        }
+
+        /// <summary>
         /// Имя текущего клипа, чтоб можно было закрыть
         /// </summary>
         private string _activeClip;
@@ -490,7 +503,7 @@ namespace Mvk.Engine.Entity.Render
                 Entity.GetPosFrameY(timeIndex) - _entities.Player.PosFrameY,
                 Entity.GetPosFrameZ(timeIndex) - _entities.Player.PosFrameZ,
                 _lightBlock, _lightSky,
-                _resourcesEntity.GetDepthTextureAndSmall(),
+                _DepthTexture(),
                 _resourcesEntity.GetIsAnimation(), GetEyeMouth()
                 );
 
@@ -523,7 +536,7 @@ namespace Mvk.Engine.Entity.Render
             _GetMatrixPalette(yaw, yaw, pitch);
 
             _entities.ShsEntity.BindUniformAnimationGui(posX, posY, scale,
-                _resourcesEntity.GetDepthTextureAndSmall(),
+                _DepthTexture(),
                 _resourcesEntity.GetIsAnimation(), GetEyeMouth());
 
             _entities.ShsEntity.UniformData(_bufferBonesTransforms);

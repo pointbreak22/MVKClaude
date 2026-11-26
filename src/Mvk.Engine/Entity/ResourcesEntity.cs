@@ -83,6 +83,15 @@ namespace Mvk.Engine.Entity
         }
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Параметр глубины другой текстуры той же формы по названию (например UserSkin), -1 если нет
+        /// </summary>
+        public int GetDepthTextureByName(string name)
+        {
+            int index = EntitiesReg.Shapes[_indexShape].FindIndexTexture(name);
+            return index < 0 ? -1 : EntitiesReg.Shapes[_indexShape].DepthTextures[index];
+        }
+
+        /// <summary>
         /// Получить параметр есть ли анимация для шейдора
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -42,6 +42,10 @@ namespace Mvk.Engine.Gui.Screens
         protected readonly CheckBox _checkBoxAmbientOcclusion;
         protected readonly CheckBox _checkBoxShadow;
         protected readonly CheckBox _checkBoxBlockPlacementPreview;
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Свой скин персонажа
+        /// </summary>
+        protected readonly CheckBox _checkBoxPlayerSkin;
         protected readonly Button _buttonNet;
 
         protected readonly Button _buttonDone;
@@ -106,6 +110,8 @@ namespace Mvk.Engine.Gui.Screens
             _checkBoxShadow.SetChecked(Options.Shadow);
             _checkBoxBlockPlacementPreview = new CheckBox(window, font, 200, L.T("BlockPlacementPreview"));
             _checkBoxBlockPlacementPreview.SetChecked(Options.BlockPlacementPreview);
+            _checkBoxPlayerSkin = new CheckBox(window, font, 200, L.T("PlayerSkin"));
+            _checkBoxPlayerSkin.SetChecked(Options.PlayerSkin);
 
             if (_isGameLocal && window.Game != null && window.Game is GameLocal gameLocal
                 && gameLocal.IsRunNet())
@@ -194,6 +200,7 @@ namespace Mvk.Engine.Gui.Screens
             Options.AmbientOcclusion = _checkBoxAmbientOcclusion.Checked;
             Options.Shadow = _checkBoxShadow.Checked;
             Options.BlockPlacementPreview = _checkBoxBlockPlacementPreview.Checked;
+            Options.PlayerSkin = _checkBoxPlayerSkin.Checked;
             window.OptionsSave();
             if (isFullScreen)
             {
@@ -262,6 +269,7 @@ namespace Mvk.Engine.Gui.Screens
             _AddControls(_checkBoxAmbientOcclusion);
             _AddControls(_checkBoxShadow);
             _AddControls(_checkBoxBlockPlacementPreview);
+            _AddControls(_checkBoxPlayerSkin);
 
             _AddControls(_buttonNet);
             _AddControls(_checkBoxFullScreen);
@@ -285,6 +293,7 @@ namespace Mvk.Engine.Gui.Screens
             _sliderMouseSensitivity.SetPosition(PosX + 36, PosY + 52);
             _sliderOverviewChunk.SetPosition(PosX + 36, PosY + 82);
             _checkBoxBlockPlacementPreview.SetPosition(PosX + 274, PosY + 62);
+            _checkBoxPlayerSkin.SetPosition(PosX + 274, PosY + 92);
 
             // --Sound
             _lineSound.SetPosition(PosX + 80, PosY + 140);

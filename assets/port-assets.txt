@@ -33,3 +33,5 @@ Mvk2Textures/Items/Tools/PortPalette.png
 # Не PNG: свои модели предметов Mvk2Items/Shapes/Tools/Port*.json (генерирует tools/Assets/item_models.py), в том числе PortArrow
 # Не PNG: свои настройки Mvk2Entities/Vitals.json (здоровье и выносливость игрока)
 # Не PNG: свои настройки Mvk2Entities/Spawn.json (периодический спавн врагов)
+Mvk2Entities/Skins/user_skin.png
+# Не PNG: текстура UserSkin.png в Mvk2Entities/Models/Humanoid.bbmodel — скин пользователя, перенесённый на модель (tools/Assets/skin_convert.py)

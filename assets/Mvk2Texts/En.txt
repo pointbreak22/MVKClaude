@@ -55,6 +55,7 @@ BigInterface:Large interface
 FullScreen:Fullscreen
 Shadow:Shadows
 BlockPlacementPreview:Placement preview
+PlayerSkin:Custom player skin
 NetOn:Network on
 Net:Network
 Singleplayer:Singleplayer

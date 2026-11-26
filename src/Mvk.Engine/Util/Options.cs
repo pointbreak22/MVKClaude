@@ -102,6 +102,10 @@ namespace Mvk.Engine.Util
         /// </summary>
         public static bool BlockPlacementPreview = true;
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Свой игрок со скином пользователя (текстура UserSkin)
+        /// </summary>
+        public static bool PlayerSkin;
+        /// <summary>
         /// [ПОВЕДЕНИЕ] Новые миры генерируются в режиме Parallel (рельеф пулом потоков, мир не как в оригинале).
         /// Режим запоминается в сохранении мира, на старые миры опция не влияет
         /// </summary>

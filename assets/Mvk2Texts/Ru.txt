@@ -55,6 +55,7 @@ BigInterface:Большой интерфейс
 FullScreen:Полноэкранный
 Shadow:Эффект тени
 BlockPlacementPreview:Превью размещения
+PlayerSkin:Свой скин персонажа
 NetOn:Сеть включена
 Net:Сеть
 Singleplayer:Одиночная игра
