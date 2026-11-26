@@ -145,6 +145,9 @@ LAYER_PART = {
 OVERLAY = [((32, 0, 64, 16), (0, 0)), ((16, 32, 40, 48), (16, 16)), ((40, 32, 56, 48), (40, 16)),
            ((48, 48, 64, 64), (32, 48)), ((0, 32, 16, 48), (0, 16)), ((0, 48, 16, 64), (16, 48))]
 HOOD_FROM, HOOD_TO, HOOD_UV = [-7, 46.5, -6.5], [7, 60.5, 7.5], [48, 220]
+# Грани капюшона по свободным местам текстуры слоя (место 48,220 занимает рюкзак): развёртка по граням
+HOOD_FACES = {"north": [64, 128, 78, 142], "south": [78, 128, 92, 142], "east": [92, 128, 106, 142],
+              "west": [106, 128, 120, 142], "up": [118, 224, 104, 210], "down": [118, 226, 104, 240]}
 # Слот лица: маска — пластина на всё лицо, очки — полоса на уровне глаз (группа, от, до, смещение развёртки)
 FACE_CUBES = [("L-MaskU", [-7, 47, -7], [7, 60, -6], [0, 128]),
               ("L-GlassesU", [-7, 53, -7.5], [7, 56, -6.5], [32, 128])]
@@ -206,6 +209,61 @@ def ensure_hood(d):
     hat["children"].append(group)
 
 
+BLACK, DARK, GREY, GREEN = (26, 26, 28, 255), (58, 58, 62, 255), (112, 112, 118, 255), (40, 235, 115, 255)
+# Крипер 6x6 (1 — зелёный) для задней стенки рюкзака
+CREEPER = ["110011", "110011", "001100", "011110", "011110", "010010"]
+
+
+def face_pixels(uv):
+    """Пиксели грани: (px, py, s, t), s и t — доли по направлению развёртки"""
+    u0, u1 = sorted((uv[0], uv[2]))
+    v0, v1 = sorted((uv[1], uv[3]))
+    for py in range(int(v0), int(round(v1))):
+        for px in range(int(u0), int(round(u1))):
+            s = ((px + .5) - uv[0]) / (uv[2] - uv[0]) if uv[2] != uv[0] else .5
+            q = ((py + .5) - uv[1]) / (uv[3] - uv[1]) if uv[3] != uv[1] else .5
+            yield px, py, s, q
+
+
+def paint_backpack(pl, W, H, elements, cube_group):
+    """Рюкзак в стиле скина: чёрный короб с серой окантовкой, зелёная полоса и крипер сзади, серый клапан,
+    лямки через плечи с зелёными пряжками"""
+    for uid, e in elements.items():
+        if cube_group.get(uid) != "L-Backpack1":
+            continue
+        straps = e["from"][2] < 0
+        for face, fd in e["faces"].items():
+            uv = fd["uv"]
+            w = abs(uv[2] - uv[0])
+            h = abs(uv[3] - uv[1])
+            for px, py, s, q in face_pixels(uv):
+                if not (0 <= px < W and 0 <= py < H):
+                    continue
+                c = None
+                if not straps:
+                    edge = s * w < 1 or s * w > w - 1 or q * h < 1 or q * h > h - 1
+                    c = GREY if edge else BLACK
+                    if face == "up":
+                        c = GREEN if edge else GREY
+                    elif face == "south":
+                        if abs(s - .5) * w < 1 and not edge:
+                            c = GREEN
+                        cx, cy = int((s - .5) * w + 3), int(q * h - 2)
+                        if 0 <= cx < 6 and 0 <= cy < 6 and CREEPER[cy][cx] == "1":
+                            c = GREEN
+                    elif face in ("east", "west") and abs(q - .45) * h < 1 and not edge:
+                        c = DARK
+                else:
+                    # Лямки: две полосы спереди и через плечи; остальное прозрачно
+                    band = abs(s - .28) * w < 1.2 or abs(s - .72) * w < 1.2
+                    if face == "north" and band:
+                        c = GREEN if abs(q - .55) * h < 1 else DARK
+                    elif face == "up" and band:
+                        c = DARK
+                if c:
+                    pl[px, py] = c
+
+
 def main():
     d = json.load(open(MODEL, encoding="utf-8"))
     skin = Image.open(SKIN).convert("RGBA")
@@ -213,6 +271,11 @@ def main():
         raise SystemExit("Нужен скин 64x64")
     W, H = d["resolution"]["width"], d["resolution"]["height"]
     ensure_hood(d)
+    for e in d["elements"]:
+        if e.get("uv_offset") == HOOD_UV:
+            e["box_uv"] = False
+            for face, uv in HOOD_FACES.items():
+                e["faces"][face]["uv"] = uv
     for name, f_, t_, uv in FACE_CUBES:
         ensure_group(d, name, f_, t_, uv)
     elements = {e["uuid"]: e for e in d["elements"]}
@@ -268,6 +331,7 @@ def main():
             continue
         front = {"north": e["faces"]["north"]}
         paint(pl, W, H, (skin if name == "L-MaskU" else over).load(), {**e, "faces": front}, "head", boxes, True)
+    paint_backpack(pl, W, H, elements, cube_group)
     put_texture(d, "LayerUserSkin.png", layer, "LayerBase.png")
     open(MODEL, "w", encoding="utf-8", newline="\n").write(json.dumps(d, ensure_ascii=False, separators=(",", ":")))
     print("skin ok", [t["name"] for t in d["textures"]])

@@ -34,3 +34,4 @@ ShoesUser:Skin sneakers
 HoodUser:Hood
 MaskUser:Mask
 GlassesUser:Glasses
+BackpackUser:Creeper backpack

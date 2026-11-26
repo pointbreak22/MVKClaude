@@ -1,0 +1,9 @@
+{
+    MaxStackSize: 1,
+    CellsBackpack: 35,
+    SlotClothIndex: [5, 1],
+    Sprite: "Items/Cloth/BackpackUser",
+    SpriteGui: "Items/Cloth/BackpackUser",
+    PutOnBody: "Backpack",
+    NameLayer: "BackpackUser"
+}

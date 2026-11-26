@@ -116,6 +116,7 @@ namespace Mvk.Game.Item
             tabCloth.Add(new ItemStack(ItemsRegMvk.HoodUser));
             tabCloth.Add(new ItemStack(ItemsRegMvk.MaskUser));
             tabCloth.Add(new ItemStack(ItemsRegMvk.GlassesUser));
+            tabCloth.Add(new ItemStack(ItemsRegMvk.BackpackUser));
 
             // Раздел еда
             List<ItemStack> tabFood = new List<ItemStack>();

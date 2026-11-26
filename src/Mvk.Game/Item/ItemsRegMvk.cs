@@ -268,6 +268,10 @@ namespace Mvk.Game.Item
         /// </summary>
         public static ItemCloth MaskUser { get; private set; }
         public static ItemCloth GlassesUser { get; private set; }
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Рюкзак в стиле скина пользователя, 35 ячеек (весь рюкзак)
+        /// </summary>
+        public static ItemCloth BackpackUser { get; private set; }
         public static ItemCloth CamouflageJacket { get; private set; }
         /// <summary>
         /// Шлем железный: броня, снижает урон по своей части тела
@@ -457,6 +461,7 @@ namespace Mvk.Game.Item
             HoodUser = ItemsReg.RegisterItemClothClass("HoodUser");
             MaskUser = ItemsReg.RegisterItemClothClass("MaskUser");
             GlassesUser = ItemsReg.RegisterItemClothClass("GlassesUser");
+            BackpackUser = ItemsReg.RegisterItemClothClass("BackpackUser");
 
             // Объект регистрации и данных креативного инвентаря
             Creative = new ItemsCreative();

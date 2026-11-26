@@ -35,3 +35,4 @@ ShoesUser:Кеды из скина
 HoodUser:Капюшон
 MaskUser:Маска
 GlassesUser:Очки
+BackpackUser:Рюкзак с крипером

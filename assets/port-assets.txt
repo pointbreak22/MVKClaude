@@ -43,3 +43,5 @@ Mvk2Textures/Items/Cloth/HoodUser.png
 Mvk2Textures/Items/Cloth/MaskUser.png
 Mvk2Textures/Items/Cloth/GlassesUser.png
 # Не PNG: кубы L-MaskU и L-GlassesU в Humanoid.bbmodel, слои MaskUser/GlassesUser (группа Face) в Layers/Base.json, предметы Mvk2Items/Cloth/MaskUser.json, GlassesUser.json
+Mvk2Textures/Items/Cloth/BackpackUser.png
+# Не PNG: рюкзак BackpackUser (слой Backpack в Layers/Base.json на кубах L-Backpack1, раскраска в LayerUserSkin.png скриптом skin_convert.py)

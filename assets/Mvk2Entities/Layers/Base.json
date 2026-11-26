@@ -114,6 +114,12 @@
             Name: "GlassesUser",
             Folder: ["L-GlassesU"],
             Texture: "UserSkin"
+        },
+        {
+            Group: "Backpack",
+            Name: "BackpackUser",
+            Folder: ["L-Backpack1"],
+            Texture: "UserSkin"
         }
         
         

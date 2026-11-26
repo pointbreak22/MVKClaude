@@ -455,7 +455,7 @@ namespace Mvk.Desktop
             ("Dynamite", 0), ("Flint", 1), ("Hook", 1), ("Rope", 0), ("AxeIron", 1), ("ShovelIron", 1),
             ("HoeIron", 1), ("Bucket", 1), ("BucketWater", 1), ("Cobweb", 0), ("Glass", 0), ("PieceStone", 0),
             ("HelmetIron", 1), ("ChestplateIron", 1), ("LeggingsIron", 1), ("BootsIron", 1),
-            ("HoodieUser", 1), ("PantsUser", 1), ("ShoesUser", 1), ("HoodUser", 1), ("MaskUser", 1), ("GlassesUser", 1)
+            ("HoodieUser", 1), ("PantsUser", 1), ("ShoesUser", 1), ("HoodUser", 1), ("MaskUser", 1), ("GlassesUser", 1), ("BackpackUser", 1)
         };
 
         public override string UseCommand(CommandSender sender)

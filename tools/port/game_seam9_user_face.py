@@ -53,19 +53,25 @@ rel = r"Item\ItemsRegMvk.cs"
 t = load(rel, GAME)
 t = rep(t, """            HoodUser = ItemsReg.RegisterItemClothClass("HoodUser");""", """            HoodUser = ItemsReg.RegisterItemClothClass("HoodUser");
             MaskUser = ItemsReg.RegisterItemClothClass("MaskUser");
-            GlassesUser = ItemsReg.RegisterItemClothClass("GlassesUser");""", rel, 1)
+            GlassesUser = ItemsReg.RegisterItemClothClass("GlassesUser");
+            BackpackUser = ItemsReg.RegisterItemClothClass("BackpackUser");""", rel, 1)
 t = rep(t, """        public static ItemCloth HoodUser { get; private set; }""", """        public static ItemCloth HoodUser { get; private set; }
         /// <summary>
         /// [ПОВЕДЕНИЕ] Маска и очки из скина пользователя (слот лица)
         /// </summary>
         public static ItemCloth MaskUser { get; private set; }
-        public static ItemCloth GlassesUser { get; private set; }""", rel, 1)
+        public static ItemCloth GlassesUser { get; private set; }
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Рюкзак в стиле скина пользователя, 35 ячеек (весь рюкзак)
+        /// </summary>
+        public static ItemCloth BackpackUser { get; private set; }""", rel, 1)
 save(rel, t, GAME)
 
 rel = r"Item\ItemsCreative.cs"
 t = load(rel, GAME)
 t = rep(t, """            tabCloth.Add(new ItemStack(ItemsRegMvk.HoodUser));""", """            tabCloth.Add(new ItemStack(ItemsRegMvk.HoodUser));
             tabCloth.Add(new ItemStack(ItemsRegMvk.MaskUser));
-            tabCloth.Add(new ItemStack(ItemsRegMvk.GlassesUser));""", rel, 1)
+            tabCloth.Add(new ItemStack(ItemsRegMvk.GlassesUser));
+            tabCloth.Add(new ItemStack(ItemsRegMvk.BackpackUser));""", rel, 1)
 save(rel, t, GAME)
 print("game_seam9_user_face ok")
