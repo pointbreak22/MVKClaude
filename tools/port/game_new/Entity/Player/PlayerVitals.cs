@@ -32,6 +32,7 @@ namespace Mvk.Game.Entity.Player
             public int StaminaDelay = 20;
             public float StaminaRegen = .8f;
             public float WeakFactor = .5f;
+            public int RespawnDelay = 20;
 
             public static Config Load()
             {
@@ -53,6 +54,7 @@ namespace Mvk.Game.Entity.Player
                     if (s.IsKey("StaminaDelay")) c.StaminaDelay = s.GetInt("StaminaDelay");
                     if (s.IsKey("StaminaRegen")) c.StaminaRegen = s.GetFloat("StaminaRegen");
                     if (s.IsKey("WeakFactor")) c.WeakFactor = s.GetFloat("WeakFactor");
+                    if (s.IsKey("RespawnDelay")) c.RespawnDelay = Math.Clamp(s.GetInt("RespawnDelay"), 1, 50);
                 }
                 catch (Exception)
                 {
@@ -66,6 +68,28 @@ namespace Mvk.Game.Entity.Player
         private static Config _Cfg => _config ??= Config.Load();
 
         private float _healthPrev = -1;
+        private int _deadTicks;
+
+        /// <summary>
+        /// Точка возрождения (как первый спавн игрока, PlayerServerMvk.CreatePlayer)
+        /// </summary>
+        private const int _SpawnX = -320, _SpawnZ = 130;
+
+        /// <summary>
+        /// Возрождение: полные здоровье и выносливость, точка спавна, сброс блока и натяжения, сообщение
+        /// </summary>
+        private void _Respawn(PlayerServerMvk player)
+        {
+            _deadTicks = 0;
+            player.SetHealth(player.GetHealthMax());
+            player.SetStamina(PlayerBase.StaminaMax);
+            _healthPrev = player.GetHealth();
+            _healTicks = 0;
+            player.SetHandPose(false);
+            int y = player.GetWorldServer().GetHeightMap(_SpawnX, _SpawnZ);
+            player.SetPositionServer(_SpawnX + .5f, y > 0 ? y + .1f : 100, _SpawnZ + .5f);
+            player.SendMessage(Mvk.Engine.Realms.ChatStyle.Red + "Вы погибли, возрождение");
+        }
         private int _healTicks;
         private int _staminaIdle;
         private bool _groundPrev = true;
@@ -78,6 +102,14 @@ namespace Mvk.Game.Entity.Player
         {
             Config c = _Cfg;
             float health = player.GetHealth();
+            // [ПОВЕДЕНИЕ] Временное авто-возрождение: через секунду после гибели (до того, как DamageLiving
+            // через 3 с пометит игрока удалённым из мира — отсюда было «сломанное» состояние после смерти)
+            if (health <= 0 && !player.CreativeMode && !player.IsSpectator())
+            {
+                if (++_deadTicks >= c.RespawnDelay) _Respawn(player);
+                return;
+            }
+            _deadTicks = 0;
             if (player.CreativeMode || player.IsSpectator() || health <= 0)
             {
                 _healthPrev = health;

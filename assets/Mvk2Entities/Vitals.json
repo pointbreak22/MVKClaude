@@ -11,5 +11,6 @@
     Draw: 0.2,
     StaminaDelay: 20,
     StaminaRegen: 0.8,
-    WeakFactor: 0.5
+    WeakFactor: 0.5,
+    RespawnDelay: 20
 }
