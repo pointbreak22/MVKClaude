@@ -38,6 +38,14 @@ namespace Mvk.Game.Entity.List
         /// </summary>
         public EntityLiving? Hunt;
 
+        public EntityHostileMvk() : base() => _persistenceRequired = true;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Пока моб идёт к своему игроку (Hunt, до 160 блоков), он не исчезает случайным деспавном
+        /// дальних мобов; без цели — обычный деспавн
+        /// </summary>
+        protected override bool _CanDespawn() => Hunt == null || !_IsTarget(Hunt) || Distance(Hunt) > 160;
+
         /// <summary>
         /// Размер как у игрока
         /// </summary>

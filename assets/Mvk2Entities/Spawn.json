@@ -1,11 +1,15 @@
 {
     #Comment: "Периодический спавн врагов вокруг игрока в выживании (EnemySpawner), такты 20 в секунду, расстояния в блоках",
-    IntervalMin: 600,
-    IntervalMax: 2400,
+    IntervalMin: 240,
+    IntervalMax: 900,
     DistanceMin: 50.0,
     DistanceMax: 100.0,
-    MaxNearby: 6,
+    MaxNearby: 10,
     NearbyRadius: 128.0,
     ZombieWeight: 2,
-    BanditWeight: 1
+    BanditWeight: 1,
+    GroupMin: 1,
+    GroupMax: 3,
+    GroupSpread: 3.0,
+    SecondSiteChance: 0.35
 }
