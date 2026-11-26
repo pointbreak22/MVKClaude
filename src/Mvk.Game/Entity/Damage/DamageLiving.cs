@@ -98,7 +98,6 @@ namespace Mvk.Game.Entity.Damage
             float health = _entity.GetHealth() - damage;
             _entity.SetHealth(health);
 
-            Console.WriteLine("GetHealth" + _entity.GetHealth());
             // Анимация урона
             _worldServer.SpawnParticle(EntitiesFXReg.PartColorId, 5, 
                 _entity.GetPositionCenterVec(), new Vector3(.5f), 1, 0x1000000);
@@ -271,7 +270,6 @@ namespace Mvk.Game.Entity.Damage
                     _WearArmor(enumBody);
                 }
             }
-            Console.Write(" " + enumBody);
 
             return damage;
         }

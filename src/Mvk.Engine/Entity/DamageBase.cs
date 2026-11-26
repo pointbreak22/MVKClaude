@@ -45,7 +45,6 @@ namespace Mvk.Engine.Entity
         public virtual bool OnAttack(byte source, float hitY, float damage,
             EntityLiving entityAttack = null!)
         {
-            Console.Write("OnAttack " + damage);
             if (_IsImmuneToAll() && source != (byte)EnumDamageSource.OutOfWorld) return false;
             if (_IsImmuneToFall() && source == (byte)EnumDamageSource.Fall) return false;
             if (_IsImmuneToFire() && (source == (byte)EnumDamageSource.InFire
@@ -53,7 +52,6 @@ namespace Mvk.Engine.Entity
                 || source == (byte)EnumDamageSource.Lava)) return false;
             if (_IsImmuneToLackOfAir() && source == (byte)EnumDamageSource.Drown) return false;
             damage = _GetDamageFromBody(source, hitY, damage);
-            Console.WriteLine(" => " + damage);
             if (damage > 0)
             {
                 _OnAttack(source, damage, entityAttack);
