@@ -78,6 +78,30 @@
             Name: "ArmorBoots",
             Folder: ["L-Armor-ShoesSL1", "L-Armor-ShoesFL1", "L-Armor-ShoesSR1", "L-Armor-ShoesFR1"],
             Texture: "Armor"
+        },
+        {
+            Group: "Jacket",
+            Name: "HoodieUser",
+            Folder: ["L-JacketB1", "L-JacketFLC", "L-JacketALC", "L-JacketFRC", "L-JacketARC"],
+            Texture: "UserSkin"
+        },
+        {
+            Group: "Pants",
+            Name: "PantsUser",
+            Folder: ["L-PantsB1", "L-PantsH1", "L-PantsR1", "L-PantsL1", "L-PantsSR1", "L-PantsSL1"],
+            Texture: "UserSkin"
+        },
+        {
+            Group: "Shoes",
+            Name: "ShoesUser",
+            Folder: ["L-ShoesSL1", "L-ShoesFL1", "L-ShoesSR1", "L-ShoesFR1"],
+            Texture: "UserSkin"
+        },
+        {
+            Group: "Hat",
+            Name: "HoodUser",
+            Folder: ["L-HoodU"],
+            Texture: "UserSkin"
         }
         
         

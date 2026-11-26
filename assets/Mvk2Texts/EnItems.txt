@@ -28,3 +28,7 @@ Hook:Grappling hook
 Flint:Flint and steel
 Knife:Knife
 Spear:Spear
+HoodieUser:Creeper hoodie
+PantsUser:Skin pants
+ShoesUser:Skin sneakers
+HoodUser:Hood

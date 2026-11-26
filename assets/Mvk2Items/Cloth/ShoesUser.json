@@ -1,0 +1,8 @@
+{
+    MaxStackSize: 1,
+    SlotClothIndex: [8, 1],
+    Sprite: "Items/Cloth/ShoesUser",
+    SpriteGui: "Items/Cloth/ShoesUser",
+    PutOnBody: "Shoes",
+    NameLayer: "ShoesUser"
+}

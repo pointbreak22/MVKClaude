@@ -110,6 +110,10 @@ namespace Mvk.Game.Item
             tabCloth.Add(new ItemStack(ItemsRegMvk.ChestplateIron));
             tabCloth.Add(new ItemStack(ItemsRegMvk.LeggingsIron));
             tabCloth.Add(new ItemStack(ItemsRegMvk.BootsIron));
+            tabCloth.Add(new ItemStack(ItemsRegMvk.HoodieUser));
+            tabCloth.Add(new ItemStack(ItemsRegMvk.PantsUser));
+            tabCloth.Add(new ItemStack(ItemsRegMvk.ShoesUser));
+            tabCloth.Add(new ItemStack(ItemsRegMvk.HoodUser));
 
             // Раздел еда
             List<ItemStack> tabFood = new List<ItemStack>();

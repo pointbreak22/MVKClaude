@@ -256,6 +256,13 @@ namespace Mvk.Game.Item
         public static ItemCloth CapDark { get; private set; }
 
         public static ItemCloth StrawHat { get; private set; }
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Одежда из скина пользователя: худи, штаны, обувь, капюшон
+        /// </summary>
+        public static ItemCloth HoodieUser { get; private set; }
+        public static ItemCloth PantsUser { get; private set; }
+        public static ItemCloth ShoesUser { get; private set; }
+        public static ItemCloth HoodUser { get; private set; }
         public static ItemCloth CamouflageJacket { get; private set; }
         /// <summary>
         /// Шлем железный: броня, снижает урон по своей части тела
@@ -437,6 +444,12 @@ namespace Mvk.Game.Item
 
             // Food
             ItemsReg.RegisterItemClass("CannedFood", CannedFood = new ItemFood());
+
+            // [ПОВЕДЕНИЕ] Одежда из скина пользователя
+            HoodieUser = ItemsReg.RegisterItemClothClass("HoodieUser");
+            PantsUser = ItemsReg.RegisterItemClothClass("PantsUser");
+            ShoesUser = ItemsReg.RegisterItemClothClass("ShoesUser");
+            HoodUser = ItemsReg.RegisterItemClothClass("HoodUser");
 
             // Объект регистрации и данных креативного инвентаря
             Creative = new ItemsCreative();

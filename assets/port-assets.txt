@@ -35,3 +35,8 @@ Mvk2Textures/Items/Tools/PortPalette.png
 # Не PNG: свои настройки Mvk2Entities/Spawn.json (периодический спавн врагов)
 Mvk2Entities/Skins/user_skin.png
 # Не PNG: текстура UserSkin.png в Mvk2Entities/Models/Humanoid.bbmodel — скин пользователя, перенесённый на модель (tools/Assets/skin_convert.py)
+Mvk2Textures/Items/Cloth/HoodieUser.png
+Mvk2Textures/Items/Cloth/PantsUser.png
+Mvk2Textures/Items/Cloth/ShoesUser.png
+Mvk2Textures/Items/Cloth/HoodUser.png
+# Не PNG: слой LayerUserSkin.png и куб капюшона L-HoodU в Humanoid.bbmodel, слои HoodieUser/PantsUser/ShoesUser/HoodUser в Mvk2Entities/Layers/Base.json, предметы Mvk2Items/Cloth/*User.json
