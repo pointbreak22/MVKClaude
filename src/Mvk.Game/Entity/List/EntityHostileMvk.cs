@@ -104,6 +104,72 @@ namespace Mvk.Game.Entity.List
             && !(entity is PlayerBase player && (player.CreativeMode || player.IsSpectator()));
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Прямая видимость цели: луч по блокам от глаз моба к середине цели
+        /// </summary>
+        public bool CanSee(EntityLiving target)
+        {
+            float ex = PosX, ey = PosY + SizeLiving.GetEye(), ez = PosZ;
+            float dx = target.PosX - ex, dy = target.PosY + target.Size.GetHeight() * .6f - ey, dz = target.PosZ - ez;
+            float length = MathF.Sqrt(dx * dx + dy * dy + dz * dz);
+            if (length < .1f) return true;
+            WorldServer world = GetWorldServer();
+            world.Collision.RayCastBlock(ex, ey, ez, new Vector3(dx / length, dy / length, dz / length), length, true, false, true);
+            return !world.Collision.MovingObject.IsBlock();
+        }
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] В воде плыть прямо к цели (навигация по земле воду не прокладывает)
+        /// </summary>
+        public void SwimTo(EntityLiving target, float speed)
+        {
+            if (!PresenceBlocks.IsInLiquid) return;
+            MoveHelper.SetMoveTo(target.PosX, target.PosY, target.PosZ, speed);
+            if (target.PosY > PosY) MoveHelper.SetJumping();
+        }
+
+        /// <summary>
+        /// Такты ломания блока перед мобом
+        /// </summary>
+        private int _breakTicks;
+        private BlockPos _breakPos;
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Застрявший моб ломает дверь или мягкий блок (твёрдость до EnemySpawner.BreakHardness) на пути
+        /// к цели в полный рост; ломание занимает EnemySpawner.BreakTicks тактов, с взмахами. false — ломать нечего
+        /// </summary>
+        public bool BreakAhead(EntityLiving target)
+        {
+            float dx = target.PosX - PosX, dz = target.PosZ - PosZ;
+            float length = MathF.Sqrt(dx * dx + dz * dz);
+            if (length < .1f) return false;
+            WorldServer world = GetWorldServer();
+            int y0 = (int)MathF.Floor(PosY);
+            // Ближайший мешающий блок в полный рост на 1–3 блока вперёд по направлению к цели
+            for (int k = 0; k < 12; k++)
+            {
+                float ahead = 1f + (k >> 2) * .9f;
+                int x = (int)MathF.Floor(PosX + dx / length * ahead), z = (int)MathF.Floor(PosZ + dz / length * ahead);
+                int i = k & 3;
+                BlockPos pos = new BlockPos(x, y0 + i, z);
+                BlockState state = world.GetBlockState(pos);
+                if (state.IsAir()) continue;
+                BlockBase block = state.GetBlock();
+                // Трава, жидкость и прочее без твёрдости не мешают — смотрим выше
+                if (block.Material.Liquid || block.Hardness <= 0) continue;
+                if (block.Hardness > EnemySpawner.BreakHardness) return false;
+                if (!pos.Equals(_breakPos)) { _breakPos = pos; _breakTicks = 0; }
+                if (_breakTicks % 10 == 0) Swing();
+                if (++_breakTicks >= EnemySpawner.BreakTicks)
+                {
+                    _breakTicks = 0;
+                    world.SetBlockToAir(pos);
+                }
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Взмах рукой у всех клиентов
         /// </summary>
         public void Swing(string animation = "AttackRight")

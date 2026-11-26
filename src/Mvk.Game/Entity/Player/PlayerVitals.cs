@@ -33,6 +33,7 @@ namespace Mvk.Game.Entity.Player
             public float StaminaRegen = .8f;
             public float WeakFactor = .5f;
             public int RespawnDelay = 20;
+            public bool DropOnDeath;
 
             public static Config Load()
             {
@@ -55,6 +56,7 @@ namespace Mvk.Game.Entity.Player
                     if (s.IsKey("StaminaRegen")) c.StaminaRegen = s.GetFloat("StaminaRegen");
                     if (s.IsKey("WeakFactor")) c.WeakFactor = s.GetFloat("WeakFactor");
                     if (s.IsKey("RespawnDelay")) c.RespawnDelay = Math.Clamp(s.GetInt("RespawnDelay"), 1, 50);
+                    if (s.IsKey("DropOnDeath")) c.DropOnDeath = s.GetBool("DropOnDeath");
                 }
                 catch (Exception)
                 {
@@ -74,6 +76,26 @@ namespace Mvk.Game.Entity.Player
         /// Точка возрождения (как первый спавн игрока, PlayerServerMvk.CreatePlayer)
         /// </summary>
         private const int _SpawnX = -320, _SpawnZ = 130;
+
+        /// <summary>
+        /// Выбросить карманы, левую руку и рюкзак на месте гибели
+        /// </summary>
+        private static void _DropInventory(PlayerServerMvk player)
+        {
+            Inventory.InventoryPlayerMvk inventory = player.InvPlayer;
+            int pockets = Inventory.InventoryPlayerMvk.PocketCount;
+            int backpack = pockets + Inventory.InventoryPlayerMvk.ClothCount;
+            int all = backpack + Inventory.InventoryPlayerMvk.BackpackCount;
+            for (int slot = 0; slot < all; slot++)
+            {
+                if (slot > pockets && slot < backpack) continue;
+                Mvk.Engine.Item.ItemStack stack = inventory.GetStackInSlot(slot);
+                if (stack == null) continue;
+                Mvk.Engine.Item.ItemStack.SpawnAsEntity(player.GetWorldServer(),
+                    new Mvk.Engine.World.Block.BlockPos(player.PosX, player.PosY + .5f, player.PosZ), stack);
+                inventory.SetInventorySlotContents(slot, null!);
+            }
+        }
 
         /// <summary>
         /// Возрождение: полные здоровье и выносливость, точка спавна, сброс блока и натяжения, сообщение
@@ -106,6 +128,9 @@ namespace Mvk.Game.Entity.Player
             // через 3 с пометит игрока удалённым из мира — отсюда было «сломанное» состояние после смерти)
             if (health <= 0 && !player.CreativeMode && !player.IsSpectator())
             {
+                // [ПОВЕДЕНИЕ] Штраф за смерть (по умолчанию выключен, DropOnDeath): карманы, левая рука и рюкзак
+                // выпадают на месте гибели, одежда остаётся
+                if (_deadTicks == 0 && c.DropOnDeath) _DropInventory(player);
                 if (++_deadTicks >= c.RespawnDelay) _Respawn(player);
                 return;
             }

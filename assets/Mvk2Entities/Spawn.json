@@ -11,5 +11,10 @@
     GroupMin: 1,
     GroupMax: 3,
     GroupSpread: 3.0,
-    SecondSiteChance: 0.35
+    SecondSiteChance: 0.35,
+    DayFactor: 2.0,
+    NightFactor: 0.5,
+    NightSunLight: 0.4,
+    BreakHardness: 32,
+    BreakTicks: 60
 }

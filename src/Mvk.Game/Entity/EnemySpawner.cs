@@ -23,6 +23,12 @@ namespace Mvk.Game.Entity
         /// </summary>
         public static bool Enabled = true;
 
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Наибольшая твёрдость блока, который застрявший враг ломает (дверь 32), и такты ломания
+        /// </summary>
+        public static int BreakHardness => _Cfg.BreakHardness;
+        public static int BreakTicks => _Cfg.BreakTicks;
+
         private sealed class Config
         {
             public int IntervalMin = 600, IntervalMax = 2400;
@@ -33,6 +39,8 @@ namespace Mvk.Game.Entity
             public int GroupMin = 1, GroupMax = 3;
             public float GroupSpread = 3;
             public float SecondSiteChance = .35f;
+            public float DayFactor = 2, NightFactor = .5f, NightSunLight = .4f;
+            public int BreakHardness = 32, BreakTicks = 60;
 
             public static Config Load()
             {
@@ -54,6 +62,11 @@ namespace Mvk.Game.Entity
                     if (s.IsKey("GroupMax")) c.GroupMax = Math.Max(c.GroupMin, s.GetInt("GroupMax"));
                     if (s.IsKey("GroupSpread")) c.GroupSpread = Math.Max(0, s.GetFloat("GroupSpread"));
                     if (s.IsKey("SecondSiteChance")) c.SecondSiteChance = Math.Clamp(s.GetFloat("SecondSiteChance"), 0, 1);
+                    if (s.IsKey("DayFactor")) c.DayFactor = Math.Max(.1f, s.GetFloat("DayFactor"));
+                    if (s.IsKey("NightFactor")) c.NightFactor = Math.Max(.1f, s.GetFloat("NightFactor"));
+                    if (s.IsKey("NightSunLight")) c.NightSunLight = s.GetFloat("NightSunLight");
+                    if (s.IsKey("BreakHardness")) c.BreakHardness = s.GetInt("BreakHardness");
+                    if (s.IsKey("BreakTicks")) c.BreakTicks = Math.Max(1, s.GetInt("BreakTicks"));
                 }
                 catch (Exception)
                 {
@@ -80,7 +93,12 @@ namespace Mvk.Game.Entity
             WorldServer world = player.GetWorldServer();
             if (world == null) return;
             Config c = _Cfg;
-            if (_ticks <= 0) _ticks = c.IntervalMin + world.Rnd.Next(c.IntervalMax - c.IntervalMin + 1);
+            if (_ticks <= 0)
+            {
+                // [ПОВЕДЕНИЕ] Днём реже, ночью чаще (по солнечному свету мира)
+                float factor = world.Settings.Environment.GetSunLight() < c.NightSunLight ? c.NightFactor : c.DayFactor;
+                _ticks = Math.Max(20, (int)((c.IntervalMin + world.Rnd.Next(c.IntervalMax - c.IntervalMin + 1)) * factor));
+            }
             if (--_ticks > 0) return;
             int free = c.MaxNearby - _Nearby(world, player, c);
             if (free <= 0) return;

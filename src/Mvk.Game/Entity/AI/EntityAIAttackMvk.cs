@@ -23,6 +23,8 @@ namespace Mvk.Game.Entity.AI
         private EntityLiving? _target;
         private int _pathTicks;
         private int _attackTicks;
+        private float _bestDistance = float.MaxValue;
+        private int _stuckTicks;
 
         public EntityAIAttackMeleeMvk(EntityHostileMvk entity, float speed, float damage, int cooldown, float knockback)
             : base(entity, 3)
@@ -36,7 +38,12 @@ namespace Mvk.Game.Entity.AI
 
         public override bool ShouldExecute() => (_target = _hostile.FindTarget()) != null;
 
-        public override void StartExecuting() => _pathTicks = 0;
+        public override void StartExecuting()
+        {
+            _pathTicks = 0;
+            _bestDistance = float.MaxValue;
+            _stuckTicks = 0;
+        }
 
         public override void ResetTask()
         {
@@ -53,6 +60,18 @@ namespace Mvk.Game.Entity.AI
             {
                 _pathTicks = 10;
                 _entity.Navigator.TryMoveToEntityLiving(_target, _speed, true, false, 0);
+            }
+            // [ПОВЕДЕНИЕ] В воде плывёт прямо к цели
+            _hostile.SwimTo(_target, _speed);
+            // [ПОВЕДЕНИЕ] Застрял (не приближается 2 с) — ломает дверь или мягкий блок перед собой
+            if (distance < _bestDistance - .5f)
+            {
+                _bestDistance = distance;
+                _stuckTicks = 0;
+            }
+            else if (++_stuckTicks > 40 && distance >= 5f && distance < 32f)
+            {
+                if (!_hostile.BreakAhead(_target)) _bestDistance = distance;
             }
             if (_attackTicks > 0) _attackTicks--;
             if (distance < 5f && _attackTicks == 0)
@@ -108,10 +127,13 @@ namespace Mvk.Game.Entity.AI
             if (_target == null) return;
             _entity.LookHelper.SetLookPositionWithEntity(_target, Glm.Pi30, Glm.Pi30);
             float distance = _entity.Distance(_target);
+            // [ПОВЕДЕНИЕ] Без прямой видимости не стреляет, а подходит к цели
+            bool visible = _hostile.CanSee(_target);
+            _hostile.SwimTo(_target, _speed);
             if (--_pathTicks <= 0)
             {
                 _pathTicks = 10;
-                if (distance > _far)
+                if (distance > _far || !visible)
                 {
                     _entity.Navigator.TryMoveToEntityLiving(_target, _speed, true, false, 0);
                 }
@@ -129,7 +151,7 @@ namespace Mvk.Game.Entity.AI
                 }
             }
             if (_attackTicks > 0) _attackTicks--;
-            if (_attackTicks == 0 && distance <= _far + 4)
+            if (_attackTicks == 0 && distance <= _far + 4 && visible)
             {
                 _attackTicks = _cooldown;
                 _Shoot(_target, distance);

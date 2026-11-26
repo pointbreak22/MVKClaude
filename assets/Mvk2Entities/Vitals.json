@@ -12,5 +12,6 @@
     StaminaDelay: 20,
     StaminaRegen: 0.8,
     WeakFactor: 0.5,
-    RespawnDelay: 20
+    RespawnDelay: 20,
+    DropOnDeath: false
 }
