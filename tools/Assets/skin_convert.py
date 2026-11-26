@@ -144,10 +144,10 @@ LAYER_PART = {
 # Второй слой скина: область -> где лежит такая же часть первого слоя
 OVERLAY = [((32, 0, 64, 16), (0, 0)), ((16, 32, 40, 48), (16, 16)), ((40, 32, 56, 48), (40, 16)),
            ((48, 48, 64, 64), (32, 48)), ((0, 32, 16, 48), (0, 16)), ((0, 48, 16, 64), (16, 48))]
-HOOD_FROM, HOOD_TO, HOOD_UV = [-7, 46.5, -6.5], [7, 60.5, 7.5], [48, 220]
+HOOD_FROM, HOOD_TO, HOOD_UV = [-7, 44.5, -6.5], [7, 60.5, 7.5], [48, 220]
 # Грани капюшона по свободным местам текстуры слоя (место 48,220 занимает рюкзак): развёртка по граням
-HOOD_FACES = {"north": [64, 128, 78, 142], "south": [78, 128, 92, 142], "east": [92, 128, 106, 142],
-              "west": [106, 128, 120, 142], "up": [118, 224, 104, 210], "down": [118, 226, 104, 240]}
+HOOD_FACES = {"north": [64, 128, 78, 144], "south": [78, 128, 92, 144], "east": [92, 128, 106, 144],
+              "west": [106, 128, 120, 144], "up": [118, 224, 104, 210], "down": [118, 226, 104, 240]}
 # Слот лица: маска — пластина на всё лицо, очки — полоса на уровне глаз (группа, от, до, смещение развёртки)
 FACE_CUBES = [("L-MaskU", [-7, 47, -7], [7, 60, -6], [0, 128]),
               ("L-GlassesU", [-7, 53, -7.5], [7, 56, -6.5], [32, 128])]
@@ -211,7 +211,7 @@ def ensure_hood(d):
 
 BLACK, DARK, GREY, GREEN = (26, 26, 28, 255), (58, 58, 62, 255), (112, 112, 118, 255), (40, 235, 115, 255)
 # Крипер 6x6 (1 — зелёный) для задней стенки рюкзака
-CREEPER = ["110011", "110011", "001100", "011110", "011110", "010010"]
+CREEPER = ["00000000", "01100110", "01100110", "00011000", "00111100", "00111100", "00100100", "00000000"]
 
 
 def face_pixels(uv):
@@ -246,10 +246,10 @@ def paint_backpack(pl, W, H, elements, cube_group):
                     if face == "up":
                         c = GREEN if edge else GREY
                     elif face == "south":
-                        if abs(s - .5) * w < 1 and not edge:
+                        if abs(s - .5) * w < 1 and not edge and q * h > 10:
                             c = GREEN
-                        cx, cy = int((s - .5) * w + 3), int(q * h - 2)
-                        if 0 <= cx < 6 and 0 <= cy < 6 and CREEPER[cy][cx] == "1":
+                        cx, cy = int((s - .5) * w + 4), int(q * h - 2)
+                        if 0 <= cx < 8 and 0 <= cy < 8 and CREEPER[cy][cx] == "1":
                             c = GREEN
                     elif face in ("east", "west") and abs(q - .45) * h < 1 and not edge:
                         c = DARK
@@ -274,6 +274,7 @@ def main():
     for e in d["elements"]:
         if e.get("uv_offset") == HOOD_UV:
             e["box_uv"] = False
+            e["from"], e["to"] = HOOD_FROM, HOOD_TO
             for face, uv in HOOD_FACES.items():
                 e["faces"][face]["uv"] = uv
     for name, f_, t_, uv in FACE_CUBES:
@@ -314,6 +315,13 @@ def main():
         region = skin.crop((x1, y1, x2, y2))
         full.alpha_composite(region, (bx, by))
         over.paste(region, (bx, by))
+    hood_back = full.copy()
+    hb = hood_back.load()
+    for y in range(16):
+        for x in range(32):
+            r, g, b_, a_ = hb[x, y]
+            if r > 140 and g > 90 and b_ < 140 and r > b_ + 40:
+                hb[x, y] = (26, 26, 28, 255)
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     pl = layer.load()
     for uid, e in elements.items():
@@ -321,7 +329,14 @@ def main():
         if part is None or "Armor" in cube_group.get(uid, ""):
             continue
         hood = cube_group[uid] == "L-HoodU"
-        paint(pl, W, H, (over if hood else full).load(), e, part, boxes, True)
+        if hood:
+            # Капюшон: спереди только второй слой (лицо открыто), с боков и сзади — сплошной (второй слой поверх
+            # первого, кожа шеи под капюшоном закрашена тёмным), чтобы не было просвета у шеи
+            paint(pl, W, H, over.load(), {**e, "faces": {"north": e["faces"]["north"]}}, part, boxes, True)
+            rest = {k: v for k, v in e["faces"].items() if k != "north"}
+            paint(pl, W, H, hood_back.load(), {**e, "faces": rest}, part, boxes, True)
+            continue
+        paint(pl, W, H, full.load(), e, part, boxes, True)
     # Слот лица: маска — лицо первого слоя (на скине пользователя это маска), очки — второй слой на уровне глаз;
     # только передняя грань, остальные прозрачны
     face_names = {n for n, _, _, _ in FACE_CUBES}

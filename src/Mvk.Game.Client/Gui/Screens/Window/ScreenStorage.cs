@@ -314,6 +314,26 @@ namespace Mvk.Game.Client.Gui.Screens
         }
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Фон окна и ячейка слота лица: копия ячейки левой колонки одежды из той же текстуры под ней
+        /// (текстура оригинала не меняется)
+        /// </summary>
+        protected override void _RenderingAdd()
+        {
+            base._RenderingAdd();
+            float[] bg = Mvk.Engine.Util.RenderFigure.Rectangle(PosX * _si, PosY * _si,
+                (PosX + WidthWindow) * _si, (PosY + HeightWindow) * _si,
+                0, 0, WidthWindow / _sizeBg, HeightWindow / _sizeBg, 1, 1, 1, _transparency);
+            int v = _biasY + 107;
+            float[] cell = Mvk.Engine.Util.RenderFigure.Rectangle((PosX + 11) * _si, (PosY + v + 37) * _si,
+                (PosX + 50) * _si, (PosY + v + 75) * _si,
+                11 / _sizeBg, v / _sizeBg, 50 / _sizeBg, (v + 38) / _sizeBg, 1, 1, 1, _transparency);
+            float[] all = new float[bg.Length + cell.Length];
+            bg.CopyTo(all, 0);
+            cell.CopyTo(all, bg.Length);
+            _meshBg.Reload(all);
+        }
+
+        /// <summary>
         /// Дополнительная прорисовка не контролов
         /// </summary>
         protected override void _DrawAdd()
