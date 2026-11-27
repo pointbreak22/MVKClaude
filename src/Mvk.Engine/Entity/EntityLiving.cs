@@ -380,6 +380,16 @@ namespace Mvk.Engine.Entity
         public void SetSneaking(bool sneaking) => SetFlag(1, sneaking);
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Игрок со скином пользователя (свободный флаг 2 метаданных, расходится всем клиентам)
+        /// </summary>
+        public bool IsUserSkin() => GetFlag(2);
+
+        /// <summary>
+        /// [ПОВЕДЕНИЕ] Задать скин пользователя
+        /// </summary>
+        public void SetUserSkin(bool userSkin) => SetFlag(2, userSkin);
+
+        /// <summary>
         /// Ускорение
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

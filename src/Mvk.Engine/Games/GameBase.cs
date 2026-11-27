@@ -229,6 +229,8 @@ namespace Mvk.Engine.Games
 
             // Отправим обзор 
             Player.SetOverviewChunk(Options.OverviewChunk, false);
+            // [ПОВЕДЕНИЕ] Выбор скина (и обзор) — серверу, чтобы другие игроки видели скин
+            Player.SendPlayerSetting();
             // Запущена игра
             StartedGame();
 

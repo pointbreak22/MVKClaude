@@ -201,6 +201,7 @@ namespace Mvk.Engine.Gui.Screens
             Options.Shadow = _checkBoxShadow.Checked;
             Options.BlockPlacementPreview = _checkBoxBlockPlacementPreview.Checked;
             Options.PlayerSkin = _checkBoxPlayerSkin.Checked;
+            if (window.Game != null && window.Game.Player != null) window.Game.Player.SendPlayerSetting();
             window.OptionsSave();
             if (isFullScreen)
             {

@@ -148,9 +148,21 @@ HOOD_FROM, HOOD_TO, HOOD_UV = [-7, 44.5, -6.5], [7, 60.5, 7.5], [48, 220]
 # Грани капюшона по свободным местам текстуры слоя (место 48,220 занимает рюкзак): развёртка по граням
 HOOD_FACES = {"north": [64, 128, 78, 144], "south": [78, 128, 92, 144], "east": [92, 128, 106, 144],
               "west": [106, 128, 120, 144], "up": [118, 224, 104, 210], "down": [118, 226, 104, 240]}
-# Слот лица: маска — пластина на всё лицо, очки — полоса на уровне глаз (группа, от, до, смещение развёртки)
-FACE_CUBES = [("L-MaskU", [-7, 47, -7], [7, 60, -6], [0, 128]),
-              ("L-GlassesU", [-7, 53, -7.5], [7, 56, -6.5], [32, 128])]
+# Слот лица (группа, от, до, смещение развёртки для первого создания, грани по свободным местам текстуры слоя).
+# Голова (-6.5, 47, -6)..(6.5, 60, 7), один пиксель скина — 13/8 = 1.625. Маска — тонкая пластина вплотную к лицу
+# (под передней рамкой капюшона, которая на -6.5). Очки — зелёные стёкла второго слоя скина на рядах 2–3 головы
+# (y 53.5..56.75), тонкая пластина вплотную к лицу; бока и затылок второго слоя скина чёрные (это капюшон),
+# поэтому у очков только передняя грань.
+_NONE = [126, 170, 127, 171]
+# Нос маски: у модели есть куб носа (-1.5, 52, -8)..(1.5, 54, -6), он выступал сквозь пластину маски —
+# маска закрывает его своим носом чуть больше (второй куб группы L-MaskU)
+MASK_NOSE = ([-1.75, 51.75, -8.25], [1.75, 54.25, -6.25],
+             {"north": [108, 170, 112, 173], "east": [112, 170, 114, 173], "west": [114, 170, 116, 173],
+              "up": [116, 170, 120, 172], "down": [120, 170, 124, 172], "south": _NONE})
+FACE_CUBES = [("L-MaskU", [-6.5, 47, -6.25], [6.5, 60, -6], [0, 128],
+               {"north": [1, 129, 14, 142], "south": _NONE, "east": _NONE, "west": _NONE, "up": _NONE, "down": _NONE}),
+              ("L-GlassesU", [-6.5, 53.5, -6.3], [6.5, 56.75, -6], [32, 128],
+               {"north": [56, 170, 69, 172], "south": _NONE, "east": _NONE, "west": _NONE, "up": _NONE, "down": _NONE})]
 
 
 def ensure_group(d, name, f_, t_, uv, parent="_Hat"):
@@ -179,6 +191,27 @@ def ensure_group(d, name, f_, t_, uv, parent="_Hat"):
     group = copy.deepcopy({k: v for k, v in lhat.items() if k != "children"})
     group.update({"name": name, "uuid": str(uuid.uuid4()), "children": [cube["uuid"]], "visibility": True})
     hat["children"].append(group)
+
+
+def ensure_mask_nose(d):
+    """Второй куб группы маски — нос (если его ещё нет)"""
+    def find(nodes, n_):
+        for n in nodes:
+            if isinstance(n, dict):
+                if n["name"] == n_:
+                    return n
+                r = find(n.get("children", []), n_)
+                if r:
+                    return r
+        return None
+    group = find(d["outliner"], "L-MaskU")
+    if len(group["children"]) > 1:
+        return group["children"][1]
+    cube = copy.deepcopy([e for e in d["elements"] if e["uuid"] == group["children"][0]][0])
+    cube.update({"uuid": str(uuid.uuid4()), "box_uv": False})
+    d["elements"].append(cube)
+    group["children"].append(cube["uuid"])
+    return cube["uuid"]
 
 
 def ensure_hood(d):
@@ -277,9 +310,11 @@ def main():
             e["from"], e["to"] = HOOD_FROM, HOOD_TO
             for face, uv in HOOD_FACES.items():
                 e["faces"][face]["uv"] = uv
-    for name, f_, t_, uv in FACE_CUBES:
+    for name, f_, t_, uv, _ in FACE_CUBES:
         ensure_group(d, name, f_, t_, uv)
+    nose_uid = ensure_mask_nose(d)
     elements = {e["uuid"]: e for e in d["elements"]}
+    face_cubes = {n: (f_, t_, faces) for n, f_, t_, _, faces in FACE_CUBES}
     cube_bone, cube_group = {}, {}
 
     def walk(nodes, bone, group):
@@ -291,6 +326,13 @@ def main():
                 name = n["name"]
                 walk(n.get("children", []), group if name.startswith(("L-", "_")) else name, name)
     walk(d["outliner"], "", "")
+    for uid, e in elements.items():
+        if cube_group.get(uid) in face_cubes:
+            f_, t_, faces = MASK_NOSE if uid == nose_uid else face_cubes[cube_group[uid]]
+            e["box_uv"] = False
+            e["from"], e["to"] = f_, t_
+            for face, uv in faces.items():
+                e["faces"][face]["uv"] = uv
     by_name = {e["name"]: e for e in d["elements"] if not e["name"].startswith("L-")}
     boxes = {}
     for part, names in PART_CUBES.items():
@@ -315,6 +357,14 @@ def main():
         region = skin.crop((x1, y1, x2, y2))
         full.alpha_composite(region, (bx, by))
         over.paste(region, (bx, by))
+    # Перед капюшона — второй слой без зелёных стёкол (стёкла — отдельный предмет «очки»)
+    hood_front = over.copy()
+    hf = hood_front.load()
+    for y in range(8, 16):
+        for x in range(8, 16):
+            r_, g_, b_, a_ = hf[x, y]
+            if a_ and g_ > 150 and r_ < 120:
+                hf[x, y] = (0, 0, 0, 0)
     hood_back = full.copy()
     hb = hood_back.load()
     for y in range(16):
@@ -332,20 +382,33 @@ def main():
         if hood:
             # Капюшон: спереди только второй слой (лицо открыто), с боков и сзади — сплошной (второй слой поверх
             # первого, кожа шеи под капюшоном закрашена тёмным), чтобы не было просвета у шеи
-            paint(pl, W, H, over.load(), {**e, "faces": {"north": e["faces"]["north"]}}, part, boxes, True)
+            paint(pl, W, H, hood_front.load(), {**e, "faces": {"north": e["faces"]["north"]}}, part, boxes, True)
+            # Ниже подбородка (капюшон ниже головы, пиксели до y 47.5 — граница пикселя развёртки) передняя грань
+            # сплошная тёмная: без просвета шеи и без дыры насквозь (изнутри задняя грань капюшона не рисуется)
+            uv = e["faces"]["north"]["uv"]
+            to_model = axes("north", e["from"], e["to"])
+            for px, py, s, q in face_pixels(uv):
+                if to_model(s, q)[1] < 47.5:
+                    pl[px, py] = BLACK
             rest = {k: v for k, v in e["faces"].items() if k != "north"}
             paint(pl, W, H, hood_back.load(), {**e, "faces": rest}, part, boxes, True)
             continue
         paint(pl, W, H, full.load(), e, part, boxes, True)
-    # Слот лица: маска — лицо первого слоя (на скине пользователя это маска), очки — второй слой на уровне глаз;
-    # только передняя грань, остальные прозрачны
-    face_names = {n for n, _, _, _ in FACE_CUBES}
+    # Слот лица: маска — лицо первого слоя (на скине пользователя это маска), только передняя грань;
+    # очки — зелёные стёкла второго слоя на рядах глаз
     for uid, e in elements.items():
         name = cube_group.get(uid, "")
-        if name not in face_names:
-            continue
-        front = {"north": e["faces"]["north"]}
-        paint(pl, W, H, (skin if name == "L-MaskU" else over).load(), {**e, "faces": front}, "head", boxes, True)
+        if name == "L-MaskU":
+            paint(pl, W, H, skin.load(), {**e, "faces": {"north": e["faces"]["north"]}}, "head", boxes, True)
+            if uid == nose_uid:
+                # Бока, верх и низ носа — цветом середины его передней грани
+                n_ = e["faces"]["north"]["uv"]
+                c = pl[(n_[0] + n_[2]) // 2, (n_[1] + n_[3]) // 2]
+                for face in ("east", "west", "up", "down"):
+                    for px, py, _, _ in face_pixels(e["faces"][face]["uv"]):
+                        pl[px, py] = c
+        elif name == "L-GlassesU":
+            paint(pl, W, H, over.load(), {**e, "faces": {"north": e["faces"]["north"]}}, "head", boxes, True)
     paint_backpack(pl, W, H, elements, cube_group)
     put_texture(d, "LayerUserSkin.png", layer, "LayerBase.png")
     open(MODEL, "w", encoding="utf-8", newline="\n").write(json.dumps(d, ensure_ascii=False, separators=(",", ":")))

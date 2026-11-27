@@ -11,11 +11,13 @@ t = t.replace("_resourcesEntity.GetDepthTextureAndSmall(),", "_DepthTexture(),")
 t = rep(t, """        private readonly TriggerAnimation _trigger = new TriggerAnimation();""", """        private readonly TriggerAnimation _trigger = new TriggerAnimation();
 
         /// <summary>
-        /// [ПОВЕДЕНИЕ] Текстура сущности: свой игрок со скином пользователя (Options.PlayerSkin), иначе из json
+        /// [ПОВЕДЕНИЕ] Текстура сущности: игрок со скином пользователя — свой по Options.PlayerSkin, другие по флагу
+        /// метаданных IsUserSkin (передаётся сервером), иначе из json
         /// </summary>
         private int _DepthTexture()
         {
-            if (Options.PlayerSkin && Entity.Id == _entities.Player.Id)
+            bool own = Entity.Id == _entities.Player.Id;
+            if (own ? Options.PlayerSkin : Entity is EntityLiving living && living.IsUserSkin())
             {
                 int depth = _resourcesEntity.GetDepthTextureByName("UserSkin");
                 if (depth >= 0) return depth;
@@ -39,7 +41,8 @@ t = rep(t, """            _checkBoxBlockPlacementPreview.SetChecked(Options.Bloc
             _checkBoxPlayerSkin.SetChecked(Options.PlayerSkin);
 """, rel, 1)
 t = rep(t, """            Options.BlockPlacementPreview = _checkBoxBlockPlacementPreview.Checked;""", """            Options.BlockPlacementPreview = _checkBoxBlockPlacementPreview.Checked;
-            Options.PlayerSkin = _checkBoxPlayerSkin.Checked;""", rel, 1)
+            Options.PlayerSkin = _checkBoxPlayerSkin.Checked;
+            if (window.Game != null && window.Game.Player != null) window.Game.Player.SendPlayerSetting();""", rel, 1)
 t = rep(t, """            _AddControls(_checkBoxBlockPlacementPreview);""", """            _AddControls(_checkBoxBlockPlacementPreview);
             _AddControls(_checkBoxPlayerSkin);""", rel, 1)
 t = rep(t, """            _checkBoxBlockPlacementPreview.SetPosition(PosX + 274, PosY + 62);""", """            _checkBoxBlockPlacementPreview.SetPosition(PosX + 274, PosY + 62);

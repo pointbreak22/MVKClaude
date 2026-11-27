@@ -445,6 +445,11 @@ namespace Mvk.Engine.Entity.Player
         /// </summary>
         public static float DebugOrbitYaw;
 
+        /// <summary>
+        /// Отладка: расстояние камеры третьего лица до игрока, блоков (8 — как в игре)
+        /// </summary>
+        public static float DebugOrbitDistance = 8;
+
         private void _UpdateMatrixCamera()
         {
             Vector3 front = Glm.Ray(RotationFrameYaw, RotationFramePitch);
@@ -460,12 +465,12 @@ namespace Mvk.Engine.Entity.Player
             if (ViewCamera == EnumViewCamera.Back)
             {
                 // вид сзади
-                pos = _GetPositionCamera(pos, front * -1f, 8); // 8
+                pos = _GetPositionCamera(pos, front * -1f, DebugOrbitDistance); // 8
             }
             else if (ViewCamera == EnumViewCamera.Front)
             {
                 // вид спереди
-                pos = _GetPositionCamera(pos, front, 8); // 8
+                pos = _GetPositionCamera(pos, front, DebugOrbitDistance); // 8
                 front *= -1f;
             }
 
@@ -1171,6 +1176,12 @@ namespace Mvk.Engine.Entity.Player
         protected virtual string _ToBlockInfo(ChunkBase chunk, Vector3i pos) => "";
 
         /// <summary>
+        /// [ПОВЕДЕНИЕ] Отправить серверу настройки игрока: обзор и выбор скина
+        /// </summary>
+        public void SendPlayerSetting()
+            => _game.TrancivePacket(new PacketC15PlayerSetting(OverviewChunk, Options.PlayerSkin));
+
+        /// <summary>
         /// Задать обзор чанков у клиента
         /// </summary>
         public void SetOverviewChunk(byte overviewChunk, bool isSaveOptions)
@@ -1186,7 +1197,7 @@ namespace Mvk.Engine.Entity.Player
                 // Меняем в рендере мира
                 _game.Host.OnModifyOverviewChunk();
                 // Отправим обзор 
-                _game.TrancivePacket(new PacketC15PlayerSetting(OverviewChunk));
+                SendPlayerSetting();
                 if (isSaveOptions)
                 {
                     Options.OverviewChunk = OverviewChunk;

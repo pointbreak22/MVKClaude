@@ -81,11 +81,13 @@ namespace Mvk.Engine.Entity.Render
         private bool _handPosePrev;
 
         /// <summary>
-        /// [ПОВЕДЕНИЕ] Текстура сущности: свой игрок со скином пользователя (Options.PlayerSkin), иначе из json
+        /// [ПОВЕДЕНИЕ] Текстура сущности: игрок со скином пользователя — свой по Options.PlayerSkin, другие по флагу
+        /// метаданных IsUserSkin (передаётся сервером), иначе из json
         /// </summary>
         private int _DepthTexture()
         {
-            if (Options.PlayerSkin && Entity.Id == _entities.Player.Id)
+            bool own = Entity.Id == _entities.Player.Id;
+            if (own ? Options.PlayerSkin : Entity is EntityLiving living && living.IsUserSkin())
             {
                 int depth = _resourcesEntity.GetDepthTextureByName("UserSkin");
                 if (depth >= 0) return depth;

@@ -100,6 +100,9 @@ namespace Mvk.Desktop
                 // Облёт камеры третьего лица вокруг игрока, градусы (снимки предметов в руках сбоку)
                 else if (args[i] == "--orbit" && i + 1 < args.Length)
                     Mvk.Engine.Entity.Player.PlayerClientOwner.DebugOrbitYaw = float.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture) * System.MathF.PI / 180f;
+                // Расстояние камеры третьего лица, блоков (крупные снимки модели)
+                else if (args[i] == "--orbit-dist" && i + 1 < args.Length)
+                    Mvk.Engine.Entity.Player.PlayerClientOwner.DebugOrbitDistance = float.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture);
                 else if (args[i] == "--backend" && i + 1 < args.Length) GraphicsHost.Vulkan = args[++i] == "vulkan";
                 else if (args[i] == "--gen" && i + 1 < args.Length)
                 {

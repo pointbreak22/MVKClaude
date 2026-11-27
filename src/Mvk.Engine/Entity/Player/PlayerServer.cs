@@ -937,6 +937,8 @@ namespace Mvk.Engine.Entity.Player
         /// </summary>
         public void PacketPlayerSetting(PacketC15PlayerSetting packet)
         {
+            SetUserSkin(packet.UserSkin);
+            if (packet.OverviewChunk == OverviewChunk) return;
             SetOverviewChunk(packet.OverviewChunk);
             // Изменён обзор корректировка трекеров сущностей
             _flagOverviewChunkChanged = true;
